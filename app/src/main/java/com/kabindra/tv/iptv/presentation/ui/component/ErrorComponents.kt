@@ -1,0 +1,40 @@
+package com.kabindra.tv.iptv.presentation.ui.component
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.rememberLottieComposition
+import com.kabindra.tv.iptv.R
+import network.chaintech.sdpcomposemultiplatform.sdp
+
+@Composable
+fun ShowEmpty(
+    modifier: Modifier = Modifier
+        .width(250.sdp)
+        .height(250.sdp)
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        val composition by rememberLottieComposition(
+            LottieCompositionSpec.RawRes(
+                R.raw.empty
+            )
+        )
+
+        ImageHandlerLottie(
+            modifier = modifier,
+            image = composition,
+            contentDescription = ""
+        )
+    }
+}
