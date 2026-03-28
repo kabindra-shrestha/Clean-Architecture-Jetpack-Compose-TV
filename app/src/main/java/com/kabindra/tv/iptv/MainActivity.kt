@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             JetpackComposeTVCleanArchitectureTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    App(modifier = Modifier.padding(2.sdp))
+                    App(modifier = Modifier.padding(1.sdp))
                 }
             }
         }
