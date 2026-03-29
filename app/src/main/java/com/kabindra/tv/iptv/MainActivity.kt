@@ -14,10 +14,10 @@ import network.chaintech.sdpcomposemultiplatform.sdp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-
         installSplashScreen()
+        super.onCreate(savedInstanceState)
+        actionBar?.hide()
+        enableEdgeToEdge()
 
         setContent {
             JetpackComposeTVCleanArchitectureTheme {

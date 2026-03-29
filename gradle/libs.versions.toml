@@ -17,6 +17,7 @@ materialIconsExtended = "1.7.8"
 androidx-navigation3 = "1.0.1"
 androidx-startup-runtime = "1.2.0"
 androidx-core-splashscreen = "1.2.0"
+androidx-paging = "3.4.1"
 kotlinx-serialization-core = "1.10.0"
 koin-bom = "4.2.0"
 ktor = "3.4.1"
@@ -44,6 +45,8 @@ androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runt
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "androidx-navigation3" }
 androidx-startup-runtime = { group = "androidx.startup", name = "startup-runtime", version.ref = "androidx-startup-runtime" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-core-splashscreen" }
+androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "androidx-paging" }
+androidx-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "androidx-paging" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization-core" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-core" }
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }

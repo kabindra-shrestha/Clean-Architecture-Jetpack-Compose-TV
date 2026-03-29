@@ -8,13 +8,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Card
 import androidx.tv.material3.CardDefaults
 import androidx.tv.material3.ClassicCard
@@ -22,6 +22,7 @@ import androidx.tv.material3.CompactCard
 import androidx.tv.material3.StandardCardContainer
 import androidx.tv.material3.WideCardContainer
 import androidx.tv.material3.WideClassicCard
+import network.chaintech.sdpcomposemultiplatform.sdp
 
 // ─────────────────────────────────────────────
 // Enums
@@ -45,6 +46,15 @@ data class CardImageConfig(
     val placeholder: ImageVector? = null,
     val tint: Color? = null
 )
+
+private object CardComponentTokens {
+    const val defaultWidth = 108
+    const val imageWidth = 108
+    const val compactPadding = 5
+    const val compactTopPadding = 2
+    const val widePadding = 10
+    const val wideTopPadding = 2
+}
 
 // ─────────────────────────────────────────────
 // CardComponent
@@ -77,8 +87,8 @@ fun CardComponent(
     subtitle: String? = null,
     description: String? = null,
     imageConfig: CardImageConfig = CardImageConfig(),
-    width: Dp = 180.dp,
-    imageWidth: Dp = 180.dp,
+    width: Dp = CardComponentTokens.defaultWidth.sdp,
+    imageWidth: Dp = CardComponentTokens.imageWidth.sdp,
     aspectRatio: Float = CardDefaults.HorizontalImageAspectRatio,
     titleColor: Color? = null,
     subtitleColor: Color? = null,
@@ -90,6 +100,8 @@ fun CardComponent(
     enabled: Boolean = true,
     onClick: () -> Unit = {}
 ) {
+    val cardOnClick = if (enabled) onClick else ({})
+
     when (type) {
         CardType.Standard -> StandardCard(
             modifier = modifier,
@@ -104,7 +116,7 @@ fun CardComponent(
             subtitleFontWeight = subtitleFontWeight,
             containerColor = containerColor,
             enabled = enabled,
-            onClick = onClick
+            onClick = cardOnClick
         )
 
         CardType.Classic -> ClassicCard(
@@ -119,7 +131,7 @@ fun CardComponent(
             titleFontWeight = titleFontWeight,
             subtitleFontWeight = subtitleFontWeight,
             enabled = enabled,
-            onClick = onClick
+            onClick = cardOnClick
         )
 
         CardType.Compact -> CompactCard(
@@ -134,7 +146,7 @@ fun CardComponent(
             titleFontWeight = titleFontWeight,
             subtitleFontWeight = subtitleFontWeight,
             enabled = enabled,
-            onClick = onClick
+            onClick = cardOnClick
         )
 
         CardType.WideStandard -> WideStandardCard(
@@ -150,7 +162,7 @@ fun CardComponent(
             subtitleFontWeight = subtitleFontWeight,
             containerColor = containerColor,
             enabled = enabled,
-            onClick = onClick
+            onClick = cardOnClick
         )
 
         CardType.WideClassic -> WideClassicCard(
@@ -168,7 +180,7 @@ fun CardComponent(
             subtitleFontWeight = subtitleFontWeight,
             descriptionFontWeight = descriptionFontWeight,
             enabled = enabled,
-            onClick = onClick
+            onClick = cardOnClick
         )
     }
 }
@@ -194,7 +206,9 @@ private fun StandardCard(
     onClick: () -> Unit
 ) {
     StandardCardContainer(
-        modifier = modifier.width(width),
+        modifier = modifier
+            .width(width)
+            .alpha(if (enabled) 1f else 0.6f),
         imageCard = { interactionSource ->
             Card(
                 onClick = onClick,
@@ -218,7 +232,7 @@ private fun StandardCard(
                 color = titleColor,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = CardComponentTokens.compactPadding.sdp)
             )
         },
         subtitle = {
@@ -254,7 +268,9 @@ private fun ClassicCard(
 ) {
     ClassicCard(
         onClick = onClick,
-        modifier = modifier.width(width),
+        modifier = modifier
+            .width(width)
+            .alpha(if (enabled) 1f else 0.6f),
         image = {
             CardImage(
                 config = imageConfig,
@@ -272,7 +288,11 @@ private fun ClassicCard(
                 color = titleColor,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp)
+                modifier = Modifier.padding(
+                    top = CardComponentTokens.compactPadding.sdp,
+                    start = CardComponentTokens.compactPadding.sdp,
+                    end = CardComponentTokens.compactPadding.sdp
+                )
             )
         },
         subtitle = {
@@ -286,7 +306,10 @@ private fun ClassicCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(
-                        top = 4.dp, start = 8.dp, end = 8.dp, bottom = 8.dp
+                        top = CardComponentTokens.compactTopPadding.sdp,
+                        start = CardComponentTokens.compactPadding.sdp,
+                        end = CardComponentTokens.compactPadding.sdp,
+                        bottom = CardComponentTokens.compactPadding.sdp
                     )
                 )
             }
@@ -311,7 +334,9 @@ private fun CompactCard(
 ) {
     CompactCard(
         onClick = onClick,
-        modifier = modifier.width(width),
+        modifier = modifier
+            .width(width)
+            .alpha(if (enabled) 1f else 0.6f),
         image = {
             CardImage(
                 config = imageConfig,
@@ -329,7 +354,11 @@ private fun CompactCard(
                 color = titleColor,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp)
+                modifier = Modifier.padding(
+                    top = CardComponentTokens.compactPadding.sdp,
+                    start = CardComponentTokens.compactPadding.sdp,
+                    end = CardComponentTokens.compactPadding.sdp
+                )
             )
         },
         subtitle = {
@@ -343,7 +372,10 @@ private fun CompactCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(
-                        top = 4.dp, start = 8.dp, end = 8.dp, bottom = 8.dp
+                        top = CardComponentTokens.compactTopPadding.sdp,
+                        start = CardComponentTokens.compactPadding.sdp,
+                        end = CardComponentTokens.compactPadding.sdp,
+                        bottom = CardComponentTokens.compactPadding.sdp
                     )
                 )
             }
@@ -368,7 +400,7 @@ private fun WideStandardCard(
     onClick: () -> Unit
 ) {
     WideCardContainer(
-        modifier = modifier,
+        modifier = modifier.alpha(if (enabled) 1f else 0.6f),
         imageCard = { interactionSource ->
             Card(
                 onClick = onClick,
@@ -392,7 +424,10 @@ private fun WideStandardCard(
                 color = titleColor,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(start = 16.dp, top = 16.dp)
+                modifier = Modifier.padding(
+                    start = CardComponentTokens.widePadding.sdp,
+                    top = CardComponentTokens.widePadding.sdp
+                )
             )
         },
         subtitle = {
@@ -405,7 +440,10 @@ private fun WideStandardCard(
                     color = subtitleColor,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                    modifier = Modifier.padding(
+                        start = CardComponentTokens.widePadding.sdp,
+                        top = CardComponentTokens.wideTopPadding.sdp
+                    )
                 )
             }
         }
@@ -432,7 +470,7 @@ private fun WideClassicCard(
 ) {
     WideClassicCard(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.alpha(if (enabled) 1f else 0.6f),
         image = {
             CardImage(
                 config = imageConfig,
@@ -450,7 +488,11 @@ private fun WideClassicCard(
                 color = titleColor,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp)
+                modifier = Modifier.padding(
+                    top = CardComponentTokens.compactPadding.sdp,
+                    start = CardComponentTokens.compactPadding.sdp,
+                    end = CardComponentTokens.compactPadding.sdp
+                )
             )
         },
         subtitle = {
@@ -464,7 +506,10 @@ private fun WideClassicCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(
-                        top = 4.dp, start = 8.dp, end = 8.dp, bottom = 8.dp
+                        top = CardComponentTokens.compactTopPadding.sdp,
+                        start = CardComponentTokens.compactPadding.sdp,
+                        end = CardComponentTokens.compactPadding.sdp,
+                        bottom = CardComponentTokens.compactPadding.sdp
                     )
                 )
             }
@@ -480,7 +525,10 @@ private fun WideClassicCard(
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(
-                        top = 4.dp, start = 8.dp, end = 8.dp, bottom = 8.dp
+                        top = CardComponentTokens.compactTopPadding.sdp,
+                        start = CardComponentTokens.compactPadding.sdp,
+                        end = CardComponentTokens.compactPadding.sdp,
+                        bottom = CardComponentTokens.compactPadding.sdp
                     )
                 )
             }
