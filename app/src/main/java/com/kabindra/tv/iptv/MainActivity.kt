@@ -10,6 +10,9 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        actionBar?.hide()
+
         enableEdgeToEdge()
 
         installSplashScreen()
