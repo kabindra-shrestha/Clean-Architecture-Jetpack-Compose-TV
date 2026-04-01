@@ -8,8 +8,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.tv.material3.DenseListItem
-import androidx.tv.material3.ListItem as TvListItem
 import network.chaintech.sdpcomposemultiplatform.sdp
+import androidx.tv.material3.ListItem as TvListItem
 
 enum class ListItemType { Default, Dense }
 

@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Jetpack Compose TV Clean Architecture"
+rootProject.name = "JetpackComposeTVCleanArchitecture"
 include(":app")
  

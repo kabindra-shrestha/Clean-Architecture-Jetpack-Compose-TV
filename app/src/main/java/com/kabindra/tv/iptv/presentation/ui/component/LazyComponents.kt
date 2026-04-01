@@ -11,13 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
@@ -41,7 +39,6 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
@@ -696,12 +693,12 @@ private fun ObserveScrollState(
             when (layout) {
                 BaseLazyLayout.List -> {
                     state.listState.firstVisibleItemIndex > 0 ||
-                        state.listState.firstVisibleItemScrollOffset > 0
+                            state.listState.firstVisibleItemScrollOffset > 0
                 }
 
                 BaseLazyLayout.Grid -> {
                     state.gridState.firstVisibleItemIndex > 0 ||
-                        state.gridState.firstVisibleItemScrollOffset > 0
+                            state.gridState.firstVisibleItemScrollOffset > 0
                 }
             }
         }
@@ -735,8 +732,8 @@ private fun ObserveEndReached(
                 totalItemsCount,
                 lastVisibleItemIndex,
                 totalItemsCount > 0 &&
-                    lastVisibleItemIndex >= (totalItemsCount - threshold) &&
-                    !isLoading
+                        lastVisibleItemIndex >= (totalItemsCount - threshold) &&
+                        !isLoading
             )
         }
             .distinctUntilChanged()
@@ -822,13 +819,14 @@ private fun rememberBaseLazyItemModifier(
     if (tvSupport == null) return Modifier
 
     val coroutineScope = rememberCoroutineScope()
-    val focusRequester = remember(index, tvSupport.fallbackRequester, tvConfig.initialFocusedIndex) {
-        if (index == tvConfig.initialFocusedIndex) {
-            tvSupport.fallbackRequester
-        } else {
-            FocusRequester()
+    val focusRequester =
+        remember(index, tvSupport.fallbackRequester, tvConfig.initialFocusedIndex) {
+            if (index == tvConfig.initialFocusedIndex) {
+                tvSupport.fallbackRequester
+            } else {
+                FocusRequester()
+            }
         }
-    }
 
     DisposableEffect(index, focusRequester, tvSupport.focusRequesters) {
         tvSupport.focusRequesters[index] = focusRequester
