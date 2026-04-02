@@ -40,6 +40,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":player"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(platform(libs.androidx.compose.bom))

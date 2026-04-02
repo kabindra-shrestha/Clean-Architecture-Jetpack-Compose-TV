@@ -24,4 +24,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "JetpackComposeTVCleanArchitecture"
 include(":app")
+include(":player")
  

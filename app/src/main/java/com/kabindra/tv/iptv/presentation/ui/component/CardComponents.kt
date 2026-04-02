@@ -541,7 +541,7 @@ private fun WideClassicCard(
 // ─────────────────────────────────────────────
 
 @Composable
-private fun CardImage(
+fun CardImage(
     config: CardImageConfig,
     modifier: Modifier
 ) {

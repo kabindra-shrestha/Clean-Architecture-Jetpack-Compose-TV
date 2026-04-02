@@ -47,6 +47,8 @@ private object DashboardScreenTokens {
 fun DashboardScreen(
     innerPadding: PaddingValues,
     onNavigateLogin: () -> Unit,
+    onNavigateLiveTv: () -> Unit,
+    onNavigateMovies: () -> Unit,
 ) {
     val menuItems = remember { DashboardMenuType.entries.toList() }
     val lazyState = rememberBaseLazyState()
@@ -118,6 +120,11 @@ fun DashboardScreen(
                 },
                 onClick = {
                     selectedMenu = item
+                    when (item) {
+                        DashboardMenuType.LiveTv -> onNavigateLiveTv()
+                        DashboardMenuType.Movies -> onNavigateMovies()
+                        DashboardMenuType.Profile -> Unit
+                    }
                 }
             )
         }
