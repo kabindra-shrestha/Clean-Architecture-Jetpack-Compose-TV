@@ -17,13 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.tv.material3.MaterialTheme
 import com.kabindra.tv.iptv.presentation.ui.component.AppIcon
 import com.kabindra.tv.iptv.presentation.ui.component.LoadingIndicator
 import com.kabindra.tv.iptv.presentation.ui.component.TextComponent
-import com.kabindra.tv.iptv.presentation.viewmodel.splash.SplashEvent
-import com.kabindra.tv.iptv.presentation.viewmodel.splash.SplashViewModel
 import com.kabindra.tv.iptv.utils.Connectivity
 import com.kabindra.tv.iptv.utils.error.GlobalErrorDialog
+import com.kabindra.tv.iptv.utils.extensions.mainBackground
 import com.kabindra.tv.iptv.utils.getPlatform
 import com.kabindra.tv.iptv.utils.success.GlobalSuccessDialog
 import network.chaintech.sdpcomposemultiplatform.sdp
@@ -62,7 +62,12 @@ fun SplashScreen(
         return
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .mainBackground()
+            .padding(innerPadding)
+    ) {
         AppIcon(
             modifier = Modifier
                 .width(120.sdp)
@@ -70,16 +75,13 @@ fun SplashScreen(
                 .align(Alignment.Center)
         )
 
-        if (splashState.isLoading) {
+        if (!splashState.isLoading) {
             LoadingIndicator(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        start = 12.sdp,
-                        end = 12.sdp
-                    )
                     .align(Alignment.Center)
-                    .offset(y = 90.sdp)
+                    .offset(y = 75.sdp),
+                isCircular = true,
+                useExpressive = true
             )
         }
 
@@ -87,9 +89,10 @@ fun SplashScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .offset(y = (-45).sdp),
+                .offset(y = (-25).sdp),
             text = "Version: ${getPlatform().appVersion}",
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         /*AppBrandIcon(

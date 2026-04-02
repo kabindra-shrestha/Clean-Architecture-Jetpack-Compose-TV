@@ -1,10 +1,10 @@
-package com.kabindra.tv.iptv.presentation.viewmodel.movie
+package com.kabindra.tv.iptv.presentation.ui.screen.movie.player
 
-import com.kabindra.tv.iptv.domain.entity.MovieCategory
+import com.kabindra.tv.iptv.domain.entity.MovieDetail
 import com.kabindra.tv.iptv.utils.constants.ConfirmationType
 import com.kabindra.tv.iptv.utils.constants.ResponseType
 
-data class MovieState(
+data class MoviePlayerState(
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val isError: Boolean = false,
@@ -17,6 +17,6 @@ data class MovieState(
     val errorMessage: String = "",
     val confirmationType: ConfirmationType = ConfirmationType.None,
     val confirmationMessage: String = "",
-    val categories: List<MovieCategory> = emptyList(),
-    val selectedCategoryId: String? = null,
+    val movie: MovieDetail? = null,
+    val currentMovieId: String? = null,
 )

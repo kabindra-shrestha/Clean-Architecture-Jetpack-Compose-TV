@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.tv.material3.CardDefaults
-import androidx.tv.material3.ClassicCard
+import androidx.tv.material3.CompactCard
 import network.chaintech.sdpcomposemultiplatform.sdp
 
 private object PosterCardTokens {
@@ -34,7 +34,7 @@ fun PosterCardComponent(
     onFocused: (() -> Unit)? = null,
     onClick: () -> Unit = {},
 ) {
-    ClassicCard(
+    CompactCard(
         onClick = if (enabled) onClick else ({ }),
         modifier = modifier
             .width(width.sdp)

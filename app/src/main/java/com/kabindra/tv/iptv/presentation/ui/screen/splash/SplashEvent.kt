@@ -1,4 +1,4 @@
-package com.kabindra.tv.iptv.presentation.viewmodel.splash
+package com.kabindra.tv.iptv.presentation.ui.screen.splash
 
 sealed class SplashEvent {
 

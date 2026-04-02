@@ -1,4 +1,4 @@
-package com.kabindra.tv.iptv.presentation.viewmodel.livetv
+package com.kabindra.tv.iptv.presentation.ui.screen.livetv.player
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,11 +12,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class LiveTVViewModel(
+class LiveTVPlayerViewModel(
     private val liveTvUseCase: LiveTVUseCase,
 ) : ViewModel() {
-    private val _state = MutableStateFlow(LiveTVState())
-    val state: StateFlow<LiveTVState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(LiveTVPlayerState())
+    val state: StateFlow<LiveTVPlayerState> = _state.asStateFlow()
 
     init {
         loadContent()

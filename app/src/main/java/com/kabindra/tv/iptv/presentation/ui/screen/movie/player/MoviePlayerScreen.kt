@@ -1,4 +1,4 @@
-package com.kabindra.tv.iptv.presentation.ui.screen.movie
+package com.kabindra.tv.iptv.presentation.ui.screen.movie.player
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -26,16 +26,16 @@ import com.kabindra.tv.iptv.presentation.ui.component.LoadingIndicator
 import com.kabindra.tv.iptv.presentation.ui.component.TextComponent
 import com.kabindra.tv.iptv.presentation.ui.component.TextSize
 import com.kabindra.tv.iptv.presentation.ui.component.TextType
-import com.kabindra.tv.iptv.presentation.viewmodel.movie.MoviePlayerViewModel
+import com.kabindra.tv.iptv.utils.extensions.mainBackground
 import network.chaintech.sdpcomposemultiplatform.sdp
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun MoviePlayerScreen(
-    movieId: String,
-    innerPadding: PaddingValues,
-    onBack: () -> Unit,
     viewModel: MoviePlayerViewModel = koinViewModel(),
+    innerPadding: PaddingValues,
+    movieId: String,
+    onBack: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -48,8 +48,7 @@ fun MoviePlayerScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
-            .padding(innerPadding)
+            .mainBackground()
     ) {
         state.movie?.let { movie ->
             Media3PlayerComponent(
@@ -97,7 +96,7 @@ fun MoviePlayerScreen(
             }
 
             state.errorMessage.isNotBlank() -> {
-                androidx.compose.foundation.layout.Column(
+                Column(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {

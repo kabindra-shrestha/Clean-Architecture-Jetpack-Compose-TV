@@ -1,12 +1,8 @@
 package com.kabindra.tv.iptv.presentation.ui.screen.navigation
 
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -15,11 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
-import com.kabindra.tv.iptv.presentation.ui.screen.livetv.LiveTVPlayerScreen
-import com.kabindra.tv.iptv.presentation.ui.screen.movie.MovieDetailScreen
-import com.kabindra.tv.iptv.presentation.ui.screen.movie.MoviePlayerScreen
-import com.kabindra.tv.iptv.presentation.ui.screen.movie.MovieScreen
-import com.kabindra.tv.iptv.presentation.ui.screen.splash.DashboardScreen
+import com.kabindra.tv.iptv.presentation.ui.screen.dashboard.DashboardScreen
+import com.kabindra.tv.iptv.presentation.ui.screen.livetv.player.LiveTVPlayerScreen
+import com.kabindra.tv.iptv.presentation.ui.screen.movie.content.MovieScreen
+import com.kabindra.tv.iptv.presentation.ui.screen.movie.detail.MovieDetailScreen
+import com.kabindra.tv.iptv.presentation.ui.screen.movie.player.MoviePlayerScreen
 import com.kabindra.tv.iptv.presentation.ui.screen.splash.SplashScreen
 import org.koin.compose.koinInject
 
@@ -44,29 +40,7 @@ fun MainScreen() {
                         }
                     )
                 }
-                entry<DashboardRoute>(
-                    metadata = NavDisplay.transitionSpec {
-                        // Slide new content up, keeping the old content in place underneath
-                        slideInVertically(
-                            initialOffsetY = { it },
-                            animationSpec = tween(1000)
-                        ) togetherWith ExitTransition.KeepUntilTransitionsFinished
-                    } + NavDisplay.popTransitionSpec {
-                        // Slide old content down, revealing the new content in place underneath
-                        EnterTransition.None togetherWith
-                                slideOutVertically(
-                                    targetOffsetY = { it },
-                                    animationSpec = tween(1000)
-                                )
-                    } + NavDisplay.predictivePopTransitionSpec {
-                        // Slide old content down, revealing the new content in place underneath
-                        EnterTransition.None togetherWith
-                                slideOutVertically(
-                                    targetOffsetY = { it },
-                                    animationSpec = tween(1000)
-                                )
-                    }
-                ) {
+                entry<DashboardRoute> {
                     DashboardScreen(
                         innerPadding = innerPadding,
                         onNavigateLiveTV = {

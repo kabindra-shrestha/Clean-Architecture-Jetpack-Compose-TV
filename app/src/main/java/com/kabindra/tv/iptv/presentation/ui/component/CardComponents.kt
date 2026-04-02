@@ -22,6 +22,7 @@ import androidx.tv.material3.CompactCard
 import androidx.tv.material3.StandardCardContainer
 import androidx.tv.material3.WideCardContainer
 import androidx.tv.material3.WideClassicCard
+import com.kabindra.tv.iptv.R
 import network.chaintech.sdpcomposemultiplatform.sdp
 
 // ─────────────────────────────────────────────
@@ -559,7 +560,7 @@ fun CardImage(
         CardImageSource.Resource -> ImageHandlerRes(
             modifier = modifier,
             image = config.resId
-                ?: com.kabindra.tv.iptv.R.drawable.splash_icon,
+                ?: R.drawable.splash_icon,
             contentDescription = config.contentDescription
         )
 

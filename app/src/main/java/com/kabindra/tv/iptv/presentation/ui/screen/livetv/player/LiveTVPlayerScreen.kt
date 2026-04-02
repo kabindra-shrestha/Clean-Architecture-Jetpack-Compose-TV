@@ -1,4 +1,4 @@
-package com.kabindra.tv.iptv.presentation.ui.screen.livetv
+package com.kabindra.tv.iptv.presentation.ui.screen.livetv.player
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -44,7 +44,7 @@ import com.kabindra.tv.iptv.presentation.ui.component.TextSize
 import com.kabindra.tv.iptv.presentation.ui.component.TextType
 import com.kabindra.tv.iptv.presentation.ui.component.TvLazyConfig
 import com.kabindra.tv.iptv.presentation.ui.component.rememberBaseLazyState
-import com.kabindra.tv.iptv.presentation.viewmodel.livetv.LiveTVViewModel
+import com.kabindra.tv.iptv.utils.extensions.mainBackground
 import network.chaintech.sdpcomposemultiplatform.sdp
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -62,9 +62,9 @@ private object LiveTVScreenTokens {
 
 @Composable
 fun LiveTVPlayerScreen(
+    viewModel: LiveTVPlayerViewModel = koinViewModel(),
     innerPadding: PaddingValues,
     onBack: () -> Unit,
-    viewModel: LiveTVViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     val allChannels =
@@ -87,8 +87,7 @@ fun LiveTVPlayerScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
-            .padding(innerPadding)
+            .mainBackground()
     ) {
         if (allChannels.isNotEmpty()) {
             Media3PlayerComponent(

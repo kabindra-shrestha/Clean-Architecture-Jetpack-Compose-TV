@@ -1,4 +1,4 @@
-package com.kabindra.tv.iptv.presentation.viewmodel.splash
+package com.kabindra.tv.iptv.presentation.ui.screen.splash
 
 import com.kabindra.tv.iptv.utils.constants.ConfirmationType
 import com.kabindra.tv.iptv.utils.constants.ResponseType

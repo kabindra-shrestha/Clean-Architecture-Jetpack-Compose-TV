@@ -1,4 +1,4 @@
-package com.kabindra.tv.iptv.presentation.viewmodel.movie
+package com.kabindra.tv.iptv.presentation.ui.screen.movie.player
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,11 +10,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class MovieDetailViewModel(
+class MoviePlayerViewModel(
     private val movieDetailUseCase: MovieDetailUseCase,
 ) : ViewModel() {
-    private val _state = MutableStateFlow(MovieDetailState())
-    val state: StateFlow<MovieDetailState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(MoviePlayerState())
+    val state: StateFlow<MoviePlayerState> = _state.asStateFlow()
 
     fun loadMovie(movieId: String) {
         if (_state.value.currentMovieId == movieId && _state.value.movie != null) return

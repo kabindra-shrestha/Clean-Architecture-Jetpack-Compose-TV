@@ -1,7 +1,5 @@
-package com.kabindra.tv.iptv.presentation.ui.screen.splash
+package com.kabindra.tv.iptv.presentation.ui.screen.dashboard
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,8 +15,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.tv.material3.MaterialTheme
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazy
@@ -32,6 +28,7 @@ import com.kabindra.tv.iptv.presentation.ui.component.TextType
 import com.kabindra.tv.iptv.presentation.ui.component.TvLazyConfig
 import com.kabindra.tv.iptv.presentation.ui.component.rememberBaseLazyState
 import com.kabindra.tv.iptv.utils.enums.DashboardMenuType
+import com.kabindra.tv.iptv.utils.extensions.mainBackground
 import kotlinx.coroutines.delay
 import network.chaintech.sdpcomposemultiplatform.sdp
 import java.time.LocalTime
@@ -39,7 +36,7 @@ import java.time.format.DateTimeFormatter
 
 private object DashboardScreenTokens {
     const val contentHorizontalPadding = 20
-    const val contentTopPadding = 20
+    const val contentVerticalPadding = 20
     const val menuSpacing = 24
 }
 
@@ -57,7 +54,7 @@ fun DashboardScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .dashboardBackground()
+            .mainBackground()
             .padding(innerPadding)
     ) {
         TextComponent(
@@ -65,7 +62,7 @@ fun DashboardScreen(
                 .align(Alignment.TopStart)
                 .padding(
                     start = DashboardScreenTokens.contentHorizontalPadding.sdp,
-                    top = DashboardScreenTokens.contentTopPadding.sdp
+                    top = DashboardScreenTokens.contentVerticalPadding.sdp
                 ),
             text = "Welcome, Guest",
             type = TextType.Display,
@@ -79,7 +76,7 @@ fun DashboardScreen(
                 .align(Alignment.TopEnd)
                 .padding(
                     end = DashboardScreenTokens.contentHorizontalPadding.sdp,
-                    top = DashboardScreenTokens.contentTopPadding.sdp
+                    top = DashboardScreenTokens.contentVerticalPadding.sdp
                 ),
             text = clockText,
             type = TextType.Headline,
@@ -96,8 +93,8 @@ fun DashboardScreen(
                 .wrapContentHeight()
                 .align(Alignment.BottomCenter)
                 .padding(
-                    top = DashboardScreenTokens.contentTopPadding.sdp,
-                    bottom = DashboardScreenTokens.contentTopPadding.sdp
+                    top = DashboardScreenTokens.contentVerticalPadding.sdp,
+                    bottom = DashboardScreenTokens.contentVerticalPadding.sdp
                 ),
             layout = BaseLazyLayout.List,
             orientation = BaseLazyOrientation.Horizontal,
@@ -132,35 +129,6 @@ fun DashboardScreen(
             )
         }
     }
-}
-
-@Composable
-private fun Modifier.dashboardBackground(): Modifier {
-    val darkTheme = isSystemInDarkTheme()
-    val backgroundColor = MaterialTheme.colorScheme.background
-    val deepTone = MaterialTheme.colorScheme.surface
-    val glowColor = MaterialTheme.colorScheme.primaryContainer.copy(
-        alpha = if (darkTheme) 0.96f else 0.42f
-    )
-    val midTone = MaterialTheme.colorScheme.surfaceVariant.copy(
-        alpha = if (darkTheme) 0.88f else 0.58f
-    )
-
-    return background(
-        brush = Brush.linearGradient(
-            colors = listOf(deepTone, backgroundColor),
-        )
-    ).background(
-        brush = Brush.radialGradient(
-            colors = listOf(
-                glowColor,
-                midTone,
-                backgroundColor
-            ),
-            center = Offset(180f, 210f),
-            radius = if (darkTheme) 960f else 1080f
-        )
-    )
 }
 
 @Composable

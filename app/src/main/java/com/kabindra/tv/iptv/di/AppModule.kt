@@ -13,11 +13,11 @@ import com.kabindra.tv.iptv.domain.repository.remote.movie.MovieRepository
 import com.kabindra.tv.iptv.domain.usecase.remote.livetv.LiveTVUseCase
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieBrowseUseCase
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieDetailUseCase
-import com.kabindra.tv.iptv.presentation.viewmodel.livetv.LiveTVViewModel
-import com.kabindra.tv.iptv.presentation.viewmodel.movie.MovieDetailViewModel
-import com.kabindra.tv.iptv.presentation.viewmodel.movie.MoviePlayerViewModel
-import com.kabindra.tv.iptv.presentation.viewmodel.movie.MovieViewModel
-import com.kabindra.tv.iptv.presentation.viewmodel.splash.SplashViewModel
+import com.kabindra.tv.iptv.presentation.ui.screen.livetv.player.LiveTVPlayerViewModel
+import com.kabindra.tv.iptv.presentation.ui.screen.movie.content.MovieContentViewModel
+import com.kabindra.tv.iptv.presentation.ui.screen.movie.detail.MovieDetailViewModel
+import com.kabindra.tv.iptv.presentation.ui.screen.movie.player.MoviePlayerViewModel
+import com.kabindra.tv.iptv.presentation.ui.screen.splash.SplashViewModel
 import com.kabindra.tv.iptv.utils.constants.Header.Companion.HEADER_USER_DEVICE
 import com.kabindra.tv.iptv.utils.constants.Header.Companion.HEADER_USER_DEVICE_APP_VERSION
 import com.kabindra.tv.iptv.utils.constants.Header.Companion.HEADER_USER_DEVICE_APP_VERSION_CODE
@@ -123,8 +123,8 @@ val provideUseCaseModule = module {
 
 val provideViewModelModule = module {
     viewModelOf(::SplashViewModel)
-    viewModelOf(::LiveTVViewModel)
-    viewModelOf(::MovieViewModel)
+    viewModelOf(::LiveTVPlayerViewModel)
+    viewModelOf(::MovieContentViewModel)
     viewModelOf(::MovieDetailViewModel)
     viewModelOf(::MoviePlayerViewModel)
 }

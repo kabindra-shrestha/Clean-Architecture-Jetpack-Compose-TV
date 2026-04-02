@@ -1,6 +1,5 @@
-package com.kabindra.tv.iptv.presentation.ui.screen.movie
+package com.kabindra.tv.iptv.presentation.ui.screen.movie.content
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,8 +12,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.tv.material3.MaterialTheme
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazy
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazyLayout
@@ -30,7 +27,7 @@ import com.kabindra.tv.iptv.presentation.ui.component.TextSize
 import com.kabindra.tv.iptv.presentation.ui.component.TextType
 import com.kabindra.tv.iptv.presentation.ui.component.TvLazyConfig
 import com.kabindra.tv.iptv.presentation.ui.component.rememberBaseLazyState
-import com.kabindra.tv.iptv.presentation.viewmodel.movie.MovieViewModel
+import com.kabindra.tv.iptv.utils.extensions.mainBackground
 import network.chaintech.sdpcomposemultiplatform.sdp
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -46,9 +43,9 @@ private object MovieScreenTokens {
 
 @Composable
 fun MovieScreen(
+    viewModel: MovieContentViewModel = koinViewModel(),
     innerPadding: PaddingValues,
     onNavigateMovieDetail: (String) -> Unit,
-    viewModel: MovieViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     val selectedCategoryIndex = state.categories.indexOfFirst { it.id == state.selectedCategoryId }
@@ -60,8 +57,7 @@ fun MovieScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .moviesBackground()
-            .padding(innerPadding)
+            .mainBackground()
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -74,13 +70,6 @@ fun MovieScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(MovieScreenTokens.headerSpacing.sdp)
             ) {
-                TextComponent(
-                    text = "Movie",
-                    type = TextType.Display,
-                    size = TextSize.Small,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
                 if (state.categories.isNotEmpty()) {
                     TabsComponent(
                         tabs = state.categories.map { it.title },
@@ -102,6 +91,7 @@ fun MovieScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         LoadingIndicator(
+                            modifier = Modifier.align(Alignment.Center),
                             isCircular = true,
                             useExpressive = true
                         )
@@ -167,24 +157,4 @@ fun MovieScreen(
             }
         }
     }
-}
-
-@Composable
-private fun Modifier.moviesBackground(): Modifier {
-    return background(
-        brush = Brush.verticalGradient(
-            colors = listOf(
-                MaterialTheme.colorScheme.background,
-                MaterialTheme.colorScheme.surface,
-                MaterialTheme.colorScheme.background
-            )
-        )
-    ).background(
-        brush = Brush.radialGradient(
-            colors = listOf(
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.34f),
-                Color.Transparent
-            )
-        )
-    )
 }

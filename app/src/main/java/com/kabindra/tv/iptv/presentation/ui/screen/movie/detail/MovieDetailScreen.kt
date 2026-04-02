@@ -1,4 +1,4 @@
-package com.kabindra.tv.iptv.presentation.ui.screen.movie
+package com.kabindra.tv.iptv.presentation.ui.screen.movie.detail
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
@@ -21,6 +22,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -41,13 +44,13 @@ import com.kabindra.tv.iptv.presentation.ui.component.TextSize
 import com.kabindra.tv.iptv.presentation.ui.component.TextType
 import com.kabindra.tv.iptv.presentation.ui.component.TvLazyConfig
 import com.kabindra.tv.iptv.presentation.ui.component.rememberBaseLazyState
-import com.kabindra.tv.iptv.presentation.viewmodel.movie.MovieDetailViewModel
+import com.kabindra.tv.iptv.utils.extensions.mainBackground
 import network.chaintech.sdpcomposemultiplatform.sdp
 import org.koin.compose.viewmodel.koinViewModel
 
 private object MovieDetailScreenTokens {
     const val horizontalPadding = 32
-    const val topPadding = 28
+    const val verticalPadding = 28
     const val infoColumnWidth = 340
     const val posterWidth = 180
     const val heroSpacing = 22
@@ -58,12 +61,12 @@ private object MovieDetailScreenTokens {
 
 @Composable
 fun MovieDetailScreen(
-    movieId: String,
+    viewModel: MovieDetailViewModel = koinViewModel(),
     innerPadding: PaddingValues,
+    movieId: String,
     onBack: () -> Unit,
     onNavigateMoviePlayer: (String) -> Unit,
     onNavigateMovieDetail: (String) -> Unit,
-    viewModel: MovieDetailViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     val railState = key(state.movie?.id) { rememberBaseLazyState() }
@@ -77,8 +80,7 @@ fun MovieDetailScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
-            .padding(innerPadding)
+            .mainBackground()
     ) {
         state.movie?.let { movie ->
             CardImage(
@@ -121,8 +123,8 @@ fun MovieDetailScreen(
                     .padding(
                         start = MovieDetailScreenTokens.horizontalPadding.sdp,
                         end = MovieDetailScreenTokens.horizontalPadding.sdp,
-                        top = MovieDetailScreenTokens.topPadding.sdp,
-                        bottom = 28.sdp
+                        top = MovieDetailScreenTokens.verticalPadding.sdp,
+                        bottom = MovieDetailScreenTokens.verticalPadding.sdp
                     ),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
@@ -138,12 +140,6 @@ fun MovieDetailScreen(
                         Column(
                             verticalArrangement = Arrangement.spacedBy(6.sdp)
                         ) {
-                            TextComponent(
-                                text = "Movie Details",
-                                type = TextType.Label,
-                                size = TextSize.Medium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.74f)
-                            )
                             TextComponent(
                                 text = movie.title,
                                 type = TextType.Display,
@@ -184,6 +180,12 @@ fun MovieDetailScreen(
                         modifier = Modifier
                             .width(MovieDetailScreenTokens.posterWidth.sdp)
                             .aspectRatio(2f / 3f)
+                            .shadow(
+                                elevation = 8.sdp,
+                                shape = RoundedCornerShape(10.sdp),
+                                clip = false
+                            )
+                            .clip(RoundedCornerShape(10.sdp))
                     )
                 }
 

@@ -1,4 +1,4 @@
-package com.kabindra.tv.iptv.presentation.viewmodel.splash
+package com.kabindra.tv.iptv.presentation.ui.screen.splash
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,8 +7,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 
-class SplashViewModel(
-) : ViewModel() {
+class SplashViewModel() : ViewModel() {
     private val _splashState = MutableStateFlow(SplashState())
 
     val splashState = _splashState
