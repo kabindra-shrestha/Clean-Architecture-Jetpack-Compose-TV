@@ -2,9 +2,9 @@ package com.kabindra.tv.iptv.presentation.viewmodel.media
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kabindra.tv.iptv.domain.entity.media.ChannelCategory
-import com.kabindra.tv.iptv.domain.entity.media.LiveChannel
-import com.kabindra.tv.iptv.domain.usecase.media.LiveTvUseCase
+import com.kabindra.tv.iptv.domain.entity.ChannelCategory
+import com.kabindra.tv.iptv.domain.entity.LiveChannel
+import com.kabindra.tv.iptv.domain.usecase.livetv.LiveTVUseCase
 import com.kabindra.tv.iptv.utils.ktor.Result
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class LiveTvState(
+data class LiveTVState(
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
     val categories: List<ChannelCategory> = emptyList(),
@@ -21,11 +21,11 @@ data class LiveTvState(
     val isChannelOverlayVisible: Boolean = false,
 )
 
-class LiveTvViewModel(
-    private val liveTvUseCase: LiveTvUseCase,
+class LiveTVViewModel(
+    private val liveTvUseCase: LiveTVUseCase,
 ) : ViewModel() {
-    private val _state = MutableStateFlow(LiveTvState())
-    val state: StateFlow<LiveTvState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(LiveTVState())
+    val state: StateFlow<LiveTVState> = _state.asStateFlow()
 
     init {
         loadContent()
@@ -33,7 +33,7 @@ class LiveTvViewModel(
 
     fun loadContent() {
         viewModelScope.launch {
-            liveTvUseCase.executeGetLiveTvContent().collect { result ->
+            liveTvUseCase.executeGetLiveTVContent().collect { result ->
                 when (result) {
                     is Result.Initial -> Unit
                     is Result.Loading -> {

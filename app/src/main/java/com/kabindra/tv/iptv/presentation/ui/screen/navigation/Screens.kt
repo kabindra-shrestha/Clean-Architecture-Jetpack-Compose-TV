@@ -6,8 +6,8 @@ import kotlinx.serialization.Serializable
 enum class Screens(val title: String) {
     Splash(title = "Splash"),
     Dashboard(title = "Dashboard"),
-    LiveTvPlayer(title = "Live TV Player"),
-    Movies(title = "Movies"),
+    LiveTVPlayer(title = "Live TV Player"),
+    Movie(title = "Movie"),
     MovieDetail(title = "Movie Detail"),
     MoviePlayer(title = "Movie Player"),
 }
@@ -19,10 +19,10 @@ data object SplashRoute : NavKey
 data object DashboardRoute : NavKey
 
 @Serializable
-data object LiveTvPlayerRoute : NavKey
+data object LiveTVPlayerRoute : NavKey
 
 @Serializable
-data object MoviesRoute : NavKey
+data object MovieRoute : NavKey
 
 @Serializable
 data class MovieDetailRoute(val movieId: String) : NavKey

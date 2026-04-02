@@ -1,4 +1,4 @@
-package com.kabindra.tv.iptv.presentation.ui.screen.movies
+package com.kabindra.tv.iptv.presentation.ui.screen.movie
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -24,16 +24,17 @@ import com.kabindra.tv.iptv.presentation.ui.component.ButtonComponent
 import com.kabindra.tv.iptv.presentation.ui.component.LoadingIndicator
 import com.kabindra.tv.iptv.presentation.ui.component.PosterCardComponent
 import com.kabindra.tv.iptv.presentation.ui.component.TabsComponent
+import com.kabindra.tv.iptv.presentation.ui.component.TabsIndicatorStyle
 import com.kabindra.tv.iptv.presentation.ui.component.TextComponent
 import com.kabindra.tv.iptv.presentation.ui.component.TextSize
 import com.kabindra.tv.iptv.presentation.ui.component.TextType
 import com.kabindra.tv.iptv.presentation.ui.component.TvLazyConfig
 import com.kabindra.tv.iptv.presentation.ui.component.rememberBaseLazyState
-import com.kabindra.tv.iptv.presentation.viewmodel.media.MoviesViewModel
+import com.kabindra.tv.iptv.presentation.viewmodel.media.MovieViewModel
 import network.chaintech.sdpcomposemultiplatform.sdp
 import org.koin.compose.viewmodel.koinViewModel
 
-private object MoviesScreenTokens {
+private object MovieScreenTokens {
     const val horizontalPadding = 32
     const val topPadding = 26
     const val headerSpacing = 18
@@ -44,10 +45,10 @@ private object MoviesScreenTokens {
 }
 
 @Composable
-fun MoviesScreen(
+fun MovieScreen(
     innerPadding: PaddingValues,
     onNavigateMovieDetail: (String) -> Unit,
-    viewModel: MoviesViewModel = koinViewModel(),
+    viewModel: MovieViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     val selectedCategoryIndex = state.categories.indexOfFirst { it.id == state.selectedCategoryId }
@@ -67,14 +68,14 @@ fun MoviesScreen(
         ) {
             Column(
                 modifier = Modifier.padding(
-                    start = MoviesScreenTokens.horizontalPadding.sdp,
-                    end = MoviesScreenTokens.horizontalPadding.sdp,
-                    top = MoviesScreenTokens.topPadding.sdp
+                    start = MovieScreenTokens.horizontalPadding.sdp,
+                    end = MovieScreenTokens.horizontalPadding.sdp,
+                    top = MovieScreenTokens.topPadding.sdp
                 ),
-                verticalArrangement = Arrangement.spacedBy(MoviesScreenTokens.headerSpacing.sdp)
+                verticalArrangement = Arrangement.spacedBy(MovieScreenTokens.headerSpacing.sdp)
             ) {
                 TextComponent(
-                    text = "Movies",
+                    text = "Movie",
                     type = TextType.Display,
                     size = TextSize.Small,
                     color = MaterialTheme.colorScheme.onSurface
@@ -84,6 +85,7 @@ fun MoviesScreen(
                     TabsComponent(
                         tabs = state.categories.map { it.title },
                         selectedIndex = selectedCategoryIndex,
+                        indicatorStyle = TabsIndicatorStyle.Underlined,
                         onSelectedIndexChange = { index ->
                             state.categories.getOrNull(index)?.let { category ->
                                 viewModel.selectCategory(category.id)
@@ -142,14 +144,14 @@ fun MoviesScreen(
                             autoScrollOnFocus = true,
                         ),
                         contentPadding = PaddingValues(
-                            start = MoviesScreenTokens.horizontalPadding.sdp,
-                            top = MoviesScreenTokens.gridTopPadding.sdp,
-                            end = MoviesScreenTokens.horizontalPadding.sdp,
-                            bottom = MoviesScreenTokens.gridBottomPadding.sdp
+                            start = MovieScreenTokens.horizontalPadding.sdp,
+                            top = MovieScreenTokens.gridTopPadding.sdp,
+                            end = MovieScreenTokens.horizontalPadding.sdp,
+                            bottom = MovieScreenTokens.gridBottomPadding.sdp
                         ),
-                        arrangement = Arrangement.spacedBy(MoviesScreenTokens.gridSpacing.sdp),
+                        arrangement = Arrangement.spacedBy(MovieScreenTokens.gridSpacing.sdp),
                         userScrollEnabled = true,
-                        spanCount = MoviesScreenTokens.gridSpanCount,
+                        spanCount = MovieScreenTokens.gridSpanCount,
                         key = { _, item -> item.id },
                         contentType = { _, _ -> "movie_poster" }
                     ) { _, item, itemModifier ->

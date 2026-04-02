@@ -15,10 +15,10 @@ import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
-import com.kabindra.tv.iptv.presentation.ui.screen.livetv.LiveTvPlayerScreen
-import com.kabindra.tv.iptv.presentation.ui.screen.movies.MovieDetailScreen
-import com.kabindra.tv.iptv.presentation.ui.screen.movies.MoviePlayerScreen
-import com.kabindra.tv.iptv.presentation.ui.screen.movies.MoviesScreen
+import com.kabindra.tv.iptv.presentation.ui.screen.livetv.LiveTVPlayerScreen
+import com.kabindra.tv.iptv.presentation.ui.screen.movie.MovieDetailScreen
+import com.kabindra.tv.iptv.presentation.ui.screen.movie.MoviePlayerScreen
+import com.kabindra.tv.iptv.presentation.ui.screen.movie.MovieScreen
 import com.kabindra.tv.iptv.presentation.ui.screen.splash.DashboardScreen
 import com.kabindra.tv.iptv.presentation.ui.screen.splash.SplashScreen
 import org.koin.compose.koinInject
@@ -73,24 +73,24 @@ fun MainScreen() {
                         innerPadding = innerPadding,
                         onNavigateLogin = {
                         },
-                        onNavigateLiveTv = {
-                            backStack.add(LiveTvPlayerRoute)
+                        onNavigateLiveTV = {
+                            backStack.add(LiveTVPlayerRoute)
                         },
-                        onNavigateMovies = {
-                            backStack.add(MoviesRoute)
+                        onNavigateMovie = {
+                            backStack.add(MovieRoute)
                         }
                     )
                 }
-                entry<LiveTvPlayerRoute> {
-                    LiveTvPlayerScreen(
+                entry<LiveTVPlayerRoute> {
+                    LiveTVPlayerScreen(
                         innerPadding = innerPadding,
                         onBack = {
                             backStack.removeLastOrNull()
                         }
                     )
                 }
-                entry<MoviesRoute> {
-                    MoviesScreen(
+                entry<MovieRoute> {
+                    MovieScreen(
                         innerPadding = innerPadding,
                         onNavigateMovieDetail = { movieId ->
                             backStack.add(MovieDetailRoute(movieId))

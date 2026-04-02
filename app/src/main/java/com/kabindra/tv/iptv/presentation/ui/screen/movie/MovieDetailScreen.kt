@@ -1,4 +1,4 @@
-package com.kabindra.tv.iptv.presentation.ui.screen.movies
+package com.kabindra.tv.iptv.presentation.ui.screen.movie
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background

@@ -10,11 +10,11 @@ enum class DashboardMenuType(
     val title: String,
     val icon: ImageVector,
 ) {
-    LiveTv(
+    LiveTV(
         title = "LIVE TV",
         icon = Icons.Default.Tv
     ),
-    Movies(
+    Movie(
         title = "MOVIES",
         icon = Icons.Default.Movie
     ),

@@ -2,8 +2,8 @@ package com.kabindra.tv.iptv.presentation.viewmodel.media
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kabindra.tv.iptv.domain.entity.media.MovieCategory
-import com.kabindra.tv.iptv.domain.usecase.media.MoviesBrowseUseCase
+import com.kabindra.tv.iptv.domain.entity.MovieCategory
+import com.kabindra.tv.iptv.domain.usecase.movie.MovieBrowseUseCase
 import com.kabindra.tv.iptv.utils.ktor.Result
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,18 +11,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class MoviesState(
+data class MovieState(
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
     val categories: List<MovieCategory> = emptyList(),
     val selectedCategoryId: String? = null,
 )
 
-class MoviesViewModel(
-    private val moviesBrowseUseCase: MoviesBrowseUseCase,
+class MovieViewModel(
+    private val movieBrowseUseCase: MovieBrowseUseCase,
 ) : ViewModel() {
-    private val _state = MutableStateFlow(MoviesState())
-    val state: StateFlow<MoviesState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(MovieState())
+    val state: StateFlow<MovieState> = _state.asStateFlow()
 
     init {
         loadContent()
@@ -30,7 +30,7 @@ class MoviesViewModel(
 
     fun loadContent() {
         viewModelScope.launch {
-            moviesBrowseUseCase.executeGetMovieCategories().collect { result ->
+            movieBrowseUseCase.executeGetMovieCategories().collect { result ->
                 when (result) {
                     is Result.Initial -> Unit
                     is Result.Loading -> {

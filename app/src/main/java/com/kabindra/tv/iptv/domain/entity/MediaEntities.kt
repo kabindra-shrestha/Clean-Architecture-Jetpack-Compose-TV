@@ -1,4 +1,4 @@
-package com.kabindra.tv.iptv.domain.entity.media
+package com.kabindra.tv.iptv.domain.entity
 
 enum class MediaStreamType {
     Hls,

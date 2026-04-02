@@ -2,8 +2,8 @@ package com.kabindra.tv.iptv.presentation.viewmodel.media
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kabindra.tv.iptv.domain.entity.media.MovieDetail
-import com.kabindra.tv.iptv.domain.usecase.media.MovieDetailUseCase
+import com.kabindra.tv.iptv.domain.entity.MovieDetail
+import com.kabindra.tv.iptv.domain.usecase.movie.MovieDetailUseCase
 import com.kabindra.tv.iptv.utils.ktor.Result
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

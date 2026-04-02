@@ -1,34 +1,34 @@
-package com.kabindra.tv.iptv.data.model.media
+package com.kabindra.tv.iptv.data.model
 
-import com.kabindra.tv.iptv.domain.entity.media.ChannelCategory
-import com.kabindra.tv.iptv.domain.entity.media.LiveChannel
-import com.kabindra.tv.iptv.domain.entity.media.MediaStreamType
-import com.kabindra.tv.iptv.domain.entity.media.MovieCategory
-import com.kabindra.tv.iptv.domain.entity.media.MovieDetail
-import com.kabindra.tv.iptv.domain.entity.media.MovieSummary
+import com.kabindra.tv.iptv.domain.entity.ChannelCategory
+import com.kabindra.tv.iptv.domain.entity.LiveChannel
+import com.kabindra.tv.iptv.domain.entity.MediaStreamType
+import com.kabindra.tv.iptv.domain.entity.MovieCategory
+import com.kabindra.tv.iptv.domain.entity.MovieDetail
+import com.kabindra.tv.iptv.domain.entity.MovieSummary
 
-enum class MediaStreamTypeDto {
+enum class MediaStreamTypeDTO {
     Hls,
     Progressive,
 }
 
-data class LiveChannelDto(
+data class LiveChannelDTO(
     val id: String,
     val categoryId: String,
     val title: String,
     val currentProgram: String,
     val streamUrl: String,
-    val streamType: MediaStreamTypeDto,
+    val streamType: MediaStreamTypeDTO,
     val logoUrl: String,
 )
 
-data class ChannelCategoryDto(
+data class ChannelCategoryDTO(
     val id: String,
     val title: String,
-    val channels: List<LiveChannelDto>,
+    val channels: List<LiveChannelDTO>,
 )
 
-data class MovieSummaryDto(
+data class MovieSummaryDTO(
     val id: String,
     val categoryId: String,
     val title: String,
@@ -36,16 +36,16 @@ data class MovieSummaryDto(
     val posterUrl: String,
     val backdropUrl: String,
     val streamUrl: String,
-    val streamType: MediaStreamTypeDto,
+    val streamType: MediaStreamTypeDTO,
 )
 
-data class MovieCategoryDto(
+data class MovieCategoryDTO(
     val id: String,
     val title: String,
-    val movies: List<MovieSummaryDto>,
+    val movies: List<MovieSummaryDTO>,
 )
 
-data class MovieDetailDto(
+data class MovieDetailDTO(
     val id: String,
     val categoryId: String,
     val title: String,
@@ -54,27 +54,27 @@ data class MovieDetailDto(
     val posterUrl: String,
     val backdropUrl: String,
     val streamUrl: String,
-    val streamType: MediaStreamTypeDto,
-    val alsoWatch: List<MovieSummaryDto>,
+    val streamType: MediaStreamTypeDTO,
+    val alsoWatch: List<MovieSummaryDTO>,
 )
 
-fun ChannelCategoryDto.toDomain(): ChannelCategory {
+fun ChannelCategoryDTO.toDomain(): ChannelCategory {
     return ChannelCategory(
         id = id,
         title = title,
-        channels = channels.map(LiveChannelDto::toDomain)
+        channels = channels.map(LiveChannelDTO::toDomain)
     )
 }
 
-fun MovieCategoryDto.toDomain(): MovieCategory {
+fun MovieCategoryDTO.toDomain(): MovieCategory {
     return MovieCategory(
         id = id,
         title = title,
-        movies = movies.map(MovieSummaryDto::toDomain)
+        movies = movies.map(MovieSummaryDTO::toDomain)
     )
 }
 
-fun MovieDetailDto.toDomain(): MovieDetail {
+fun MovieDetailDTO.toDomain(): MovieDetail {
     return MovieDetail(
         id = id,
         categoryId = categoryId,
@@ -85,11 +85,11 @@ fun MovieDetailDto.toDomain(): MovieDetail {
         backdropUrl = backdropUrl,
         streamUrl = streamUrl,
         streamType = streamType.toDomain(),
-        alsoWatch = alsoWatch.map(MovieSummaryDto::toDomain)
+        alsoWatch = alsoWatch.map(MovieSummaryDTO::toDomain)
     )
 }
 
-private fun LiveChannelDto.toDomain(): LiveChannel {
+private fun LiveChannelDTO.toDomain(): LiveChannel {
     return LiveChannel(
         id = id,
         categoryId = categoryId,
@@ -101,7 +101,7 @@ private fun LiveChannelDto.toDomain(): LiveChannel {
     )
 }
 
-private fun MovieSummaryDto.toDomain(): MovieSummary {
+private fun MovieSummaryDTO.toDomain(): MovieSummary {
     return MovieSummary(
         id = id,
         categoryId = categoryId,
@@ -114,9 +114,9 @@ private fun MovieSummaryDto.toDomain(): MovieSummary {
     )
 }
 
-private fun MediaStreamTypeDto.toDomain(): MediaStreamType {
+private fun MediaStreamTypeDTO.toDomain(): MediaStreamType {
     return when (this) {
-        MediaStreamTypeDto.Hls -> MediaStreamType.Hls
-        MediaStreamTypeDto.Progressive -> MediaStreamType.Progressive
+        MediaStreamTypeDTO.Hls -> MediaStreamType.Hls
+        MediaStreamTypeDTO.Progressive -> MediaStreamType.Progressive
     }
 }

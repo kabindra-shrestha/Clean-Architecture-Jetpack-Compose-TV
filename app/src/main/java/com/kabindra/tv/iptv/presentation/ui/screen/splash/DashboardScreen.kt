@@ -38,8 +38,8 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 private object DashboardScreenTokens {
-    const val contentHorizontalPadding = 35
-    const val contentTopPadding = 35
+    const val contentHorizontalPadding = 20
+    const val contentTopPadding = 20
     const val menuSpacing = 24
 }
 
@@ -47,12 +47,12 @@ private object DashboardScreenTokens {
 fun DashboardScreen(
     innerPadding: PaddingValues,
     onNavigateLogin: () -> Unit,
-    onNavigateLiveTv: () -> Unit,
-    onNavigateMovies: () -> Unit,
+    onNavigateLiveTV: () -> Unit,
+    onNavigateMovie: () -> Unit,
 ) {
     val menuItems = remember { DashboardMenuType.entries.toList() }
     val lazyState = rememberBaseLazyState()
-    var selectedMenu by remember { mutableStateOf(DashboardMenuType.LiveTv) }
+    var selectedMenu by remember { mutableStateOf(DashboardMenuType.LiveTV) }
     val clockText by rememberDashboardClockText()
 
     Box(
@@ -95,12 +95,16 @@ fun DashboardScreen(
             modifier = Modifier
                 .wrapContentWidth()
                 .wrapContentHeight()
-                .align(Alignment.BottomCenter),
+                .align(Alignment.BottomCenter)
+                .padding(
+                    top = DashboardScreenTokens.contentTopPadding.sdp,
+                    bottom = DashboardScreenTokens.contentTopPadding.sdp
+                ),
             layout = BaseLazyLayout.List,
             orientation = BaseLazyOrientation.Horizontal,
             platform = BaseLazyPlatform.AndroidTv,
             tvConfig = TvLazyConfig(
-                initialFocusedIndex = DashboardMenuType.LiveTv.ordinal,
+                initialFocusedIndex = DashboardMenuType.LiveTV.ordinal,
                 autoScrollOnFocus = true,
                 focusedItemOffsetFraction = 0.16f
             ),
@@ -121,8 +125,8 @@ fun DashboardScreen(
                 onClick = {
                     selectedMenu = item
                     when (item) {
-                        DashboardMenuType.LiveTv -> onNavigateLiveTv()
-                        DashboardMenuType.Movies -> onNavigateMovies()
+                        DashboardMenuType.LiveTV -> onNavigateLiveTV()
+                        DashboardMenuType.Movie -> onNavigateMovie()
                         DashboardMenuType.Profile -> Unit
                     }
                 }

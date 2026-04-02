@@ -26,9 +26,9 @@ import com.kabindra.player.component.Media3PlayerComponent
 import com.kabindra.player.model.PlayerMediaItem
 import com.kabindra.player.model.PlayerStreamType
 import com.kabindra.player.model.PlayerUiConfig
-import com.kabindra.tv.iptv.domain.entity.media.ChannelCategory
-import com.kabindra.tv.iptv.domain.entity.media.LiveChannel
-import com.kabindra.tv.iptv.domain.entity.media.MediaStreamType
+import com.kabindra.tv.iptv.domain.entity.ChannelCategory
+import com.kabindra.tv.iptv.domain.entity.LiveChannel
+import com.kabindra.tv.iptv.domain.entity.MediaStreamType
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazy
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazyLayout
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazyOrientation
@@ -44,11 +44,11 @@ import com.kabindra.tv.iptv.presentation.ui.component.TextSize
 import com.kabindra.tv.iptv.presentation.ui.component.TextType
 import com.kabindra.tv.iptv.presentation.ui.component.TvLazyConfig
 import com.kabindra.tv.iptv.presentation.ui.component.rememberBaseLazyState
-import com.kabindra.tv.iptv.presentation.viewmodel.media.LiveTvViewModel
+import com.kabindra.tv.iptv.presentation.viewmodel.media.LiveTVViewModel
 import network.chaintech.sdpcomposemultiplatform.sdp
 import org.koin.compose.viewmodel.koinViewModel
 
-private object LiveTvScreenTokens {
+private object LiveTVScreenTokens {
     const val headerHorizontalPadding = 24
     const val headerTopPadding = 24
     const val overlayCategoryWidth = 142
@@ -61,10 +61,10 @@ private object LiveTvScreenTokens {
 }
 
 @Composable
-fun LiveTvPlayerScreen(
+fun LiveTVPlayerScreen(
     innerPadding: PaddingValues,
     onBack: () -> Unit,
-    viewModel: LiveTvViewModel = koinViewModel(),
+    viewModel: LiveTVViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     val allChannels = remember(state.categories) { state.categories.flatMap(ChannelCategory::channels) }
@@ -107,8 +107,8 @@ fun LiveTvPlayerScreen(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(
-                    start = LiveTvScreenTokens.headerHorizontalPadding.sdp,
-                    top = LiveTvScreenTokens.headerTopPadding.sdp
+                    start = LiveTVScreenTokens.headerHorizontalPadding.sdp,
+                    top = LiveTVScreenTokens.headerTopPadding.sdp
                 ),
             verticalArrangement = Arrangement.spacedBy(4.sdp)
         ) {
@@ -164,7 +164,7 @@ fun LiveTvPlayerScreen(
         }
 
         if (state.isChannelOverlayVisible && selectedCategory != null) {
-            LiveTvOverlay(
+            LiveTVOverlay(
                 categories = state.categories,
                 selectedCategoryId = selectedCategory.id,
                 selectedChannelId = selectedChannel?.id,
@@ -178,7 +178,7 @@ fun LiveTvPlayerScreen(
 }
 
 @Composable
-private fun LiveTvOverlay(
+private fun LiveTVOverlay(
     categories: List<ChannelCategory>,
     selectedCategoryId: String,
     selectedChannelId: String?,
@@ -204,18 +204,18 @@ private fun LiveTvOverlay(
             modifier = Modifier
                 .fillMaxHeight()
                 .padding(
-                    top = LiveTvScreenTokens.overlayTopPadding.sdp,
-                    bottom = LiveTvScreenTokens.overlayBottomPadding.sdp,
+                    top = LiveTVScreenTokens.overlayTopPadding.sdp,
+                    bottom = LiveTVScreenTokens.overlayBottomPadding.sdp,
                     start = 0.sdp
                 )
         ) {
             Column(
                 modifier = Modifier
-                    .width(LiveTvScreenTokens.overlayCategoryWidth.sdp)
+                    .width(LiveTVScreenTokens.overlayCategoryWidth.sdp)
                     .fillMaxHeight()
                     .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.94f))
-                    .padding(LiveTvScreenTokens.overlayHorizontalPadding.sdp),
-                verticalArrangement = Arrangement.spacedBy(LiveTvScreenTokens.sectionSpacing.sdp)
+                    .padding(LiveTVScreenTokens.overlayHorizontalPadding.sdp),
+                verticalArrangement = Arrangement.spacedBy(LiveTVScreenTokens.sectionSpacing.sdp)
             ) {
                 TextComponent(
                     text = "Categories",
@@ -254,11 +254,11 @@ private fun LiveTvOverlay(
 
             Column(
                 modifier = Modifier
-                    .width(LiveTvScreenTokens.overlayChannelWidth.sdp)
+                    .width(LiveTVScreenTokens.overlayChannelWidth.sdp)
                     .fillMaxHeight()
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.94f))
-                    .padding(LiveTvScreenTokens.overlayHorizontalPadding.sdp),
-                verticalArrangement = Arrangement.spacedBy(LiveTvScreenTokens.sectionSpacing.sdp)
+                    .padding(LiveTVScreenTokens.overlayHorizontalPadding.sdp),
+                verticalArrangement = Arrangement.spacedBy(LiveTVScreenTokens.sectionSpacing.sdp)
             ) {
                 TextComponent(
                     text = "Channels",

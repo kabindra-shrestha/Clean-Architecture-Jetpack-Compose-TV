@@ -1,4 +1,4 @@
-package com.kabindra.tv.iptv.presentation.ui.screen.movies
+package com.kabindra.tv.iptv.presentation.ui.screen.movie
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -19,8 +19,8 @@ import androidx.tv.material3.MaterialTheme
 import com.kabindra.player.component.Media3PlayerComponent
 import com.kabindra.player.model.PlayerMediaItem
 import com.kabindra.player.model.PlayerStreamType
-import com.kabindra.tv.iptv.domain.entity.media.MediaStreamType
-import com.kabindra.tv.iptv.domain.entity.media.MovieDetail
+import com.kabindra.tv.iptv.domain.entity.MediaStreamType
+import com.kabindra.tv.iptv.domain.entity.MovieDetail
 import com.kabindra.tv.iptv.presentation.ui.component.ButtonComponent
 import com.kabindra.tv.iptv.presentation.ui.component.LoadingIndicator
 import com.kabindra.tv.iptv.presentation.ui.component.TextComponent

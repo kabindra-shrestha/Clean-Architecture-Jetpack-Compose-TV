@@ -1,32 +1,17 @@
 package com.kabindra.tv.iptv.utils.mock
 
-import com.kabindra.tv.iptv.data.model.media.ChannelCategoryDto
-import com.kabindra.tv.iptv.data.model.media.LiveChannelDto
-import com.kabindra.tv.iptv.data.model.media.MediaStreamTypeDto
-import com.kabindra.tv.iptv.data.model.media.MovieCategoryDto
-import com.kabindra.tv.iptv.data.model.media.MovieDetailDto
-import com.kabindra.tv.iptv.data.model.media.MovieSummaryDto
+import com.kabindra.tv.iptv.data.model.ChannelCategoryDTO
+import com.kabindra.tv.iptv.data.model.LiveChannelDTO
+import com.kabindra.tv.iptv.data.model.MediaStreamTypeDTO
+import com.kabindra.tv.iptv.data.model.MovieCategoryDTO
+import com.kabindra.tv.iptv.data.model.MovieDetailDTO
+import com.kabindra.tv.iptv.data.model.MovieSummaryDTO
 
 private const val muxHls = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
-private const val appleHls =
-    "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_16x9/gear1/prog_index.m3u8"
-private const val muxHlsAlt = "https://test-streams.mux.dev/test_001/stream.m3u8"
-private const val bigBuckBunnyMp4 =
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-private const val elephantsDreamMp4 =
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
-private const val sintelMp4 =
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
-private const val tearsOfSteelMp4 =
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"
-private const val forBiggerBlazesMp4 =
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
-private const val forBiggerEscapeMp4 =
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscape.mp4"
 
-fun mockLiveTvCategories(): List<ChannelCategoryDto> {
+fun mockLiveTVCategories(): List<ChannelCategoryDTO> {
     return listOf(
-        ChannelCategoryDto(
+        ChannelCategoryDTO(
             id = "featured",
             title = "Featured",
             channels = listOf(
@@ -43,7 +28,7 @@ fun mockLiveTvCategories(): List<ChannelCategoryDto> {
                     categoryId = "featured",
                     title = "Action Max",
                     currentProgram = "Night Chase",
-                    streamUrl = appleHls,
+                    streamUrl = muxHls,
                     logoLabel = "Action+Max"
                 ),
                 liveChannel(
@@ -51,12 +36,12 @@ fun mockLiveTvCategories(): List<ChannelCategoryDto> {
                     categoryId = "featured",
                     title = "Family Hub",
                     currentProgram = "Weekend Picks",
-                    streamUrl = muxHlsAlt,
+                    streamUrl = muxHls,
                     logoLabel = "Family+Hub"
                 )
             )
         ),
-        ChannelCategoryDto(
+        ChannelCategoryDTO(
             id = "sports",
             title = "Sports",
             channels = listOf(
@@ -65,7 +50,7 @@ fun mockLiveTvCategories(): List<ChannelCategoryDto> {
                     categoryId = "sports",
                     title = "Arena One",
                     currentProgram = "Premier Highlights",
-                    streamUrl = appleHls,
+                    streamUrl = muxHls,
                     logoLabel = "Arena+One"
                 ),
                 liveChannel(
@@ -81,12 +66,12 @@ fun mockLiveTvCategories(): List<ChannelCategoryDto> {
                     categoryId = "sports",
                     title = "Velocity",
                     currentProgram = "Racing Recap",
-                    streamUrl = muxHlsAlt,
+                    streamUrl = muxHls,
                     logoLabel = "Velocity"
                 )
             )
         ),
-        ChannelCategoryDto(
+        ChannelCategoryDTO(
             id = "kids",
             title = "Kids",
             channels = listOf(
@@ -95,7 +80,7 @@ fun mockLiveTvCategories(): List<ChannelCategoryDto> {
                     categoryId = "kids",
                     title = "Cartoon Time",
                     currentProgram = "Sunny Adventures",
-                    streamUrl = muxHlsAlt,
+                    streamUrl = muxHls,
                     logoLabel = "Cartoon+Time"
                 ),
                 liveChannel(
@@ -111,9 +96,9 @@ fun mockLiveTvCategories(): List<ChannelCategoryDto> {
     )
 }
 
-fun mockMovieCategories(): List<MovieCategoryDto> {
+fun mockMovieCategories(): List<MovieCategoryDTO> {
     return listOf(
-        MovieCategoryDto(
+        MovieCategoryDTO(
             id = "action",
             title = "Action",
             movies = listOf(
@@ -124,7 +109,7 @@ fun mockMovieCategories(): List<MovieCategoryDto> {
                     subtitle = "Action • 1h 42m",
                     posterSeed = "cosmos-archive-poster",
                     backdropSeed = "cosmos-archive-backdrop",
-                    streamUrl = bigBuckBunnyMp4
+                    streamUrl = muxHls
                 ),
                 movie(
                     id = "action_2",
@@ -133,7 +118,7 @@ fun mockMovieCategories(): List<MovieCategoryDto> {
                     subtitle = "Action • 2h 04m",
                     posterSeed = "iron-signal-poster",
                     backdropSeed = "iron-signal-backdrop",
-                    streamUrl = tearsOfSteelMp4
+                    streamUrl = muxHls
                 ),
                 movie(
                     id = "action_3",
@@ -142,11 +127,11 @@ fun mockMovieCategories(): List<MovieCategoryDto> {
                     subtitle = "Action • 1h 37m",
                     posterSeed = "pulse-run-poster",
                     backdropSeed = "pulse-run-backdrop",
-                    streamUrl = forBiggerBlazesMp4
+                    streamUrl = muxHls
                 )
             )
         ),
-        MovieCategoryDto(
+        MovieCategoryDTO(
             id = "drama",
             title = "Drama",
             movies = listOf(
@@ -157,7 +142,7 @@ fun mockMovieCategories(): List<MovieCategoryDto> {
                     subtitle = "Drama • 1h 54m",
                     posterSeed = "quiet-harbor-poster",
                     backdropSeed = "quiet-harbor-backdrop",
-                    streamUrl = elephantsDreamMp4
+                    streamUrl = muxHls
                 ),
                 movie(
                     id = "drama_2",
@@ -166,7 +151,7 @@ fun mockMovieCategories(): List<MovieCategoryDto> {
                     subtitle = "Drama • 1h 46m",
                     posterSeed = "after-rain-poster",
                     backdropSeed = "after-rain-backdrop",
-                    streamUrl = sintelMp4
+                    streamUrl = muxHls
                 ),
                 movie(
                     id = "drama_3",
@@ -175,11 +160,11 @@ fun mockMovieCategories(): List<MovieCategoryDto> {
                     subtitle = "Drama • 1h 39m",
                     posterSeed = "blue-horizon-poster",
                     backdropSeed = "blue-horizon-backdrop",
-                    streamUrl = forBiggerEscapeMp4
+                    streamUrl = muxHls
                 )
             )
         ),
-        MovieCategoryDto(
+        MovieCategoryDTO(
             id = "documentary",
             title = "Documentary",
             movies = listOf(
@@ -190,7 +175,7 @@ fun mockMovieCategories(): List<MovieCategoryDto> {
                     subtitle = "Documentary • 58m",
                     posterSeed = "ocean-atlas-poster",
                     backdropSeed = "ocean-atlas-backdrop",
-                    streamUrl = bigBuckBunnyMp4
+                    streamUrl = muxHls
                 ),
                 movie(
                     id = "doc_2",
@@ -199,7 +184,7 @@ fun mockMovieCategories(): List<MovieCategoryDto> {
                     subtitle = "Documentary • 1h 12m",
                     posterSeed = "skyline-earth-poster",
                     backdropSeed = "skyline-earth-backdrop",
-                    streamUrl = tearsOfSteelMp4
+                    streamUrl = muxHls
                 ),
                 movie(
                     id = "doc_3",
@@ -208,21 +193,21 @@ fun mockMovieCategories(): List<MovieCategoryDto> {
                     subtitle = "Documentary • 49m",
                     posterSeed = "deep-forest-poster",
                     backdropSeed = "deep-forest-backdrop",
-                    streamUrl = elephantsDreamMp4
+                    streamUrl = muxHls
                 )
             )
         )
     )
 }
 
-fun mockMovieDetail(movieId: String): MovieDetailDto {
+fun mockMovieDetail(movieId: String): MovieDetailDTO {
     val categories = mockMovieCategories()
-    val allMovies = categories.flatMap(MovieCategoryDto::movies)
-    val movie = requireNotNull(allMovies.firstOrNull { it.id == movieId }) {
+    val allMovie = categories.flatMap(MovieCategoryDTO::movies)
+    val movie = requireNotNull(allMovie.firstOrNull { it.id == movieId }) {
         "Movie not found for id=$movieId"
     }
 
-    return MovieDetailDto(
+    return MovieDetailDTO(
         id = movie.id,
         categoryId = movie.categoryId,
         title = movie.title,
@@ -232,7 +217,7 @@ fun mockMovieDetail(movieId: String): MovieDetailDto {
         backdropUrl = movie.backdropUrl,
         streamUrl = movie.streamUrl,
         streamType = movie.streamType,
-        alsoWatch = allMovies
+        alsoWatch = allMovie
             .filterNot { it.id == movieId }
             .take(5)
     )
@@ -245,14 +230,14 @@ private fun liveChannel(
     currentProgram: String,
     streamUrl: String,
     logoLabel: String,
-): LiveChannelDto {
-    return LiveChannelDto(
+): LiveChannelDTO {
+    return LiveChannelDTO(
         id = id,
         categoryId = categoryId,
         title = title,
         currentProgram = currentProgram,
         streamUrl = streamUrl,
-        streamType = MediaStreamTypeDto.Hls,
+        streamType = MediaStreamTypeDTO.Hls,
         logoUrl = "https://placehold.co/240x135/FFFFFF/1A1029.png?text=$logoLabel"
     )
 }
@@ -265,8 +250,8 @@ private fun movie(
     posterSeed: String,
     backdropSeed: String,
     streamUrl: String,
-): MovieSummaryDto {
-    return MovieSummaryDto(
+): MovieSummaryDTO {
+    return MovieSummaryDTO(
         id = id,
         categoryId = categoryId,
         title = title,
@@ -274,7 +259,7 @@ private fun movie(
         posterUrl = "https://picsum.photos/seed/$posterSeed/400/600",
         backdropUrl = "https://picsum.photos/seed/$backdropSeed/1280/720",
         streamUrl = streamUrl,
-        streamType = MediaStreamTypeDto.Progressive
+        streamType = MediaStreamTypeDTO.Hls
     )
 }
 
