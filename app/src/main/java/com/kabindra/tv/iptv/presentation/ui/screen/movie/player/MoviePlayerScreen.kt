@@ -1,7 +1,7 @@
 package com.kabindra.tv.iptv.presentation.ui.screen.movie.player
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,8 +13,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.tv.material3.MaterialTheme
 import com.kabindra.player.component.Media3PlayerComponent
 import com.kabindra.player.model.PlayerMediaItem
@@ -29,6 +27,11 @@ import com.kabindra.tv.iptv.presentation.ui.component.TextType
 import com.kabindra.tv.iptv.utils.extensions.mainBackground
 import network.chaintech.sdpcomposemultiplatform.sdp
 import org.koin.compose.viewmodel.koinViewModel
+
+private object MovieScreenTokens {
+    const val headerHorizontalPadding = 24
+    const val headerVerticalPadding = 24
+}
 
 @Composable
 fun MoviePlayerScreen(
@@ -61,15 +64,11 @@ fun MoviePlayerScreen(
             Column(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.background.copy(alpha = 0.88f),
-                                Color.Transparent
-                            )
-                        )
-                    )
-                    .padding(horizontal = 22.sdp, vertical = 18.sdp)
+                    .padding(
+                        start = MovieScreenTokens.headerHorizontalPadding.sdp,
+                        top = MovieScreenTokens.headerVerticalPadding.sdp
+                    ),
+                verticalArrangement = Arrangement.spacedBy(4.sdp)
             ) {
                 TextComponent(
                     text = movie.title,

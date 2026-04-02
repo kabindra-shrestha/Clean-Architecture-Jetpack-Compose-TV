@@ -50,11 +50,9 @@ import org.koin.compose.viewmodel.koinViewModel
 
 private object LiveTVScreenTokens {
     const val headerHorizontalPadding = 24
-    const val headerTopPadding = 24
+    const val headerVerticalPadding = 24
     const val overlayCategoryWidth = 120
     const val overlayChannelWidth = 200
-    const val overlayTopPadding = 36
-    const val overlayBottomPadding = 24
     const val overlayHorizontalPadding = 18
     const val overlayInnerSpacing = 10
     const val sectionSpacing = 14
@@ -108,13 +106,13 @@ fun LiveTVPlayerScreen(
                 .align(Alignment.TopStart)
                 .padding(
                     start = LiveTVScreenTokens.headerHorizontalPadding.sdp,
-                    top = LiveTVScreenTokens.headerTopPadding.sdp
+                    top = LiveTVScreenTokens.headerVerticalPadding.sdp
                 ),
             verticalArrangement = Arrangement.spacedBy(4.sdp)
         ) {
             TextComponent(
-                text = selectedChannel?.title ?: "Loading Channel",
-                type = TextType.Headline,
+                text = selectedChannel?.title ?: "",
+                type = TextType.Title,
                 size = TextSize.Large,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -123,7 +121,7 @@ fun LiveTVPlayerScreen(
                     text = channel.currentProgram,
                     type = TextType.Body,
                     size = TextSize.Medium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.82f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.76f)
                 )
             }
         }
