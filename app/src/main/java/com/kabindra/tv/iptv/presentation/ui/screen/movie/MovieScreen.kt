@@ -30,7 +30,7 @@ import com.kabindra.tv.iptv.presentation.ui.component.TextSize
 import com.kabindra.tv.iptv.presentation.ui.component.TextType
 import com.kabindra.tv.iptv.presentation.ui.component.TvLazyConfig
 import com.kabindra.tv.iptv.presentation.ui.component.rememberBaseLazyState
-import com.kabindra.tv.iptv.presentation.viewmodel.media.MovieViewModel
+import com.kabindra.tv.iptv.presentation.viewmodel.movie.MovieViewModel
 import network.chaintech.sdpcomposemultiplatform.sdp
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -108,7 +108,7 @@ fun MovieScreen(
                     }
                 }
 
-                !state.errorMessage.isNullOrBlank() -> {
+                state.errorMessage.isNotBlank() -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -118,7 +118,7 @@ fun MovieScreen(
                             verticalArrangement = Arrangement.spacedBy(10.sdp)
                         ) {
                             TextComponent(
-                                text = state.errorMessage ?: "Unable to load movies.",
+                                text = state.errorMessage,
                                 type = TextType.Body,
                                 size = TextSize.Medium,
                                 color = MaterialTheme.colorScheme.onSurface

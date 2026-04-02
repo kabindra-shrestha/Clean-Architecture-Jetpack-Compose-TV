@@ -4,7 +4,7 @@ import com.kabindra.tv.iptv.data.model.toDomain
 import com.kabindra.tv.iptv.data.source.remote.movie.MovieRemoteDataSource
 import com.kabindra.tv.iptv.domain.entity.MovieCategory
 import com.kabindra.tv.iptv.domain.entity.MovieDetail
-import com.kabindra.tv.iptv.domain.repository.movie.MovieRepository
+import com.kabindra.tv.iptv.domain.repository.remote.movie.MovieRepository
 import com.kabindra.tv.iptv.utils.ktor.Result
 import com.kabindra.tv.iptv.utils.ktor.ResultError
 import kotlinx.coroutines.flow.Flow

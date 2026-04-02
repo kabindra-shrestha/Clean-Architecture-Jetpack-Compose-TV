@@ -26,7 +26,7 @@ import com.kabindra.tv.iptv.presentation.ui.component.LoadingIndicator
 import com.kabindra.tv.iptv.presentation.ui.component.TextComponent
 import com.kabindra.tv.iptv.presentation.ui.component.TextSize
 import com.kabindra.tv.iptv.presentation.ui.component.TextType
-import com.kabindra.tv.iptv.presentation.viewmodel.media.MoviePlayerViewModel
+import com.kabindra.tv.iptv.presentation.viewmodel.movie.MoviePlayerViewModel
 import network.chaintech.sdpcomposemultiplatform.sdp
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -96,13 +96,13 @@ fun MoviePlayerScreen(
                 )
             }
 
-            !state.errorMessage.isNullOrBlank() -> {
+            state.errorMessage.isNotBlank() -> {
                 androidx.compose.foundation.layout.Column(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     TextComponent(
-                        text = state.errorMessage ?: "Unable to load movie player.",
+                        text = state.errorMessage,
                         type = TextType.Body,
                         size = TextSize.Medium,
                         color = MaterialTheme.colorScheme.onSurface

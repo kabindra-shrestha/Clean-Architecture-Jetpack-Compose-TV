@@ -1,4 +1,4 @@
-package com.kabindra.tv.iptv.domain.repository.movie
+package com.kabindra.tv.iptv.domain.repository.remote.movie
 
 import com.kabindra.tv.iptv.domain.entity.MovieCategory
 import com.kabindra.tv.iptv.domain.entity.MovieDetail

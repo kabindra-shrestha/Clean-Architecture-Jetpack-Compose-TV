@@ -1,22 +1,14 @@
-package com.kabindra.tv.iptv.presentation.viewmodel.media
+package com.kabindra.tv.iptv.presentation.viewmodel.movie
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kabindra.tv.iptv.domain.entity.MovieCategory
-import com.kabindra.tv.iptv.domain.usecase.movie.MovieBrowseUseCase
+import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieBrowseUseCase
 import com.kabindra.tv.iptv.utils.ktor.Result
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
-data class MovieState(
-    val isLoading: Boolean = true,
-    val errorMessage: String? = null,
-    val categories: List<MovieCategory> = emptyList(),
-    val selectedCategoryId: String? = null,
-)
 
 class MovieViewModel(
     private val movieBrowseUseCase: MovieBrowseUseCase,
@@ -34,7 +26,7 @@ class MovieViewModel(
                 when (result) {
                     is Result.Initial -> Unit
                     is Result.Loading -> {
-                        _state.update { it.copy(isLoading = true, errorMessage = null) }
+                        _state.update { it.copy(isLoading = true, errorMessage = "") }
                     }
 
                     is Result.Success -> {
@@ -42,9 +34,10 @@ class MovieViewModel(
                         _state.update {
                             it.copy(
                                 isLoading = false,
-                                errorMessage = null,
+                                errorMessage = "",
                                 categories = categories,
-                                selectedCategoryId = it.selectedCategoryId ?: categories.firstOrNull()?.id
+                                selectedCategoryId = it.selectedCategoryId
+                                    ?: categories.firstOrNull()?.id
                             )
                         }
                     }

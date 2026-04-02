@@ -39,8 +39,6 @@ fun MainScreen() {
                 entry<SplashRoute> {
                     SplashScreen(
                         innerPadding = innerPadding,
-                        onNavigateLogin = {
-                        },
                         onNavigateDashboard = {
                             backStack.add(DashboardRoute)
                         }
@@ -71,8 +69,6 @@ fun MainScreen() {
                 ) {
                     DashboardScreen(
                         innerPadding = innerPadding,
-                        onNavigateLogin = {
-                        },
                         onNavigateLiveTV = {
                             backStack.add(LiveTVPlayerRoute)
                         },

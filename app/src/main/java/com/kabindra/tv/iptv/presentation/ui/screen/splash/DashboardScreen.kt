@@ -46,7 +46,6 @@ private object DashboardScreenTokens {
 @Composable
 fun DashboardScreen(
     innerPadding: PaddingValues,
-    onNavigateLogin: () -> Unit,
     onNavigateLiveTV: () -> Unit,
     onNavigateMovie: () -> Unit,
 ) {

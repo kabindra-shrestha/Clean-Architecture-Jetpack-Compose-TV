@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -18,12 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.kabindra.tv.iptv.data.request.RefreshTokenDataRequest
 import com.kabindra.tv.iptv.presentation.ui.component.AppIcon
 import com.kabindra.tv.iptv.presentation.ui.component.LoadingIndicator
 import com.kabindra.tv.iptv.presentation.ui.component.TextComponent
-import com.kabindra.tv.iptv.presentation.viewmodel.remote.SplashEvent
-import com.kabindra.tv.iptv.presentation.viewmodel.remote.SplashViewModel
+import com.kabindra.tv.iptv.presentation.viewmodel.splash.SplashEvent
+import com.kabindra.tv.iptv.presentation.viewmodel.splash.SplashViewModel
 import com.kabindra.tv.iptv.utils.Connectivity
 import com.kabindra.tv.iptv.utils.error.GlobalErrorDialog
 import com.kabindra.tv.iptv.utils.getPlatform
@@ -35,7 +33,6 @@ import org.koin.compose.viewmodel.koinViewModel
 fun SplashScreen(
     splashViewModel: SplashViewModel = koinViewModel(),
     innerPadding: PaddingValues,
-    onNavigateLogin: () -> Unit,
     onNavigateDashboard: () -> Unit
 ) {
 
@@ -103,29 +100,7 @@ fun SplashScreen(
     if (splashState.isLogged == true) {
         splashViewModel.onEvent(SplashEvent.GetUser)
     } else {
-        // onNavigateLogin()
         onNavigateDashboard()
-    }
-
-    LaunchedEffect(splashState.refreshToken) {
-        splashViewModel.onEvent(
-            SplashEvent.GetLoginRefreshUserDetails(
-                RefreshTokenDataRequest("")
-            )
-        )
-    }
-
-    LaunchedEffect(splashState.refreshToken) {
-
-        val token = splashState.refreshToken?.response?.token
-        val refresh_token = splashState.refreshToken?.response?.refresh_token
-
-        if (token == null || refresh_token == null) {
-            onNavigateDashboard()
-            return@LaunchedEffect
-        }
-
-        // Go To Home Screen
     }
 
     if (splashState.isSuccess) {
@@ -146,6 +121,6 @@ fun SplashScreen(
             onDismiss = {
                 splashViewModel.onEvent(SplashEvent.GetIsLogged)
             },
-            onNavigateLogin = { onNavigateLogin() })
+            onNavigateLogin = { })
     }
 }

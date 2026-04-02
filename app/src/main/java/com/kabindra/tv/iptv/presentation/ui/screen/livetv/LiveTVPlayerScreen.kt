@@ -44,15 +44,15 @@ import com.kabindra.tv.iptv.presentation.ui.component.TextSize
 import com.kabindra.tv.iptv.presentation.ui.component.TextType
 import com.kabindra.tv.iptv.presentation.ui.component.TvLazyConfig
 import com.kabindra.tv.iptv.presentation.ui.component.rememberBaseLazyState
-import com.kabindra.tv.iptv.presentation.viewmodel.media.LiveTVViewModel
+import com.kabindra.tv.iptv.presentation.viewmodel.livetv.LiveTVViewModel
 import network.chaintech.sdpcomposemultiplatform.sdp
 import org.koin.compose.viewmodel.koinViewModel
 
 private object LiveTVScreenTokens {
     const val headerHorizontalPadding = 24
     const val headerTopPadding = 24
-    const val overlayCategoryWidth = 142
-    const val overlayChannelWidth = 252
+    const val overlayCategoryWidth = 120
+    const val overlayChannelWidth = 200
     const val overlayTopPadding = 36
     const val overlayBottomPadding = 24
     const val overlayHorizontalPadding = 18
@@ -67,7 +67,8 @@ fun LiveTVPlayerScreen(
     viewModel: LiveTVViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
-    val allChannels = remember(state.categories) { state.categories.flatMap(ChannelCategory::channels) }
+    val allChannels =
+        remember(state.categories) { state.categories.flatMap(ChannelCategory::channels) }
     val selectedCategory = state.categories.firstOrNull { it.id == state.selectedCategoryId }
         ?: state.categories.firstOrNull()
     val selectedChannel = allChannels.firstOrNull { it.id == state.selectedChannelId }
@@ -113,12 +114,6 @@ fun LiveTVPlayerScreen(
             verticalArrangement = Arrangement.spacedBy(4.sdp)
         ) {
             TextComponent(
-                text = "LIVE TV",
-                type = TextType.Label,
-                size = TextSize.Medium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f)
-            )
-            TextComponent(
                 text = selectedChannel?.title ?: "Loading Channel",
                 type = TextType.Headline,
                 size = TextSize.Large,
@@ -143,14 +138,14 @@ fun LiveTVPlayerScreen(
                 )
             }
 
-            !state.errorMessage.isNullOrBlank() -> {
+            state.errorMessage.isNotBlank() -> {
                 Column(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.sdp)
                 ) {
                     TextComponent(
-                        text = state.errorMessage ?: "Unable to load Live TV.",
+                        text = state.errorMessage,
                         type = TextType.Body,
                         size = TextSize.Medium,
                         color = MaterialTheme.colorScheme.onSurface
@@ -204,8 +199,8 @@ private fun LiveTVOverlay(
             modifier = Modifier
                 .fillMaxHeight()
                 .padding(
-                    top = LiveTVScreenTokens.overlayTopPadding.sdp,
-                    bottom = LiveTVScreenTokens.overlayBottomPadding.sdp,
+                    top = 0.sdp,
+                    bottom = 0.sdp,
                     start = 0.sdp
                 )
         ) {
@@ -217,12 +212,6 @@ private fun LiveTVOverlay(
                     .padding(LiveTVScreenTokens.overlayHorizontalPadding.sdp),
                 verticalArrangement = Arrangement.spacedBy(LiveTVScreenTokens.sectionSpacing.sdp)
             ) {
-                TextComponent(
-                    text = "Categories",
-                    type = TextType.Title,
-                    size = TextSize.Medium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.86f)
-                )
                 BaseLazy(
                     items = categories,
                     state = categoryState,
@@ -260,12 +249,6 @@ private fun LiveTVOverlay(
                     .padding(LiveTVScreenTokens.overlayHorizontalPadding.sdp),
                 verticalArrangement = Arrangement.spacedBy(LiveTVScreenTokens.sectionSpacing.sdp)
             ) {
-                TextComponent(
-                    text = "Channels",
-                    type = TextType.Title,
-                    size = TextSize.Medium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.86f)
-                )
                 BaseLazy(
                     items = selectedCategory.channels,
                     state = channelState,
