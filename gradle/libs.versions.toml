@@ -3,7 +3,7 @@ android-compileSdk = "36"
 android-minSdk = "26"
 android-targetSdk = "36"
 agp = "9.0.1"
-media3 = "1.8.0"
+media3 = "1.10.0"
 coreKtx = "1.18.0"
 appcompat = "1.7.1"
 kotlin = "2.3.20"
@@ -18,13 +18,14 @@ materialIconsExtended = "1.7.8"
 androidx-navigation3 = "1.0.1"
 androidx-startup-runtime = "1.2.0"
 androidx-core-splashscreen = "1.2.0"
-androidx-paging = "3.4.1"
+androidx-paging = "3.4.2"
 kotlinx-serialization-core = "1.10.0"
 koin-bom = "4.2.0"
-ktor = "3.4.1"
+ktor = "3.4.2"
 coil = "3.4.0"
 lottieCompose = "6.7.1"
 sdp_ssp_version = "1.0.7"
+vico = "3.0.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -72,6 +73,8 @@ coil-gif = { module = "io.coil-kt.coil3:coil-gif", version.ref = "coil" }
 coil-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coil" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
 sdp-ssp = { module = "network.chaintech:sdp-ssp-compose-multiplatform", version.ref = "sdp_ssp_version" }
+vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vico" }
+vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
 
 [bundles]
 koin = ["koin-core", "koin-android", "koin-compose", "koin-androidx-compose", "koin-compose-viewmodel"]

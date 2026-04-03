@@ -1,0 +1,32 @@
+package com.kabindra.player.player.telemetry.model
+
+data class LivePlaybackSnapshot(
+    val sessionId: String,
+    val streamUrl: String,
+    val protocol: SessionProtocol,
+    val playbackState: PlaybackState,
+    val playbackPositionMs: Long,
+    val bufferedDurationMs: Long,
+    val throughputKbps: Int? = null,
+    val currentBitrateKbps: Int? = null,
+    val averageBitrateKbps: Int? = null,
+    val averageThroughputKbps: Int? = null,
+    val networkActivityBytes: Long? = null,
+    val liveLatencyMs: Long? = null,
+    val droppedFrames: Int = 0,
+    val bitrateSwitchCount: Int = 0,
+    val startupMs: Long? = null,
+    val firstFrameMs: Long? = null,
+    val rebufferCount: Int = 0,
+    val rebufferDurationMs: Long = 0L,
+    val fatalErrorCount: Int = 0,
+    val videoCodec: String? = null,
+    val videoMimeType: String? = null,
+    val videoWidth: Int? = null,
+    val videoHeight: Int? = null,
+    val audioCodec: String? = null,
+    val audioMimeType: String? = null,
+    val audioChannels: Int? = null,
+    val audioSampleRateHz: Int? = null,
+    val drmType: String? = null
+)

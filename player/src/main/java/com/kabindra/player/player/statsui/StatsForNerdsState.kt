@@ -1,0 +1,41 @@
+package com.kabindra.player.player.statsui
+
+import com.kabindra.player.player.telemetry.model.SessionProtocol
+
+data class StatsForNerdsState(
+    val isVisible: Boolean = false,
+    val sessionId: String = "",
+    val streamUrl: String = "",
+    val protocol: SessionProtocol = SessionProtocol.UNKNOWN,
+    val isLiveStream: Boolean = false,
+    val playerState: String = "IDLE",
+    val playbackPositionMs: Long = 0L,
+    val bufferedDurationMs: Long = 0L,
+    val currentBitrateKbps: Int? = null,
+    val averageBitrateKbps: Int? = null,
+    val throughputKbps: Int? = null,
+    val averageThroughputKbps: Int? = null,
+    val networkActivityBytes: Long? = null,
+    val liveLatencyMs: Long? = null,
+    val liveTargetOffsetMs: Long? = null,
+    val liveOffsetDeltaMs: Long? = null,
+    val lowLatencyStatus: String = "UNKNOWN",
+    val lowLatencyConfidence: String = "N/A",
+    val lowLatencyNote: String = "Not enough data yet.",
+    val droppedFrames: Int = 0,
+    val startupMs: Long? = null,
+    val firstFrameMs: Long? = null,
+    val rebufferCount: Int = 0,
+    val rebufferDurationMs: Long = 0L,
+    val bitrateSwitchCount: Int = 0,
+    val fatalErrorCount: Int = 0,
+    val videoCodec: String? = null,
+    val videoMimeType: String? = null,
+    val videoWidth: Int? = null,
+    val videoHeight: Int? = null,
+    val audioCodec: String? = null,
+    val audioMimeType: String? = null,
+    val audioChannels: Int? = null,
+    val audioSampleRateHz: Int? = null,
+    val drmType: String? = null
+)
