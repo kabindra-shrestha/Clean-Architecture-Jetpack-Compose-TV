@@ -17,6 +17,8 @@ import androidx.media3.exoplayer.RenderersFactory
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.AdaptiveTrackSelection
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import com.kabindra.player.PlayerBufferConfig
+import com.kabindra.player.PlayerPerformanceConfig
 import com.kabindra.player.R
 
 object ExoPlayerUtils {
@@ -25,6 +27,21 @@ object ExoPlayerUtils {
     fun initializeExoPlayer(
         context: Context,
         transferListener: TransferListener? = null
+    ): ExoPlayer {
+        return createExoPlayer(
+            context = context,
+            bufferConfig = PlayerBufferConfig(),
+            performanceConfig = PlayerPerformanceConfig(),
+            transferListener = transferListener
+        )
+    }
+
+    @OptIn(UnstableApi::class)
+    fun createExoPlayer(
+        context: Context,
+        bufferConfig: PlayerBufferConfig,
+        performanceConfig: PlayerPerformanceConfig,
+        transferListener: TransferListener? = null,
     ): ExoPlayer {
         // Build a DefaultHttpDataSource.Factory with cross-protocol redirects enabled.
         val httpDataSourceFactory: DefaultHttpDataSource.Factory = DefaultHttpDataSource.Factory()
@@ -47,26 +64,29 @@ object ExoPlayerUtils {
         val trackSelector = DefaultTrackSelector(context, trackSelectionFactory)
         /*trackSelector.setParameters(trackSelector.buildUponParameters().setMaxVideoSizeSd())*/
 
-        val minBufferMs = DEFAULT_MIN_BUFFER_MS
-        val maxBufferMs = DEFAULT_MAX_BUFFER_MS
-        val bufferForPlaybackMs = /*DEFAULT_BUFFER_FOR_PLAYBACK_MS*/250
-        val bufferForPlaybackAfterRebufferMs = DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
-
         val loadControl = Builder()
             .setBufferDurationsMs(
-                minBufferMs, maxBufferMs, bufferForPlaybackMs, bufferForPlaybackAfterRebufferMs
+                bufferConfig.minBufferMs,
+                bufferConfig.maxBufferMs,
+                bufferConfig.bufferForPlaybackMs,
+                bufferConfig.bufferForPlaybackAfterRebufferMs
             )
+            .setBackBuffer(bufferConfig.backBufferMs, true)
             .build()
 
-        val renderersFactory: RenderersFactory = buildRenderersFactory(context, true)
+        val renderersFactory: RenderersFactory = buildRenderersFactory(
+            context,
+            performanceConfig.preferExtensionRenderers
+        )
 
         return ExoPlayer.Builder(context)
             .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
             .setRenderersFactory(renderersFactory)
             .setTrackSelector(trackSelector)
             .setLoadControl(loadControl)
-            .setSeekBackIncrementMs(10000)
-            .setSeekForwardIncrementMs(10000)
+            .setSeekBackIncrementMs(performanceConfig.seekBackMs)
+            .setSeekForwardIncrementMs(performanceConfig.seekForwardMs)
+            .setHandleAudioBecomingNoisy(performanceConfig.handleAudioBecomingNoisy)
             .build()
     }
 

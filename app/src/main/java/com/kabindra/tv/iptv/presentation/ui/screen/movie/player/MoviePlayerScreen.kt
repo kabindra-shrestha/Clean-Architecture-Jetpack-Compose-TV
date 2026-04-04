@@ -14,9 +14,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.tv.material3.MaterialTheme
-import com.kabindra.player.component.Media3PlayerComponent
-import com.kabindra.player.model.PlayerMediaItem
-import com.kabindra.player.model.PlayerStreamType
+import com.kabindra.player.PlayerContentType
+import com.kabindra.player.PlayerControllerMode
+import com.kabindra.player.PlayerExperience
+import com.kabindra.player.PlayerFeatures
+import com.kabindra.player.PlayerItem
+import com.kabindra.player.PlayerPlaylist
+import com.kabindra.player.PlayerSourceType
+import com.kabindra.player.UnifiedPlayer
+import com.kabindra.player.defaultPlayerInteractionConfig
+import com.kabindra.player.rememberPlayerHostState
 import com.kabindra.tv.iptv.domain.entity.MediaStreamType
 import com.kabindra.tv.iptv.domain.entity.MovieDetail
 import com.kabindra.tv.iptv.presentation.ui.component.ButtonComponent
@@ -41,6 +48,7 @@ fun MoviePlayerScreen(
     onBack: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
+    val playerHostState = rememberPlayerHostState(movieId)
 
     BackHandler(onBack = onBack)
 
@@ -54,35 +62,52 @@ fun MoviePlayerScreen(
             .mainBackground()
     ) {
         state.movie?.let { movie ->
-            Media3PlayerComponent(
-                items = listOf(movie.toPlayerMediaItem()),
-                selectedIndex = 0,
-                onSelectedIndexChange = { },
+            UnifiedPlayer(
+                playlist = PlayerPlaylist(
+                    items = listOf(movie.toPlayerItem()),
+                    startIndex = 0,
+                    autoPlay = true,
+                ),
+                hostState = playerHostState,
+                experience = PlayerExperience.AndroidTv,
+                controllerMode = PlayerControllerMode.Default,
+                features = PlayerFeatures(
+                    /*showStreamDetails = true,
+                    showPreviousButton = false,
+                    showNextButton = false,
+                    showRewindButton = true,
+                    showFastForwardButton = true,
+                    showSeekBar = true,
+                    showSubtitles = true,
+                    showQualitySelector = true,
+                    showAudioSelector = true,
+                    showEpgAction = false,
+                    showStatsForNerds = false,
+                    showPlaybackSpeed = true,
+                    showShuffleButton = false,
+                    showLoopButton = true,
+                    showGoLiveButton = false,*/
+                    showBackButton = true,
+                    showStreamDetails = true,
+                    showPlayPauseButton = true,
+                    showPreviousButton = true,
+                    showNextButton = true,
+                    showRewindButton = true,
+                    showFastForwardButton = true,
+                    showSeekBar = true,
+                    showSubtitles = true,
+                    showQualitySelector = true,
+                    showAudioSelector = true,
+                    showEpgAction = true,
+                    showStatsForNerds = true,
+                    showPlaybackSpeed = true,
+                    showShuffleButton = true,
+                    showLoopButton = true,
+                    showGoLiveButton = true,
+                ),
+                interactionConfig = defaultPlayerInteractionConfig(PlayerExperience.AndroidTv),
                 modifier = Modifier.fillMaxSize()
             )
-
-            Column(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(
-                        start = MovieScreenTokens.headerHorizontalPadding.sdp,
-                        top = MovieScreenTokens.headerVerticalPadding.sdp
-                    ),
-                verticalArrangement = Arrangement.spacedBy(4.sdp)
-            ) {
-                TextComponent(
-                    text = movie.title,
-                    type = TextType.Title,
-                    size = TextSize.Large,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                TextComponent(
-                    text = movie.subtitle,
-                    type = TextType.Body,
-                    size = TextSize.Medium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.76f)
-                )
-            }
         }
 
         when {
@@ -116,19 +141,20 @@ fun MoviePlayerScreen(
     }
 }
 
-private fun MovieDetail.toPlayerMediaItem(): PlayerMediaItem {
-    return PlayerMediaItem(
+private fun MovieDetail.toPlayerItem(): PlayerItem {
+    return PlayerItem(
         id = id,
         title = title,
         streamUrl = streamUrl,
-        streamType = streamType.toPlayerStreamType(),
-        posterUrl = posterUrl
+        sourceType = streamType.toPlayerSourceType(),
+        contentType = PlayerContentType.Vod,
+        posterUrl = posterUrl,
     )
 }
 
-private fun MediaStreamType.toPlayerStreamType(): PlayerStreamType {
+private fun MediaStreamType.toPlayerSourceType(): PlayerSourceType {
     return when (this) {
-        MediaStreamType.Hls -> PlayerStreamType.Hls
-        MediaStreamType.Progressive -> PlayerStreamType.Progressive
+        MediaStreamType.Hls -> PlayerSourceType.Hls
+        MediaStreamType.Progressive -> PlayerSourceType.Progressive
     }
 }

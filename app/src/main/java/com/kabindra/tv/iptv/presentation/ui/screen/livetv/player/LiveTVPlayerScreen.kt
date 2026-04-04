@@ -22,10 +22,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.tv.material3.MaterialTheme
-import com.kabindra.player.component.Media3PlayerComponent
-import com.kabindra.player.model.PlayerMediaItem
-import com.kabindra.player.model.PlayerStreamType
-import com.kabindra.player.model.PlayerUiConfig
+import com.kabindra.player.PlayerCallbacks
+import com.kabindra.player.PlayerContentType
+import com.kabindra.player.PlayerControllerMode
+import com.kabindra.player.PlayerExperience
+import com.kabindra.player.PlayerFeatures
+import com.kabindra.player.PlayerItem
+import com.kabindra.player.PlayerPlaylist
+import com.kabindra.player.PlayerProgramInfo
+import com.kabindra.player.PlayerSourceType
+import com.kabindra.player.UnifiedPlayer
+import com.kabindra.player.defaultPlayerInteractionConfig
+import com.kabindra.player.rememberPlayerHostState
 import com.kabindra.tv.iptv.domain.entity.ChannelCategory
 import com.kabindra.tv.iptv.domain.entity.LiveChannel
 import com.kabindra.tv.iptv.domain.entity.MediaStreamType
@@ -73,6 +81,7 @@ fun LiveTVPlayerScreen(
     val selectedChannelIndex = allChannels.indexOfFirst { it.id == selectedChannel?.id }
         .takeIf { it >= 0 }
         ?: 0
+    val playerHostState = rememberPlayerHostState()
 
     BackHandler {
         if (state.isChannelOverlayVisible) {
@@ -88,42 +97,61 @@ fun LiveTVPlayerScreen(
             .mainBackground()
     ) {
         if (allChannels.isNotEmpty()) {
-            Media3PlayerComponent(
-                items = allChannels.map(LiveChannel::toPlayerMediaItem),
-                selectedIndex = selectedChannelIndex,
-                onSelectedIndexChange = { playerIndex ->
-                    allChannels.getOrNull(playerIndex)?.let { channel ->
-                        viewModel.selectChannel(channel.id, closeOverlay = false)
-                    }
-                },
-                modifier = Modifier.fillMaxSize(),
-                uiConfig = PlayerUiConfig()
-            )
-        }
-
-        Column(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(
-                    start = LiveTVScreenTokens.headerHorizontalPadding.sdp,
-                    top = LiveTVScreenTokens.headerVerticalPadding.sdp
+            UnifiedPlayer(
+                playlist = PlayerPlaylist(
+                    items = allChannels.map(LiveChannel::toPlayerItem),
+                    startIndex = selectedChannelIndex,
+                    autoPlay = true,
                 ),
-            verticalArrangement = Arrangement.spacedBy(4.sdp)
-        ) {
-            TextComponent(
-                text = selectedChannel?.title ?: "",
-                type = TextType.Title,
-                size = TextSize.Large,
-                color = MaterialTheme.colorScheme.onSurface
+                hostState = playerHostState,
+                experience = PlayerExperience.AndroidTv,
+                controllerMode = PlayerControllerMode.Custom,
+                features = PlayerFeatures(
+                    /*showBackButton = false,
+                    showStreamDetails = true,
+                    showPlayPauseButton = true,
+                    showPreviousButton = true,
+                    showNextButton = true,
+                    showRewindButton = true,
+                    showFastForwardButton = true,
+                    showSeekBar = true,
+                    showSubtitles = true,
+                    showQualitySelector = true,
+                    showAudioSelector = true,
+                    showEpgAction = false,
+                    showStatsForNerds = false,
+                    showPlaybackSpeed = false,
+                    showShuffleButton = false,
+                    showLoopButton = false,
+                    showGoLiveButton = true,*/
+                    showBackButton = true,
+                    showStreamDetails = true,
+                    showPlayPauseButton = true,
+                    showPreviousButton = true,
+                    showNextButton = true,
+                    showRewindButton = true,
+                    showFastForwardButton = true,
+                    showSeekBar = true,
+                    showSubtitles = true,
+                    showQualitySelector = true,
+                    showAudioSelector = true,
+                    showEpgAction = true,
+                    showStatsForNerds = true,
+                    showPlaybackSpeed = true,
+                    showShuffleButton = true,
+                    showLoopButton = true,
+                    showGoLiveButton = true,
+                ),
+                interactionConfig = defaultPlayerInteractionConfig(PlayerExperience.AndroidTv),
+                callbacks = PlayerCallbacks(
+                    onItemChanged = { _, playerIndex ->
+                        allChannels.getOrNull(playerIndex)?.let { channel ->
+                            viewModel.selectChannel(channel.id, closeOverlay = false)
+                        }
+                    }
+                ),
+                modifier = Modifier.fillMaxSize(),
             )
-            selectedChannel?.let { channel ->
-                TextComponent(
-                    text = channel.currentProgram,
-                    type = TextType.Body,
-                    size = TextSize.Medium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.76f)
-                )
-            }
         }
 
         when {
@@ -285,19 +313,25 @@ private fun LiveTVOverlay(
     }
 }
 
-private fun LiveChannel.toPlayerMediaItem(): PlayerMediaItem {
-    return PlayerMediaItem(
+private fun LiveChannel.toPlayerItem(): PlayerItem {
+    return PlayerItem(
         id = id,
         title = title,
         streamUrl = streamUrl,
-        streamType = streamType.toPlayerStreamType(),
-        posterUrl = logoUrl
+        sourceType = streamType.toPlayerSourceType(),
+        contentType = PlayerContentType.Live,
+        posterUrl = logoUrl,
+        programInfo = PlayerProgramInfo(
+            channelName = title,
+            currentTitle = currentProgram,
+        ),
+        isSeekable = streamType != MediaStreamType.Hls,
     )
 }
 
-private fun MediaStreamType.toPlayerStreamType(): PlayerStreamType {
+private fun MediaStreamType.toPlayerSourceType(): PlayerSourceType {
     return when (this) {
-        MediaStreamType.Hls -> PlayerStreamType.Hls
-        MediaStreamType.Progressive -> PlayerStreamType.Progressive
+        MediaStreamType.Hls -> PlayerSourceType.Hls
+        MediaStreamType.Progressive -> PlayerSourceType.Progressive
     }
 }

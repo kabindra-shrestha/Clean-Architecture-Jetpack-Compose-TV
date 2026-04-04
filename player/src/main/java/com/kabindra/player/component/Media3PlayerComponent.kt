@@ -1,24 +1,24 @@
 package com.kabindra.player.component
 
-import android.net.Uri
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MimeTypes
-import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
+import com.kabindra.player.PlayerCallbacks
+import com.kabindra.player.PlayerContentType
+import com.kabindra.player.PlayerControllerMode
+import com.kabindra.player.PlayerItem
+import com.kabindra.player.PlayerPlaylist
+import com.kabindra.player.PlayerSourceType
+import com.kabindra.player.UnifiedPlayer
 import com.kabindra.player.model.PlayerMediaItem
 import com.kabindra.player.model.PlayerStreamType
 import com.kabindra.player.model.PlayerUiConfig
+import com.kabindra.player.rememberPlayerHostState
 
+@Deprecated(
+    message = "Use UnifiedPlayer(...) with PlayerPlaylist and PlayerFeatures instead.",
+    replaceWith = ReplaceWith("UnifiedPlayer()"),
+)
 @Composable
 fun Media3PlayerComponent(
     items: List<PlayerMediaItem>,
@@ -27,100 +27,48 @@ fun Media3PlayerComponent(
     modifier: Modifier = Modifier,
     uiConfig: PlayerUiConfig = PlayerUiConfig(),
 ) {
-    val context = LocalContext.current
-    val currentItems by rememberUpdatedState(items)
-    val currentOnSelectedIndexChange by rememberUpdatedState(onSelectedIndexChange)
-    val playlistSignature = remember(items) {
-        items.map { item ->
-            listOf(
-                item.id,
-                item.title,
-                item.streamUrl,
-                item.streamType.name,
-                item.posterUrl.orEmpty()
-            )
-        }
-    }
-    val exoPlayer = remember(context) {
-        ExoPlayer.Builder(context).build()
-    }
+    val hostState = rememberPlayerHostState(items, selectedIndex, uiConfig)
 
-    DisposableEffect(exoPlayer) {
-        val listener = object : Player.Listener {
-            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                val currentIndex = exoPlayer.currentMediaItemIndex
-                if (currentIndex in currentItems.indices) {
-                    currentOnSelectedIndexChange(currentIndex)
-                }
-            }
-        }
-
-        exoPlayer.addListener(listener)
-
-        onDispose {
-            exoPlayer.removeListener(listener)
-            exoPlayer.release()
+    LaunchedEffect(hostState.uiState.currentIndex, items) {
+        val currentIndex = hostState.uiState.currentIndex
+        if (currentIndex in items.indices) {
+            onSelectedIndexChange(currentIndex)
         }
     }
 
-    LaunchedEffect(playlistSignature) {
-        if (items.isEmpty()) {
-            exoPlayer.stop()
-            exoPlayer.clearMediaItems()
-            return@LaunchedEffect
-        }
-
-        val targetIndex = selectedIndex.coerceIn(0, items.lastIndex)
-        exoPlayer.setMediaItems(items.map(PlayerMediaItem::toMedia3Item), targetIndex, 0L)
-        exoPlayer.prepare()
-        exoPlayer.playWhenReady = uiConfig.playWhenReady
-    }
-
-    LaunchedEffect(selectedIndex, uiConfig.playWhenReady, playlistSignature) {
-        if (items.isEmpty()) return@LaunchedEffect
-
-        val targetIndex = selectedIndex.coerceIn(0, items.lastIndex)
-        if (exoPlayer.currentMediaItemIndex != targetIndex) {
-            exoPlayer.seekToDefaultPosition(targetIndex)
-            if (exoPlayer.playbackState == Player.STATE_IDLE) {
-                exoPlayer.prepare()
-            }
-        }
-        exoPlayer.playWhenReady = uiConfig.playWhenReady
-    }
-
-    AndroidView(
-        modifier = modifier,
-        factory = { viewContext ->
-            PlayerView(viewContext).apply {
-                useController = uiConfig.useDefaultController
-                controllerAutoShow = uiConfig.useDefaultController
-                keepScreenOn = uiConfig.keepScreenOn
-                player = exoPlayer
-            }
+    UnifiedPlayer(
+        playlist = PlayerPlaylist(
+            items = items.map(PlayerMediaItem::toUnifiedPlayerItem),
+            startIndex = selectedIndex,
+            autoPlay = uiConfig.playWhenReady,
+        ),
+        hostState = hostState,
+        controllerMode = if (uiConfig.useDefaultController) {
+            PlayerControllerMode.Default
+        } else {
+            PlayerControllerMode.Custom
         },
-        update = { playerView ->
-            playerView.player = exoPlayer
-            playerView.useController = uiConfig.useDefaultController
-            playerView.controllerAutoShow = uiConfig.useDefaultController
-            playerView.keepScreenOn = uiConfig.keepScreenOn
-        }
+        callbacks = PlayerCallbacks(
+            onItemChanged = { _, index -> onSelectedIndexChange(index) }
+        ),
+        modifier = modifier,
     )
 }
 
-private fun PlayerMediaItem.toMedia3Item(): MediaItem {
-    val builder = MediaItem.Builder()
-        .setMediaId(id)
-        .setUri(Uri.parse(streamUrl))
-        .setMediaMetadata(
-            androidx.media3.common.MediaMetadata.Builder()
-                .setTitle(title)
-                .build()
-        )
-
-    if (streamType == PlayerStreamType.Hls) {
-        builder.setMimeType(MimeTypes.APPLICATION_M3U8)
-    }
-
-    return builder.build()
+private fun PlayerMediaItem.toUnifiedPlayerItem(): PlayerItem {
+    return PlayerItem(
+        id = id,
+        title = title,
+        streamUrl = streamUrl,
+        sourceType = when (streamType) {
+            PlayerStreamType.Hls -> PlayerSourceType.Hls
+            PlayerStreamType.Progressive -> PlayerSourceType.Progressive
+        },
+        contentType = when (streamType) {
+            PlayerStreamType.Hls -> PlayerContentType.Live
+            PlayerStreamType.Progressive -> PlayerContentType.Vod
+        },
+        posterUrl = posterUrl,
+        isSeekable = streamType == PlayerStreamType.Progressive,
+    )
 }
