@@ -36,6 +36,7 @@ fun MainScreen() {
                     SplashScreen(
                         innerPadding = innerPadding,
                         onNavigateDashboard = {
+                            backStack.removeLastOrNull()
                             backStack.add(DashboardRoute)
                         }
                     )

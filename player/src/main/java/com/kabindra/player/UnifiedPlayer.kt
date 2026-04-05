@@ -6,21 +6,19 @@ import android.view.View
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.focusable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -30,14 +28,19 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.FiberManualRecord
-import androidx.compose.material.icons.filled.Forward10
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Replay10
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.rounded.Analytics
+import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material.icons.rounded.HighQuality
+import androidx.compose.material.icons.rounded.LiveTv
+import androidx.compose.material.icons.rounded.RadioButtonChecked
+import androidx.compose.material.icons.rounded.Repeat
+import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.material.icons.rounded.Subtitles
+import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,7 +53,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -61,11 +63,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -75,7 +78,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -100,11 +102,7 @@ import androidx.media3.exoplayer.source.LoadEventInfo
 import androidx.media3.exoplayer.source.MediaLoadData
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.compose.ContentFrame
-import androidx.media3.ui.compose.material3.buttons.NextButton as Media3NextButton
-import androidx.media3.ui.compose.material3.buttons.PlayPauseButton as Media3PlayPauseButton
-import androidx.media3.ui.compose.material3.buttons.PreviousButton as Media3PreviousButton
-import androidx.media3.ui.compose.material3.buttons.SeekBackButton as Media3SeekBackButton
-import androidx.media3.ui.compose.material3.buttons.SeekForwardButton as Media3SeekForwardButton
+import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
 import com.kabindra.player.player.telemetry.collector.DefaultPlaybackTelemetryCollector
 import com.kabindra.player.player.telemetry.collector.NoOpPlaybackTelemetryCollector
 import com.kabindra.player.player.telemetry.collector.PlaybackTelemetryCollector
@@ -120,6 +118,11 @@ import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.roundToInt
+import androidx.media3.ui.compose.material3.buttons.NextButton as Media3NextButton
+import androidx.media3.ui.compose.material3.buttons.PlayPauseButton as Media3PlayPauseButton
+import androidx.media3.ui.compose.material3.buttons.PreviousButton as Media3PreviousButton
+import androidx.media3.ui.compose.material3.buttons.SeekBackButton as Media3SeekBackButton
+import androidx.media3.ui.compose.material3.buttons.SeekForwardButton as Media3SeekForwardButton
 
 @Composable
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -151,6 +154,7 @@ fun UnifiedPlayer(
     var controllerInteractionToken by remember { mutableIntStateOf(0) }
     val hiddenOverlayFocusRequester = remember { FocusRequester() }
     val primaryControlFocusRequester = remember { FocusRequester() }
+    val panelFocusRequester = remember { FocusRequester() }
     val registerInteraction = remember(hostState, controllerMode) {
         {
             controllerInteractionToken += 1
@@ -205,7 +209,10 @@ fun UnifiedPlayer(
                 telemetryCollector.appendNetworkSample(
                     NetworkSample(
                         timestampMs = now,
-                        throughputKbps = calculateThroughputKbps(sample.transferredBytes, durationMs),
+                        throughputKbps = calculateThroughputKbps(
+                            sample.transferredBytes,
+                            durationMs
+                        ),
                         host = dataSpec.uri.host,
                         segmentUri = dataSpec.uri.toString(),
                         transferBytes = sample.transferredBytes,
@@ -224,6 +231,8 @@ fun UnifiedPlayer(
             transferListener = telemetryTransferListener,
         )
     }
+    var allowPlayback by remember(player) { mutableStateOf(true) }
+    var resumePlaybackWhenStarted by remember(player) { mutableStateOf(playlist.autoPlay) }
     val playerView = remember(context) { PlayerView(context) }
     var telemetrySessionId by remember(player) { mutableStateOf<String?>(null) }
     val playlistSignature = remember(playlist.items) {
@@ -275,8 +284,25 @@ fun UnifiedPlayer(
     DisposableEffect(lifecycleOwner, player) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_START -> if (currentPlaylist.autoPlay) player.playWhenReady = true
-                Lifecycle.Event.ON_STOP -> player.playWhenReady = false
+                Lifecycle.Event.ON_START -> {
+                    allowPlayback = true
+                    if (resumePlaybackWhenStarted && currentPlaylist.autoPlay) {
+                        player.playWhenReady = true
+                    }
+                }
+
+                Lifecycle.Event.ON_PAUSE,
+                Lifecycle.Event.ON_STOP -> {
+                    resumePlaybackWhenStarted = player.playWhenReady || player.isPlaying
+                    allowPlayback = false
+                    player.playWhenReady = false
+                }
+
+                Lifecycle.Event.ON_DESTROY -> {
+                    allowPlayback = false
+                    player.playWhenReady = false
+                }
+
                 else -> Unit
             }
         }
@@ -362,7 +388,11 @@ fun UnifiedPlayer(
         }
 
         val analyticsListener = object : AnalyticsListener {
-            override fun onRenderedFirstFrame(eventTime: AnalyticsListener.EventTime, output: Any, renderTimeMs: Long) {
+            override fun onRenderedFirstFrame(
+                eventTime: AnalyticsListener.EventTime,
+                output: Any,
+                renderTimeMs: Long
+            ) {
                 if (telemetryConfig.enabled) {
                     currentTelemetryCollector.onFirstFrameRendered()
                 }
@@ -473,12 +503,18 @@ fun UnifiedPlayer(
             0L,
         )
         player.prepare()
-        player.playWhenReady = playlist.autoPlay
+        resumePlaybackWhenStarted = playlist.autoPlay
+        player.playWhenReady = playlist.autoPlay && allowPlayback
         updateUiState(player, hostState, playlist)
         if (telemetryConfig.enabled) {
             finishTelemetrySession(currentTelemetryCollector)
             telemetrySessionId = null
-            ensureTelemetrySession(player, playlist, currentTelemetryCollector, telemetrySessionId) {
+            ensureTelemetrySession(
+                player,
+                playlist,
+                currentTelemetryCollector,
+                telemetrySessionId
+            ) {
                 telemetrySessionId = it
             }
         }
@@ -490,7 +526,7 @@ fun UnifiedPlayer(
         if (player.currentMediaItemIndex != targetIndex) {
             player.seekToDefaultPosition(targetIndex)
         }
-        if (playlist.autoPlay) {
+        if (playlist.autoPlay && allowPlayback) {
             player.playWhenReady = true
         }
         updateUiState(player, hostState, playlist)
@@ -512,7 +548,8 @@ fun UnifiedPlayer(
         while (isActive) {
             updateUiState(player, hostState, currentPlaylist)
             if (telemetryConfig.enabled && telemetryConfig.emitSnapshotsToCallback) {
-                currentTelemetryCollector.currentSnapshot()?.let(currentCallbacks.onTelemetrySnapshot ?: {})
+                currentTelemetryCollector.currentSnapshot()
+                    ?.let(currentCallbacks.onTelemetrySnapshot ?: {})
             }
             delay(intervalMs)
         }
@@ -550,10 +587,18 @@ fun UnifiedPlayer(
         if (!currentInteractionConfig.enableFocus) return@LaunchedEffect
         if (controllerMode != PlayerControllerMode.Custom) return@LaunchedEffect
 
-        if (uiState.isControllerVisible || uiState.activePanel != PlayerPanel.None) {
-            runCatching { primaryControlFocusRequester.requestFocus() }
-        } else {
-            runCatching { hiddenOverlayFocusRequester.requestFocus() }
+        when {
+            uiState.activePanel != PlayerPanel.None -> {
+                runCatching { panelFocusRequester.requestFocus() }
+            }
+
+            uiState.isControllerVisible -> {
+                runCatching { primaryControlFocusRequester.requestFocus() }
+            }
+
+            else -> {
+                runCatching { hiddenOverlayFocusRequester.requestFocus() }
+            }
         }
     }
 
@@ -569,6 +614,7 @@ fun UnifiedPlayer(
             ContentFrame(
                 player = player,
                 modifier = Modifier.fillMaxSize(),
+                surfaceType = SURFACE_TYPE_TEXTURE_VIEW,
                 contentScale = ContentScale.Fit,
                 keepContentOnReset = true,
             )
@@ -591,7 +637,7 @@ fun UnifiedPlayer(
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.28f))
             ) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                PlayerLoadingIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }
 
@@ -609,13 +655,13 @@ fun UnifiedPlayer(
                         if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                         when {
                             currentInteractionConfig.showControllerOnConfirmKey &&
-                                event.key.isConfirmKey() -> {
+                                    event.key.isConfirmKey() -> {
                                 registerInteraction()
                                 true
                             }
 
                             currentInteractionConfig.showControllerOnDirectionalKeys &&
-                                event.key.isDirectionalKey() -> {
+                                    event.key.isDirectionalKey() -> {
                                 registerInteraction()
                                 true
                             }
@@ -628,8 +674,8 @@ fun UnifiedPlayer(
 
         AnimatedVisibility(
             visible = controllerMode == PlayerControllerMode.Default &&
-                features.showStreamDetails &&
-                uiState.isControllerVisible,
+                    features.showStreamDetails &&
+                    uiState.isControllerVisible,
             enter = fadeIn(),
             exit = fadeOut(),
         ) {
@@ -664,11 +710,7 @@ fun UnifiedPlayer(
             )
         }
 
-        AnimatedVisibility(
-            visible = controllerMode == PlayerControllerMode.Custom && uiState.isControllerVisible,
-            enter = fadeIn(),
-            exit = fadeOut(),
-        ) {
+        if (controllerMode == PlayerControllerMode.Custom && uiState.isControllerVisible) {
             CustomControllerOverlay(
                 player = player,
                 uiState = uiState,
@@ -687,25 +729,25 @@ fun UnifiedPlayer(
             )
         }
 
-        AnimatedVisibility(
-            visible = uiState.activePanel != PlayerPanel.None,
-            enter = fadeIn(),
-            exit = fadeOut(),
-            modifier = Modifier.align(
-                if (experience == PlayerExperience.AndroidTv) Alignment.CenterEnd
-                else Alignment.BottomCenter
-            ),
-        ) {
+        if (uiState.activePanel != PlayerPanel.None) {
             val dismiss = hostState::dismissPanel
-            currentPanelContent?.invoke(uiState.activePanel, uiState, hostState, dismiss)
-                ?: DefaultPanelContent(
-                    panel = uiState.activePanel,
-                    uiState = uiState,
-                    hostState = hostState,
-                    telemetrySnapshot = if (telemetryConfig.enabled) currentTelemetryCollector.currentSnapshot() else null,
-                    experience = experience,
-                    onDismiss = dismiss,
+            Box(
+                modifier = Modifier.align(
+                    if (experience == PlayerExperience.AndroidTv) Alignment.CenterEnd
+                    else Alignment.BottomCenter
                 )
+            ) {
+                currentPanelContent?.invoke(uiState.activePanel, uiState, hostState, dismiss)
+                    ?: DefaultPanelContent(
+                        panel = uiState.activePanel,
+                        uiState = uiState,
+                        hostState = hostState,
+                        telemetrySnapshot = if (telemetryConfig.enabled) currentTelemetryCollector.currentSnapshot() else null,
+                        experience = experience,
+                        initialFocusRequester = panelFocusRequester,
+                        onDismiss = dismiss,
+                    )
+            }
         }
 
         uiState.errorMessage?.takeIf { it.isNotBlank() }?.let { errorMessage ->
@@ -715,7 +757,7 @@ fun UnifiedPlayer(
                     .background(Color.Black.copy(alpha = 0.72f))
                     .padding(24.dp)
             ) {
-                Text(
+                PlayerText(
                     text = errorMessage,
                     modifier = Modifier.align(Alignment.Center),
                     color = Color.White,
@@ -911,6 +953,86 @@ private fun DefaultActionRail(
 }
 
 @Composable
+private fun PlayerText(
+    text: String,
+    modifier: Modifier = Modifier,
+    color: Color = Color.Unspecified,
+    style: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.bodyMedium,
+    textAlign: TextAlign? = null,
+    fontFamily: FontFamily? = null,
+    fontSize: androidx.compose.ui.unit.TextUnit = style.fontSize,
+) {
+    Text(
+        text = text,
+        modifier = modifier,
+        color = color,
+        style = style.copy(
+            fontFamily = fontFamily ?: style.fontFamily,
+            fontSize = fontSize,
+        ),
+        textAlign = textAlign,
+    )
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun PlayerLoadingIndicator(
+    modifier: Modifier = Modifier,
+) {
+    CircularWavyProgressIndicator(
+        modifier = modifier.size(34.dp),
+        color = Color.White,
+        trackColor = Color.White.copy(alpha = 0.24f),
+    )
+}
+
+@Composable
+private fun PlayerActionIconButton(
+    icon: ImageVector,
+    contentDescription: String,
+    interactionConfig: PlayerInteractionConfig,
+    onUserInteraction: () -> Unit,
+    selected: Boolean = false,
+    focusRequester: FocusRequester? = null,
+    onClick: () -> Unit,
+) {
+    var isFocused by remember { mutableStateOf(false) }
+
+    IconButton(
+        onClick = {
+            onUserInteraction()
+            onClick()
+        },
+        modifier = Modifier
+            .then(focusRequester?.let { Modifier.focusRequester(it) } ?: Modifier)
+            .graphicsLayer(
+                scaleX = if (isFocused) 1.08f else 1f,
+                scaleY = if (isFocused) 1.08f else 1f,
+            )
+            .onFocusChanged {
+                isFocused = it.isFocused
+                if (it.isFocused) {
+                    onUserInteraction()
+                }
+            }
+            .background(
+                color = when {
+                    selected -> Color(0x337FE8FF)
+                    isFocused -> Color.White.copy(alpha = 0.16f)
+                    else -> Color.Transparent
+                },
+                shape = RoundedCornerShape(18.dp),
+            ),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = if (selected) Color(0xFF7FE8FF) else Color.White,
+        )
+    }
+}
+
+@Composable
 private fun RailButton(
     label: String,
     interactionConfig: PlayerInteractionConfig,
@@ -934,17 +1056,10 @@ private fun RailButton(
                 if (it.isFocused) {
                     onUserInteraction()
                 }
-            }
-            .then(
-                if (interactionConfig.enableFocus) {
-                    Modifier.focusable()
-                } else {
-                    Modifier
-                }
-            ),
+            },
         border = if (isFocused) BorderStroke(2.dp, Color.White) else null,
     ) {
-        Text(text = label)
+        PlayerText(text = label)
     }
 }
 
@@ -981,13 +1096,6 @@ private fun PlayerTransportIconButton(
                     onUserInteraction()
                 }
             }
-            .then(
-                if (interactionConfig.enableFocus) {
-                    Modifier.focusable()
-                } else {
-                    Modifier
-                }
-            )
             .background(
                 color = if (isFocused) Color.White.copy(alpha = 0.16f) else Color.Transparent,
                 shape = RoundedCornerShape(18.dp),
@@ -1018,13 +1126,20 @@ private fun CustomControllerOverlay(
 ) {
     val currentItem = uiState.currentItem
     val programInfo = currentItem?.programInfo
-    val canShowSeekBar = features.showSeekBar && ((uiState.canSeek && !uiState.isLive) || uiState.hasDvr)
+    val canShowSeekBar =
+        features.showSeekBar && ((uiState.canSeek && !uiState.isLive) || uiState.hasDvr)
     val secondaryText = when {
-        uiState.isLive -> programInfo?.currentTitle ?: currentItem?.subtitle ?: currentItem?.description
+        uiState.isLive -> programInfo?.currentTitle ?: currentItem?.subtitle
+        ?: currentItem?.description
+
         else -> currentItem?.subtitle ?: currentItem?.description
     }
     val tertiaryText = when {
-        uiState.isLive -> listOfNotNull(programInfo?.nextTitle, programInfo?.startTimeText, programInfo?.endTimeText)
+        uiState.isLive -> listOfNotNull(
+            programInfo?.nextTitle,
+            programInfo?.startTimeText,
+            programInfo?.endTimeText
+        )
             .takeIf { it.isNotEmpty() }
             ?.joinToString("  •  ")
 
@@ -1064,7 +1179,7 @@ private fun CustomControllerOverlay(
                             },
                             modifier = Modifier.size(12.dp),
                         )
-                        Text(
+                        PlayerText(
                             text = when {
                                 uiState.isLive && uiState.hasDvr -> "LIVE (DVR)"
                                 uiState.isLive -> "LIVE"
@@ -1076,22 +1191,23 @@ private fun CustomControllerOverlay(
                         )
                     }
 
-                    Text(
+                    PlayerText(
                         text = currentItem.title,
                         color = Color.White,
                         style = MaterialTheme.typography.headlineSmall,
                     )
 
-                    programInfo?.channelName?.takeIf { it.isNotBlank() && it != currentItem.title }?.let { channelName ->
-                        Text(
-                            text = channelName,
-                            color = Color(0xFFD8D9E8),
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
+                    programInfo?.channelName?.takeIf { it.isNotBlank() && it != currentItem.title }
+                        ?.let { channelName ->
+                            PlayerText(
+                                text = channelName,
+                                color = Color(0xFFD8D9E8),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
 
                     secondaryText?.takeIf { it.isNotBlank() }?.let { text ->
-                        Text(
+                        PlayerText(
                             text = text,
                             color = Color(0xFFB9BDD1),
                             style = MaterialTheme.typography.bodyMedium,
@@ -1099,45 +1215,81 @@ private fun CustomControllerOverlay(
                     }
 
                     tertiaryText?.takeIf { it.isNotBlank() }?.let { timingText ->
-                            Text(
-                                text = timingText,
-                                color = Color(0xFF9AA0B5),
-                                style = MaterialTheme.typography.labelMedium,
-                            )
-                        }
+                        PlayerText(
+                            text = timingText,
+                            color = Color(0xFF9AA0B5),
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                    }
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     callbacks.onBack?.takeIf { features.showBackButton }?.let { onBack ->
-                        RailButton("Back", interactionConfig, onUserInteraction, onBack)
+                        PlayerActionIconButton(
+                            icon = Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = "Back",
+                            interactionConfig = interactionConfig,
+                            onUserInteraction = onUserInteraction,
+                            onClick = onBack,
+                        )
                     }
                     if (features.showEpgAction) {
-                        RailButton("EPG", interactionConfig, onUserInteraction) {
+                        PlayerActionIconButton(
+                            icon = Icons.Rounded.LiveTv,
+                            contentDescription = "EPG",
+                            interactionConfig = interactionConfig,
+                            onUserInteraction = onUserInteraction,
+                        ) {
                             callbacks.onEpgClick?.invoke(uiState.currentItem)
                         }
                     }
                     if (features.showSubtitles && uiState.availableSubtitleTracks.isNotEmpty()) {
-                        RailButton("Subtitles", interactionConfig, onUserInteraction) {
+                        PlayerActionIconButton(
+                            icon = Icons.Rounded.Subtitles,
+                            contentDescription = "Subtitles",
+                            interactionConfig = interactionConfig,
+                            onUserInteraction = onUserInteraction,
+                        ) {
                             hostState.openPanel(PlayerPanel.Subtitles)
                         }
                     }
                     if (features.showAudioSelector && uiState.availableAudioTracks.isNotEmpty()) {
-                        RailButton("Audio", interactionConfig, onUserInteraction) {
+                        PlayerActionIconButton(
+                            icon = Icons.Rounded.GraphicEq,
+                            contentDescription = "Audio",
+                            interactionConfig = interactionConfig,
+                            onUserInteraction = onUserInteraction,
+                        ) {
                             hostState.openPanel(PlayerPanel.Audio)
                         }
                     }
                     if (features.showQualitySelector && uiState.availableVideoTracks.isNotEmpty()) {
-                        RailButton("Quality", interactionConfig, onUserInteraction) {
+                        PlayerActionIconButton(
+                            icon = Icons.Rounded.HighQuality,
+                            contentDescription = "Quality",
+                            interactionConfig = interactionConfig,
+                            onUserInteraction = onUserInteraction,
+                        ) {
                             hostState.openPanel(PlayerPanel.Quality)
                         }
                     }
                     if (features.showPlaybackSpeed) {
-                        RailButton("Speed", interactionConfig, onUserInteraction) {
+                        PlayerActionIconButton(
+                            icon = Icons.Rounded.Speed,
+                            contentDescription = "Speed",
+                            interactionConfig = interactionConfig,
+                            onUserInteraction = onUserInteraction,
+                        ) {
                             hostState.openPanel(PlayerPanel.Speed)
                         }
                     }
                     if (features.showStatsForNerds) {
-                        RailButton("Stats", interactionConfig, onUserInteraction) {
+                        PlayerActionIconButton(
+                            icon = Icons.Rounded.Analytics,
+                            contentDescription = "Stats",
+                            interactionConfig = interactionConfig,
+                            onUserInteraction = onUserInteraction,
+                        ) {
                             hostState.openPanel(PlayerPanel.Stats)
                         }
                     }
@@ -1156,7 +1308,7 @@ private fun CustomControllerOverlay(
                 onSeekTo = hostState::seekTo,
             )
         } else if (features.showSeekBar && uiState.isLive && !uiState.canSeek && !uiState.hasDvr) {
-            Text(
+            PlayerText(
                 text = "Seeking unavailable for this live stream.",
                 color = Color(0xFFCFD8E3),
                 style = MaterialTheme.typography.bodySmall,
@@ -1236,10 +1388,10 @@ private fun CustomControllerOverlay(
                             interactionConfig = interactionConfig,
                             onUserInteraction = onUserInteraction,
                             focusRequester = if (!canShowSeekBar && !features.showPlayPauseButton) {
-                            primaryFocusRequester
-                        } else {
-                            null
-                        },
+                                primaryFocusRequester
+                            } else {
+                                null
+                            },
                         ),
                         onClick = {
                             onUserInteraction()
@@ -1251,32 +1403,34 @@ private fun CustomControllerOverlay(
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (features.showGoLiveButton && uiState.isLive) {
-                    RailButton(
-                        label = if (uiState.atLiveEdge) "LIVE" else "GO LIVE",
+                    PlayerActionIconButton(
+                        icon = Icons.Rounded.RadioButtonChecked,
+                        contentDescription = if (uiState.atLiveEdge) "Live" else "Go live",
                         interactionConfig = interactionConfig,
                         onUserInteraction = onUserInteraction,
+                        selected = uiState.atLiveEdge,
                     ) {
                         hostState.jumpToLiveEdge()
                     }
                 }
                 if (features.showShuffleButton) {
-                    RailButton(
-                        label = if (uiState.shuffleEnabled) "Shuffle On" else "Shuffle Off",
+                    PlayerActionIconButton(
+                        icon = Icons.Rounded.Shuffle,
+                        contentDescription = "Shuffle",
                         interactionConfig = interactionConfig,
                         onUserInteraction = onUserInteraction,
+                        selected = uiState.shuffleEnabled,
                     ) {
                         hostState.setShuffleEnabled(!uiState.shuffleEnabled)
                     }
                 }
                 if (features.showLoopButton) {
-                    RailButton(
-                        label = when (uiState.repeatMode) {
-                            PlayerRepeatMode.Off -> "Loop Off"
-                            PlayerRepeatMode.One -> "Loop One"
-                            PlayerRepeatMode.All -> "Loop All"
-                        },
+                    PlayerActionIconButton(
+                        icon = Icons.Rounded.Repeat,
+                        contentDescription = "Loop",
                         interactionConfig = interactionConfig,
                         onUserInteraction = onUserInteraction,
+                        selected = uiState.repeatMode != PlayerRepeatMode.Off,
                     ) {
                         hostState.setRepeatMode(uiState.repeatMode.nextRepeatMode())
                     }
@@ -1293,8 +1447,11 @@ private fun DefaultPanelContent(
     hostState: PlayerHostState,
     telemetrySnapshot: LivePlaybackSnapshot?,
     experience: PlayerExperience,
+    initialFocusRequester: FocusRequester,
     onDismiss: () -> Unit,
 ) {
+    var nextFocusRequester: FocusRequester? = initialFocusRequester
+
     Surface(
         modifier = Modifier
             .padding(16.dp)
@@ -1309,7 +1466,7 @@ private fun DefaultPanelContent(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text(
+            PlayerText(
                 text = panel.title(),
                 color = Color.White,
                 style = MaterialTheme.typography.titleLarge,
@@ -1320,33 +1477,50 @@ private fun DefaultPanelContent(
                     SelectionButton(
                         label = "Off",
                         selected = uiState.selectedSubtitleTrackId == null,
+                        focusRequester = nextFocusRequester,
                     ) {
                         hostState.disableSubtitles()
                         onDismiss()
                     }
+                    nextFocusRequester = null
                     uiState.availableSubtitleTracks.forEach { track ->
-                        SelectionButton(label = track.label, selected = track.isSelected) {
+                        SelectionButton(
+                            label = track.label,
+                            selected = track.isSelected,
+                            focusRequester = nextFocusRequester,
+                        ) {
                             hostState.selectSubtitleTrack(track.id)
                             onDismiss()
                         }
+                        nextFocusRequester = null
                     }
                 }
 
                 PlayerPanel.Audio -> {
                     uiState.availableAudioTracks.forEach { track ->
-                        SelectionButton(label = track.label, selected = track.isSelected) {
+                        SelectionButton(
+                            label = track.label,
+                            selected = track.isSelected,
+                            focusRequester = nextFocusRequester,
+                        ) {
                             hostState.selectAudioTrack(track.id)
                             onDismiss()
                         }
+                        nextFocusRequester = null
                     }
                 }
 
                 PlayerPanel.Quality -> {
                     uiState.availableVideoTracks.forEach { track ->
-                        SelectionButton(label = track.label, selected = track.isSelected) {
+                        SelectionButton(
+                            label = track.label,
+                            selected = track.isSelected,
+                            focusRequester = nextFocusRequester,
+                        ) {
                             hostState.selectVideoTrack(track.id)
                             onDismiss()
                         }
+                        nextFocusRequester = null
                     }
                 }
 
@@ -1355,10 +1529,12 @@ private fun DefaultPanelContent(
                         SelectionButton(
                             label = String.format(Locale.US, "%.2fx", speed).replace(".00", ""),
                             selected = uiState.playbackSpeed == speed,
+                            focusRequester = nextFocusRequester,
                         ) {
                             hostState.setPlaybackSpeed(speed)
                             onDismiss()
                         }
+                        nextFocusRequester = null
                     }
                 }
 
@@ -1369,8 +1545,13 @@ private fun DefaultPanelContent(
                 PlayerPanel.None -> Unit
             }
 
-            FilledTonalButton(onClick = onDismiss) {
-                Text(text = "Close")
+            FilledTonalButton(
+                onClick = onDismiss,
+                modifier = Modifier.then(
+                    nextFocusRequester?.let { Modifier.focusRequester(it) } ?: Modifier
+                ),
+            ) {
+                PlayerText(text = "Close")
             }
         }
     }
@@ -1380,13 +1561,16 @@ private fun DefaultPanelContent(
 private fun SelectionButton(
     label: String,
     selected: Boolean,
+    focusRequester: FocusRequester? = null,
     onClick: () -> Unit,
 ) {
     FilledTonalButton(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(focusRequester?.let { Modifier.focusRequester(it) } ?: Modifier),
     ) {
-        Text(
+        PlayerText(
             text = if (selected) "$label  Selected" else label,
             textAlign = TextAlign.Start,
             modifier = Modifier.fillMaxWidth(),
@@ -1419,13 +1603,13 @@ private fun StatsPanel(
 
     statsLines.forEach { (label, value) ->
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
+            PlayerText(
                 text = label,
                 color = Color(0xFF9FA9B7),
                 style = MaterialTheme.typography.labelMedium,
                 fontFamily = FontFamily.Monospace,
             )
-            Text(
+            PlayerText(
                 text = value,
                 color = Color.White,
                 style = MaterialTheme.typography.bodyMedium,
@@ -1487,7 +1671,8 @@ private fun TvScrubSlider(
         lastScrubAtMs = now
         scrubInteractionToken += 1
 
-        val basePositionMs = if (isScrubbing) previewPositionMs else progressMs.coerceIn(0L, safeDurationMs)
+        val basePositionMs =
+            if (isScrubbing) previewPositionMs else progressMs.coerceIn(0L, safeDurationMs)
         val stepMs = scrubConfig.stepLadderMs.getOrElse(ladderIndex) {
             scrubConfig.stepLadderMs.lastOrNull() ?: 5_000L
         }
@@ -1555,13 +1740,13 @@ private fun TvScrubSlider(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(
+            PlayerText(
                 text = formatDurationClock(previewPositionMs),
                 color = Color(0xFFCFD8E3),
                 fontSize = 11.sp,
                 fontFamily = FontFamily.Monospace,
             )
-            Text(
+            PlayerText(
                 text = formatDurationClock(durationMs),
                 color = Color(0xFFCFD8E3),
                 fontSize = 11.sp,
@@ -1589,15 +1774,11 @@ private fun Modifier.media3ControlModifier(
                 onUserInteraction()
             }
         }
-        .then(
-            if (interactionConfig.enableFocus) {
-                Modifier.focusable()
-            } else {
-                Modifier
-            }
-        )
         .background(
-            color = if (isFocused) Color.White.copy(alpha = 0.16f) else Color.Transparent,
+            color = when {
+                isFocused -> Color.White.copy(alpha = 0.16f)
+                else -> Color.Transparent
+            },
             shape = RoundedCornerShape(18.dp),
         )
 }
@@ -1608,9 +1789,9 @@ private fun Key.isConfirmKey(): Boolean {
 
 private fun Key.isDirectionalKey(): Boolean {
     return this == Key.DirectionLeft ||
-        this == Key.DirectionRight ||
-        this == Key.DirectionUp ||
-        this == Key.DirectionDown
+            this == Key.DirectionRight ||
+            this == Key.DirectionUp ||
+            this == Key.DirectionDown
 }
 
 @UnstableApi
@@ -1628,9 +1809,12 @@ private fun updateUiState(
     )
 
     val liveOffset = player.currentLiveOffset.takeIf { it != C.TIME_UNSET }
-    val isLive = item?.contentType == PlayerContentType.Live || item?.contentType == PlayerContentType.Dvr
-    val hasDvr = item?.contentType == PlayerContentType.Dvr || (isLive && player.isCurrentMediaItemSeekable)
-    val canSeek = (item?.isSeekable != false) && (player.isCurrentMediaItemSeekable || !isLive || hasDvr)
+    val isLive =
+        item?.contentType == PlayerContentType.Live || item?.contentType == PlayerContentType.Dvr
+    val hasDvr =
+        item?.contentType == PlayerContentType.Dvr || (isLive && player.isCurrentMediaItemSeekable)
+    val canSeek =
+        (item?.isSeekable != false) && (player.isCurrentMediaItemSeekable || !isLive || hasDvr)
 
     hostState.uiState = hostState.uiState.copy(
         playlist = playlist,
@@ -1879,7 +2063,8 @@ private fun buildAudioLabel(format: Format, index: Int): String {
     val base = format.label
         ?: format.language?.replaceFirstChar { it.titlecase(Locale.getDefault()) }
         ?: "Audio ${index + 1}"
-    val channels = format.channelCount.takeIf { it != Format.NO_VALUE }?.let { " • ${it}ch" }.orEmpty()
+    val channels =
+        format.channelCount.takeIf { it != Format.NO_VALUE }?.let { " • ${it}ch" }.orEmpty()
     return base + channels
 }
 
