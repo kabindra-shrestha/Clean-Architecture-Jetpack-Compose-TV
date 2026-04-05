@@ -49,8 +49,13 @@ fun MoviePlayerScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val playerHostState = rememberPlayerHostState(movieId)
+    val interactionConfig = defaultPlayerInteractionConfig(PlayerExperience.AndroidTv)
 
-    BackHandler(onBack = onBack)
+    BackHandler {
+        if (!playerHostState.consumeBackPress()) {
+            onBack()
+        }
+    }
 
     LaunchedEffect(movieId) {
         viewModel.loadMovie(movieId)
@@ -70,7 +75,7 @@ fun MoviePlayerScreen(
                 ),
                 hostState = playerHostState,
                 experience = PlayerExperience.AndroidTv,
-                controllerMode = PlayerControllerMode.Default,
+                controllerMode = PlayerControllerMode.Custom,
                 features = PlayerFeatures(
                     /*showStreamDetails = true,
                     showPreviousButton = false,
@@ -105,7 +110,7 @@ fun MoviePlayerScreen(
                     showLoopButton = true,
                     showGoLiveButton = true,
                 ),
-                interactionConfig = defaultPlayerInteractionConfig(PlayerExperience.AndroidTv),
+                interactionConfig = interactionConfig,
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -149,6 +154,8 @@ private fun MovieDetail.toPlayerItem(): PlayerItem {
         sourceType = streamType.toPlayerSourceType(),
         contentType = PlayerContentType.Vod,
         posterUrl = posterUrl,
+        subtitle = subtitle,
+        description = description,
     )
 }
 

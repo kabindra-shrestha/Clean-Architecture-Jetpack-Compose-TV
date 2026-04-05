@@ -13,13 +13,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
 import androidx.tv.material3.MaterialTheme
 import com.kabindra.player.PlayerCallbacks
@@ -53,6 +59,7 @@ import com.kabindra.tv.iptv.presentation.ui.component.TextType
 import com.kabindra.tv.iptv.presentation.ui.component.TvLazyConfig
 import com.kabindra.tv.iptv.presentation.ui.component.rememberBaseLazyState
 import com.kabindra.tv.iptv.utils.extensions.mainBackground
+import kotlinx.coroutines.delay
 import network.chaintech.sdpcomposemultiplatform.sdp
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -82,12 +89,46 @@ fun LiveTVPlayerScreen(
         .takeIf { it >= 0 }
         ?: 0
     val playerHostState = rememberPlayerHostState()
+    val interactionConfig = defaultPlayerInteractionConfig(PlayerExperience.AndroidTv)
+    var overlayInteractionToken by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(state.isChannelOverlayVisible) {
+        if (state.isChannelOverlayVisible) {
+            playerHostState.hideController()
+        }
+    }
+
+    LaunchedEffect(playerHostState.uiState.isControllerVisible) {
+        if (playerHostState.uiState.isControllerVisible && state.isChannelOverlayVisible) {
+            viewModel.hideChannelOverlay()
+        }
+    }
+
+    LaunchedEffect(
+        state.isChannelOverlayVisible,
+        overlayInteractionToken,
+        interactionConfig.controllerAutoHideMillis,
+    ) {
+        if (!state.isChannelOverlayVisible) return@LaunchedEffect
+        delay(interactionConfig.controllerAutoHideMillis.coerceAtLeast(1_500L))
+        if (state.isChannelOverlayVisible) {
+            viewModel.hideChannelOverlay()
+        }
+    }
 
     BackHandler {
-        if (state.isChannelOverlayVisible) {
-            onBack()
-        } else {
-            viewModel.showChannelOverlay()
+        when {
+            playerHostState.consumeBackPress() -> Unit
+            state.isChannelOverlayVisible -> {
+                viewModel.hideChannelOverlay()
+                onBack()
+            }
+
+            else -> {
+                playerHostState.hideController()
+                overlayInteractionToken += 1
+                viewModel.showChannelOverlay()
+            }
         }
     }
 
@@ -107,23 +148,6 @@ fun LiveTVPlayerScreen(
                 experience = PlayerExperience.AndroidTv,
                 controllerMode = PlayerControllerMode.Custom,
                 features = PlayerFeatures(
-                    /*showBackButton = false,
-                    showStreamDetails = true,
-                    showPlayPauseButton = true,
-                    showPreviousButton = true,
-                    showNextButton = true,
-                    showRewindButton = true,
-                    showFastForwardButton = true,
-                    showSeekBar = true,
-                    showSubtitles = true,
-                    showQualitySelector = true,
-                    showAudioSelector = true,
-                    showEpgAction = false,
-                    showStatsForNerds = false,
-                    showPlaybackSpeed = false,
-                    showShuffleButton = false,
-                    showLoopButton = false,
-                    showGoLiveButton = true,*/
                     showBackButton = true,
                     showStreamDetails = true,
                     showPlayPauseButton = true,
@@ -142,7 +166,7 @@ fun LiveTVPlayerScreen(
                     showLoopButton = true,
                     showGoLiveButton = true,
                 ),
-                interactionConfig = defaultPlayerInteractionConfig(PlayerExperience.AndroidTv),
+                interactionConfig = interactionConfig,
                 callbacks = PlayerCallbacks(
                     onItemChanged = { _, playerIndex ->
                         allChannels.getOrNull(playerIndex)?.let { channel ->
@@ -188,8 +212,13 @@ fun LiveTVPlayerScreen(
                 categories = state.categories,
                 selectedCategoryId = selectedCategory.id,
                 selectedChannelId = selectedChannel?.id,
-                onCategorySelected = viewModel::selectCategory,
+                onInteraction = { overlayInteractionToken += 1 },
+                onCategorySelected = {
+                    overlayInteractionToken += 1
+                    viewModel.selectCategory(it)
+                },
                 onChannelSelected = { channelId ->
+                    overlayInteractionToken += 1
                     viewModel.selectChannel(channelId, closeOverlay = true)
                 }
             )
@@ -202,6 +231,7 @@ private fun LiveTVOverlay(
     categories: List<ChannelCategory>,
     selectedCategoryId: String,
     selectedChannelId: String?,
+    onInteraction: () -> Unit,
     onCategorySelected: (String) -> Unit,
     onChannelSelected: (String) -> Unit,
 ) {
@@ -219,6 +249,12 @@ private fun LiveTVOverlay(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.42f))
+            .onPreviewKeyEvent { event ->
+                if (event.type == KeyEventType.KeyDown) {
+                    onInteraction()
+                }
+                false
+            }
     ) {
         Row(
             modifier = Modifier
@@ -261,7 +297,10 @@ private fun LiveTVOverlay(
                         type = ListItemType.Default,
                         title = item.title,
                         selected = item.id == selectedCategoryId,
-                        onClick = { onCategorySelected(item.id) }
+                        onClick = {
+                            onInteraction()
+                            onCategorySelected(item.id)
+                        }
                     )
                 }
             }
@@ -305,7 +344,10 @@ private fun LiveTVOverlay(
                             contentScale = ContentScale.Fit
                         ),
                         selected = item.id == selectedChannelId,
-                        onClick = { onChannelSelected(item.id) }
+                        onClick = {
+                            onInteraction()
+                            onChannelSelected(item.id)
+                        }
                     )
                 }
             }
@@ -325,6 +367,7 @@ private fun LiveChannel.toPlayerItem(): PlayerItem {
             channelName = title,
             currentTitle = currentProgram,
         ),
+        subtitle = currentProgram,
         isSeekable = streamType != MediaStreamType.Hls,
     )
 }

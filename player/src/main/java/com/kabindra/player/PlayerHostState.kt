@@ -11,7 +11,6 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.TrackGroup
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
 import com.kabindra.player.player.core.PlayerSessionController
 
 @Composable
@@ -25,7 +24,7 @@ class PlayerHostState internal constructor() : PlayerSessionController {
         internal set
 
     private var player: ExoPlayer? = null
-    private var playerView: PlayerView? = null
+    private var playerView: androidx.media3.ui.PlayerView? = null
     private var performanceConfig: PlayerPerformanceConfig = PlayerPerformanceConfig()
     private var subtitleTargets: Map<String, PlayerTrackTarget> = emptyMap()
     private var audioTargets: Map<String, PlayerTrackTarget> = emptyMap()
@@ -33,7 +32,7 @@ class PlayerHostState internal constructor() : PlayerSessionController {
 
     internal fun attach(
         player: ExoPlayer,
-        playerView: PlayerView,
+        playerView: androidx.media3.ui.PlayerView?,
         performanceConfig: PlayerPerformanceConfig,
     ) {
         this.player = player
@@ -217,6 +216,22 @@ class PlayerHostState internal constructor() : PlayerSessionController {
     override fun hideController() {
         playerView?.hideController()
         updateControllerVisibility(false)
+    }
+
+    override fun consumeBackPress(): Boolean {
+        return when {
+            uiState.activePanel != PlayerPanel.None -> {
+                dismissPanel()
+                true
+            }
+
+            uiState.isControllerVisible -> {
+                hideController()
+                true
+            }
+
+            else -> false
+        }
     }
 
     override fun showStatsPanel() {

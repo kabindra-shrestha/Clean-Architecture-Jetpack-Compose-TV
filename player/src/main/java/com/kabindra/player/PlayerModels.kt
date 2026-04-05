@@ -91,6 +91,8 @@ data class PlayerItem(
     val sourceType: PlayerSourceType = PlayerSourceType.Progressive,
     val contentType: PlayerContentType,
     val posterUrl: String? = null,
+    val subtitle: String? = null,
+    val description: String? = null,
     val subtitleTracks: List<PlayerSubtitleTrack> = emptyList(),
     val programInfo: PlayerProgramInfo? = null,
     val isSeekable: Boolean = true,
@@ -134,8 +136,19 @@ data class PlayerInteractionConfig(
     val enableTouchGestures: Boolean = false,
     val autoHideController: Boolean = true,
     val controllerAutoHideMillis: Long = 4_500L,
+    val showControllerOnConfirmKey: Boolean = true,
+    val showControllerOnDirectionalKeys: Boolean = false,
     val showControllerOnTap: Boolean = true,
-    val showControllerOnKeyPress: Boolean = true,
+    val enableDpadScrubbing: Boolean = true,
+    val dpadScrubConfig: PlayerDpadScrubConfig = PlayerDpadScrubConfig(),
+)
+
+@Immutable
+data class PlayerDpadScrubConfig(
+    val stepLadderMs: List<Long> = listOf(5_000L, 10_000L, 20_000L, 30_000L, 50_000L),
+    val resetAfterIdleMs: Long = 900L,
+    val holdStartDelayMs: Long = 450L,
+    val holdRepeatIntervalMs: Long = 140L,
 )
 
 fun defaultPlayerInteractionConfig(experience: PlayerExperience): PlayerInteractionConfig {
@@ -146,7 +159,9 @@ fun defaultPlayerInteractionConfig(experience: PlayerExperience): PlayerInteract
             autoHideController = true,
             controllerAutoHideMillis = 4_500L,
             showControllerOnTap = true,
-            showControllerOnKeyPress = true,
+            showControllerOnConfirmKey = true,
+            showControllerOnDirectionalKeys = false,
+            enableDpadScrubbing = true,
         )
 
         PlayerExperience.AndroidOtt -> PlayerInteractionConfig(
@@ -155,7 +170,9 @@ fun defaultPlayerInteractionConfig(experience: PlayerExperience): PlayerInteract
             autoHideController = true,
             controllerAutoHideMillis = 4_000L,
             showControllerOnTap = true,
-            showControllerOnKeyPress = false,
+            showControllerOnConfirmKey = false,
+            showControllerOnDirectionalKeys = false,
+            enableDpadScrubbing = false,
         )
     }
 }

@@ -1,6 +1,7 @@
 package com.kabindra.player
 
 import android.net.Uri
+import android.os.SystemClock
 import android.view.View
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -8,7 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,12 +38,12 @@ import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,6 +59,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -70,7 +72,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -97,6 +99,12 @@ import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.source.LoadEventInfo
 import androidx.media3.exoplayer.source.MediaLoadData
 import androidx.media3.ui.PlayerView
+import androidx.media3.ui.compose.ContentFrame
+import androidx.media3.ui.compose.material3.buttons.NextButton as Media3NextButton
+import androidx.media3.ui.compose.material3.buttons.PlayPauseButton as Media3PlayPauseButton
+import androidx.media3.ui.compose.material3.buttons.PreviousButton as Media3PreviousButton
+import androidx.media3.ui.compose.material3.buttons.SeekBackButton as Media3SeekBackButton
+import androidx.media3.ui.compose.material3.buttons.SeekForwardButton as Media3SeekForwardButton
 import com.kabindra.player.player.telemetry.collector.DefaultPlaybackTelemetryCollector
 import com.kabindra.player.player.telemetry.collector.NoOpPlaybackTelemetryCollector
 import com.kabindra.player.player.telemetry.collector.PlaybackTelemetryCollector
@@ -232,12 +240,18 @@ fun UnifiedPlayer(
     }
 
     DisposableEffect(player, playerView, performanceConfig) {
-        playerView.player = player
-        playerView.useController = controllerMode == PlayerControllerMode.Default
-        playerView.controllerAutoShow = controllerMode == PlayerControllerMode.Default
-        playerView.keepScreenOn = performanceConfig.keepScreenOn
         player.videoScalingMode = performanceConfig.videoScalingMode
-        hostState.attach(player, playerView, performanceConfig)
+        if (controllerMode == PlayerControllerMode.Default) {
+            playerView.player = player
+            playerView.useController = true
+            playerView.controllerAutoShow = true
+            playerView.keepScreenOn = performanceConfig.keepScreenOn
+        }
+        hostState.attach(
+            player = player,
+            playerView = if (controllerMode == PlayerControllerMode.Default) playerView else null,
+            performanceConfig = performanceConfig,
+        )
         onDispose {
             hostState.detach(player)
             playerView.player = null
@@ -550,27 +564,26 @@ fun UnifiedPlayer(
                 if (!currentInteractionConfig.showControllerOnTap) return@pointerInput
                 detectTapGestures { registerInteraction() }
             }
-            .onPreviewKeyEvent { event ->
-                if (!currentInteractionConfig.showControllerOnKeyPress) return@onPreviewKeyEvent false
-                if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-                if (!hostState.uiState.isControllerVisible && controllerMode == PlayerControllerMode.Custom) {
-                    registerInteraction()
-                    true
-                } else {
-                    false
-                }
-            }
     ) {
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { playerView },
-            update = { view ->
-                view.player = player
-                view.useController = controllerMode == PlayerControllerMode.Default
-                view.controllerAutoShow = controllerMode == PlayerControllerMode.Default
-                view.keepScreenOn = performanceConfig.keepScreenOn
-            },
-        )
+        if (controllerMode == PlayerControllerMode.Custom) {
+            ContentFrame(
+                player = player,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit,
+                keepContentOnReset = true,
+            )
+        } else {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { playerView },
+                update = { view ->
+                    view.player = player
+                    view.useController = true
+                    view.controllerAutoShow = true
+                    view.keepScreenOn = performanceConfig.keepScreenOn
+                },
+            )
+        }
 
         if (uiState.isLoading) {
             Box(
@@ -594,8 +607,21 @@ fun UnifiedPlayer(
                     .focusable()
                     .onPreviewKeyEvent { event ->
                         if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-                        registerInteraction()
-                        true
+                        when {
+                            currentInteractionConfig.showControllerOnConfirmKey &&
+                                event.key.isConfirmKey() -> {
+                                registerInteraction()
+                                true
+                            }
+
+                            currentInteractionConfig.showControllerOnDirectionalKeys &&
+                                event.key.isDirectionalKey() -> {
+                                registerInteraction()
+                                true
+                            }
+
+                            else -> false
+                        }
                     }
             )
         }
@@ -644,6 +670,7 @@ fun UnifiedPlayer(
             exit = fadeOut(),
         ) {
             CustomControllerOverlay(
+                player = player,
                 uiState = uiState,
                 features = features,
                 interactionConfig = currentInteractionConfig,
@@ -977,6 +1004,7 @@ private fun PlayerTransportIconButton(
 @UnstableApi
 @Composable
 private fun CustomControllerOverlay(
+    player: ExoPlayer,
     uiState: PlayerUiState,
     features: PlayerFeatures,
     interactionConfig: PlayerInteractionConfig,
@@ -988,20 +1016,29 @@ private fun CustomControllerOverlay(
     onUserInteraction: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var scrubbingPositionMs by remember(uiState.positionMs, uiState.durationMs) {
-        mutableLongStateOf(uiState.positionMs)
-    }
-    var isScrubbing by remember { mutableStateOf(false) }
-    val duration = uiState.durationMs.coerceAtLeast(1L)
     val currentItem = uiState.currentItem
     val programInfo = currentItem?.programInfo
+    val canShowSeekBar = features.showSeekBar && ((uiState.canSeek && !uiState.isLive) || uiState.hasDvr)
+    val secondaryText = when {
+        uiState.isLive -> programInfo?.currentTitle ?: currentItem?.subtitle ?: currentItem?.description
+        else -> currentItem?.subtitle ?: currentItem?.description
+    }
+    val tertiaryText = when {
+        uiState.isLive -> listOfNotNull(programInfo?.nextTitle, programInfo?.startTimeText, programInfo?.endTimeText)
+            .takeIf { it.isNotEmpty() }
+            ?.joinToString("  •  ")
+
+        else -> currentItem?.description
+    }
+    val transportSpacing = if (experience == PlayerExperience.AndroidTv) 12.dp else 8.dp
 
     Column(
         modifier = modifier
+            .focusGroup()
             .clip(RoundedCornerShape(28.dp))
             .background(Color.Black.copy(alpha = 0.70f))
-            .padding(horizontal = 18.dp, vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+            .padding(horizontal = 18.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         if (features.showStreamDetails && currentItem != null) {
             Row(
@@ -1011,7 +1048,7 @@ private fun CustomControllerOverlay(
             ) {
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -1045,7 +1082,7 @@ private fun CustomControllerOverlay(
                         style = MaterialTheme.typography.headlineSmall,
                     )
 
-                    programInfo?.channelName?.takeIf { it.isNotBlank() }?.let { channelName ->
+                    programInfo?.channelName?.takeIf { it.isNotBlank() && it != currentItem.title }?.let { channelName ->
                         Text(
                             text = channelName,
                             color = Color(0xFFD8D9E8),
@@ -1053,23 +1090,19 @@ private fun CustomControllerOverlay(
                         )
                     }
 
-                    programInfo?.currentTitle?.takeIf { it.isNotBlank() }?.let { currentTitle ->
+                    secondaryText?.takeIf { it.isNotBlank() }?.let { text ->
                         Text(
-                            text = currentTitle,
+                            text = text,
                             color = Color(0xFFB9BDD1),
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }
 
-                    listOfNotNull(programInfo?.startTimeText, programInfo?.endTimeText)
-                        .takeIf { it.isNotEmpty() }
-                        ?.joinToString(" - ")
-                        ?.let { timingText ->
+                    tertiaryText?.takeIf { it.isNotBlank() }?.let { timingText ->
                             Text(
                                 text = timingText,
                                 color = Color(0xFF9AA0B5),
                                 style = MaterialTheme.typography.labelMedium,
-                                fontFamily = FontFamily.Monospace,
                             )
                         }
                 }
@@ -1112,76 +1145,17 @@ private fun CustomControllerOverlay(
             }
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (!features.showStreamDetails) {
-                Text(
-                    text = when {
-                        uiState.isLive && uiState.hasDvr -> "LIVE (DVR)"
-                        uiState.isLive -> "LIVE"
-                        else -> "VOD"
-                    },
-                    color = Color.White,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontFamily = FontFamily.Monospace,
-                )
-            } else {
-                Spacer(modifier = Modifier)
-            }
-        }
-
-        if (features.showSeekBar && ((uiState.canSeek && !uiState.isLive) || uiState.hasDvr)) {
-            ExpressiveWavySeekBar(
-                progressFraction = (if (isScrubbing) scrubbingPositionMs else uiState.positionMs)
-                    .toFloat() / duration.toFloat(),
-                enabled = uiState.canSeek,
+        if (canShowSeekBar) {
+            TvScrubSlider(
+                progressMs = uiState.positionMs,
+                durationMs = uiState.durationMs,
+                enabled = uiState.canSeek || uiState.hasDvr,
                 interactionConfig = interactionConfig,
-                stepBackwardFraction = (performanceConfig.seekBackMs.toFloat() / duration.toFloat())
-                    .coerceIn(0.01f, 1f),
-                stepForwardFraction = (performanceConfig.seekForwardMs.toFloat() / duration.toFloat())
-                    .coerceIn(0.01f, 1f),
-                onScrubStart = { isScrubbing = true },
-                onScrubUpdate = { fraction ->
-                    onUserInteraction()
-                    scrubbingPositionMs = (duration * fraction).toLong().coerceIn(0L, duration)
-                },
-                onScrubEnd = { fraction ->
-                    onUserInteraction()
-                    hostState.seekTo((duration * fraction).toLong().coerceIn(0L, duration))
-                    isScrubbing = false
-                },
-                onStepBackward = onUserInteraction,
-                onStepForward = onUserInteraction,
-                focusRequester = primaryFocusRequester,
+                primaryFocusRequester = primaryFocusRequester,
+                onUserInteraction = onUserInteraction,
+                onSeekTo = hostState::seekTo,
             )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    text = formatDurationClock(if (isScrubbing) scrubbingPositionMs else uiState.positionMs),
-                    color = Color(0xFFCFD8E3),
-                    fontSize = 11.sp,
-                    fontFamily = FontFamily.Monospace,
-                )
-                Text(
-                    text = if (uiState.hasDvr) {
-                        "DVR ${formatDurationClock(uiState.durationMs)}"
-                    } else {
-                        formatDurationClock(uiState.durationMs)
-                    },
-                    color = Color(0xFFCFD8E3),
-                    fontSize = 11.sp,
-                    fontFamily = FontFamily.Monospace,
-                )
-            }
-        }
-
-        if (features.showSeekBar && uiState.isLive && !uiState.canSeek && !uiState.hasDvr) {
+        } else if (features.showSeekBar && uiState.isLive && !uiState.canSeek && !uiState.hasDvr) {
             Text(
                 text = "Seeking unavailable for this live stream.",
                 color = Color(0xFFCFD8E3),
@@ -1196,58 +1170,81 @@ private fun CustomControllerOverlay(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(if (experience == PlayerExperience.AndroidTv) 12.dp else 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(transportSpacing),
             ) {
                 if (features.showPreviousButton && uiState.canGoPrevious) {
-                    PlayerTransportIconButton(
-                        icon = Icons.Default.SkipPrevious,
-                        contentDescription = "Previous",
-                        interactionConfig = interactionConfig,
-                        onUserInteraction = onUserInteraction,
-                        onClick = hostState::previous,
+                    Media3PreviousButton(
+                        player = player,
+                        modifier = Modifier.media3ControlModifier(
+                            interactionConfig = interactionConfig,
+                            onUserInteraction = onUserInteraction,
+                        ),
+                        onClick = {
+                            onUserInteraction()
+                            this.onClick()
+                        },
                     )
                 }
-                if (features.showRewindButton) {
-                    PlayerTransportIconButton(
-                        icon = Icons.Default.Replay10,
-                        contentDescription = "Rewind",
-                        enabled = uiState.canSeek,
-                        interactionConfig = interactionConfig,
-                        onUserInteraction = onUserInteraction,
-                        onClick = hostState::rewind,
+                if (features.showRewindButton && uiState.canSeek) {
+                    Media3SeekBackButton(
+                        player = player,
+                        modifier = Modifier.media3ControlModifier(
+                            interactionConfig = interactionConfig,
+                            onUserInteraction = onUserInteraction,
+                        ),
+                        onClick = {
+                            onUserInteraction()
+                            hostState.rewind()
+                        },
                     )
                 }
                 if (features.showPlayPauseButton) {
-                    PlayerTransportIconButton(
-                        icon = if (uiState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = "Play pause",
-                        interactionConfig = interactionConfig,
-                        onUserInteraction = onUserInteraction,
-                        focusRequester = if (!features.showSeekBar || !uiState.canSeek) {
+                    Media3PlayPauseButton(
+                        player = player,
+                        modifier = Modifier.media3ControlModifier(
+                            interactionConfig = interactionConfig,
+                            onUserInteraction = onUserInteraction,
+                            focusRequester = if (!canShowSeekBar) {
+                                primaryFocusRequester
+                            } else {
+                                null
+                            },
+                        ),
+                        onClick = {
+                            onUserInteraction()
+                            this.onClick()
+                        }
+                    )
+                }
+                if (features.showFastForwardButton && uiState.canSeek) {
+                    Media3SeekForwardButton(
+                        player = player,
+                        modifier = Modifier.media3ControlModifier(
+                            interactionConfig = interactionConfig,
+                            onUserInteraction = onUserInteraction,
+                        ),
+                        onClick = {
+                            onUserInteraction()
+                            hostState.fastForward()
+                        },
+                    )
+                }
+                if (features.showNextButton && uiState.canGoNext) {
+                    Media3NextButton(
+                        player = player,
+                        modifier = Modifier.media3ControlModifier(
+                            interactionConfig = interactionConfig,
+                            onUserInteraction = onUserInteraction,
+                            focusRequester = if (!canShowSeekBar && !features.showPlayPauseButton) {
                             primaryFocusRequester
                         } else {
                             null
                         },
-                        onClick = hostState::togglePlayPause,
-                    )
-                }
-                if (features.showFastForwardButton) {
-                    PlayerTransportIconButton(
-                        icon = Icons.Default.Forward10,
-                        contentDescription = "Fast forward",
-                        enabled = uiState.canSeek,
-                        interactionConfig = interactionConfig,
-                        onUserInteraction = onUserInteraction,
-                        onClick = hostState::fastForward,
-                    )
-                }
-                if (features.showNextButton && uiState.canGoNext) {
-                    PlayerTransportIconButton(
-                        icon = Icons.Default.SkipNext,
-                        contentDescription = "Next",
-                        interactionConfig = interactionConfig,
-                        onUserInteraction = onUserInteraction,
-                        onClick = hostState::next,
+                        ),
+                        onClick = {
+                            onUserInteraction()
+                            this.onClick()
+                        },
                     )
                 }
             }
@@ -1438,127 +1435,182 @@ private fun StatsPanel(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun ExpressiveWavySeekBar(
-    progressFraction: Float,
+private fun TvScrubSlider(
+    progressMs: Long,
+    durationMs: Long,
     enabled: Boolean,
     interactionConfig: PlayerInteractionConfig,
-    stepBackwardFraction: Float,
-    stepForwardFraction: Float,
-    onScrubStart: () -> Unit,
-    onScrubUpdate: (Float) -> Unit,
-    onScrubEnd: (Float) -> Unit,
-    onStepBackward: () -> Unit,
-    onStepForward: () -> Unit,
-    focusRequester: FocusRequester? = null,
+    primaryFocusRequester: FocusRequester,
+    onUserInteraction: () -> Unit,
+    onSeekTo: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var widthPx by remember { mutableFloatStateOf(1f) }
-    var dragFraction by remember { mutableFloatStateOf(progressFraction.coerceIn(0f, 1f)) }
-    var isDragging by remember { mutableStateOf(false) }
-    val visibleProgress = if (isDragging) dragFraction else progressFraction.coerceIn(0f, 1f)
-    var isFocused by remember { mutableStateOf(false) }
-
-    Box(
-        modifier = modifier
-            .height(44.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .then(
-                focusRequester?.let { Modifier.focusRequester(it) } ?: Modifier
-            )
-            .background(if (isFocused) Color(0x33303B4A) else Color(0x22303B4A))
-            .onFocusChanged { isFocused = it.isFocused }
-            .then(
-                if (interactionConfig.enableFocus) {
-                    Modifier
-                        .focusable(enabled)
-                        .onPreviewKeyEvent { event ->
-                            if (!enabled || event.type != KeyEventType.KeyDown) {
-                                return@onPreviewKeyEvent false
-                            }
-
-                            when (event.key) {
-                                Key.DirectionLeft -> {
-                                    val nextFraction =
-                                        (visibleProgress - stepBackwardFraction).coerceIn(0f, 1f)
-                                    dragFraction = nextFraction
-                                    onScrubStart()
-                                    onScrubUpdate(nextFraction)
-                                    onScrubEnd(nextFraction)
-                                    onStepBackward()
-                                    true
-                                }
-
-                                Key.DirectionRight -> {
-                                    val nextFraction =
-                                        (visibleProgress + stepForwardFraction).coerceIn(0f, 1f)
-                                    dragFraction = nextFraction
-                                    onScrubStart()
-                                    onScrubUpdate(nextFraction)
-                                    onScrubEnd(nextFraction)
-                                    onStepForward()
-                                    true
-                                }
-
-                                else -> false
-                            }
-                        }
-                } else {
-                    Modifier
-                }
-            )
-            .onSizeChanged { widthPx = it.width.toFloat().coerceAtLeast(1f) }
-            .pointerInput(enabled, widthPx, interactionConfig.enableTouchGestures) {
-                if (!enabled || !interactionConfig.enableTouchGestures) return@pointerInput
-                detectTapGestures(
-                    onTap = { offset ->
-                        val fraction = (offset.x / widthPx).coerceIn(0f, 1f)
-                        isDragging = true
-                        dragFraction = fraction
-                        onScrubStart()
-                        onScrubUpdate(fraction)
-                        onScrubEnd(fraction)
-                        isDragging = false
-                    }
-                )
-            }
-            .pointerInput(enabled, widthPx, interactionConfig.enableTouchGestures) {
-                if (!enabled || !interactionConfig.enableTouchGestures) return@pointerInput
-                detectDragGestures(
-                    onDragStart = { offset ->
-                        val fraction = (offset.x / widthPx).coerceIn(0f, 1f)
-                        isDragging = true
-                        dragFraction = fraction
-                        onScrubStart()
-                        onScrubUpdate(fraction)
-                    },
-                    onDrag = { change, _ ->
-                        val fraction = (change.position.x / widthPx).coerceIn(0f, 1f)
-                        dragFraction = fraction
-                        onScrubUpdate(fraction)
-                    },
-                    onDragEnd = {
-                        onScrubEnd(dragFraction.coerceIn(0f, 1f))
-                        isDragging = false
-                    },
-                    onDragCancel = {
-                        onScrubEnd(dragFraction.coerceIn(0f, 1f))
-                        isDragging = false
-                    },
-                )
-            },
-    ) {
-        LinearWavyProgressIndicator(
-            progress = { visibleProgress },
-            modifier = Modifier
-                .align(Alignment.Center)
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp),
-            color = Color(0xFF7FE8FF),
-            trackColor = if (isFocused) Color(0xFF46576B) else Color(0xFF2C3B4C),
-        )
+    val safeDurationMs = durationMs.coerceAtLeast(1L)
+    var previewPositionMs by remember(progressMs, durationMs) {
+        mutableLongStateOf(progressMs.coerceIn(0L, safeDurationMs))
     }
+    var isScrubbing by remember { mutableStateOf(false) }
+    var isFocused by remember { mutableStateOf(false) }
+    var lastDirection by remember { mutableIntStateOf(0) }
+    var ladderIndex by remember { mutableIntStateOf(0) }
+    var lastScrubAtMs by remember { mutableLongStateOf(0L) }
+    var scrubInteractionToken by remember { mutableIntStateOf(0) }
+    val scrubConfig = interactionConfig.dpadScrubConfig
+
+    LaunchedEffect(progressMs, durationMs) {
+        if (!isScrubbing) {
+            previewPositionMs = progressMs.coerceIn(0L, safeDurationMs)
+        }
+    }
+
+    LaunchedEffect(isScrubbing, scrubInteractionToken, scrubConfig.resetAfterIdleMs) {
+        if (!isScrubbing) return@LaunchedEffect
+        delay(scrubConfig.resetAfterIdleMs.coerceAtLeast(200L))
+        isScrubbing = false
+        ladderIndex = 0
+        lastDirection = 0
+    }
+
+    fun applyDpadScrub(direction: Int): Boolean {
+        if (!enabled || !interactionConfig.enableDpadScrubbing) return false
+
+        val now = SystemClock.elapsedRealtime()
+        val shouldAccelerate =
+            lastDirection == direction && now - lastScrubAtMs <= scrubConfig.resetAfterIdleMs
+        ladderIndex = if (shouldAccelerate) {
+            (ladderIndex + 1).coerceAtMost(scrubConfig.stepLadderMs.lastIndex)
+        } else {
+            0
+        }
+        lastDirection = direction
+        lastScrubAtMs = now
+        scrubInteractionToken += 1
+
+        val basePositionMs = if (isScrubbing) previewPositionMs else progressMs.coerceIn(0L, safeDurationMs)
+        val stepMs = scrubConfig.stepLadderMs.getOrElse(ladderIndex) {
+            scrubConfig.stepLadderMs.lastOrNull() ?: 5_000L
+        }
+        previewPositionMs = (basePositionMs + (stepMs * direction)).coerceIn(0L, safeDurationMs)
+        isScrubbing = true
+        onUserInteraction()
+        onSeekTo(previewPositionMs)
+        return true
+    }
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Slider(
+            value = previewPositionMs.toFloat() / safeDurationMs.toFloat(),
+            onValueChange = { fraction ->
+                if (!enabled || !interactionConfig.enableTouchGestures) return@Slider
+                isScrubbing = true
+                previewPositionMs = (safeDurationMs * fraction.coerceIn(0f, 1f)).toLong()
+                scrubInteractionToken += 1
+                onUserInteraction()
+            },
+            onValueChangeFinished = {
+                if (!enabled || !interactionConfig.enableTouchGestures) return@Slider
+                onSeekTo(previewPositionMs)
+                onUserInteraction()
+                isScrubbing = false
+                ladderIndex = 0
+                lastDirection = 0
+            },
+            enabled = enabled,
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(Modifier.focusRequester(primaryFocusRequester))
+                .onFocusChanged {
+                    isFocused = it.isFocused
+                    if (it.isFocused) {
+                        onUserInteraction()
+                    }
+                }
+                .onPreviewKeyEvent { event ->
+                    if (!enabled || event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                    when (event.key) {
+                        Key.DirectionLeft -> applyDpadScrub(direction = -1)
+                        Key.DirectionRight -> applyDpadScrub(direction = 1)
+                        else -> false
+                    }
+                }
+                .then(
+                    if (interactionConfig.enableFocus) {
+                        Modifier.focusable(enabled)
+                    } else {
+                        Modifier
+                    }
+                ),
+            colors = SliderDefaults.colors(
+                thumbColor = if (isFocused) Color.White else Color(0xFFE3F2FD),
+                activeTrackColor = Color(0xFF7FE8FF),
+                inactiveTrackColor = Color(0xFF324455),
+            ),
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = formatDurationClock(previewPositionMs),
+                color = Color(0xFFCFD8E3),
+                fontSize = 11.sp,
+                fontFamily = FontFamily.Monospace,
+            )
+            Text(
+                text = formatDurationClock(durationMs),
+                color = Color(0xFFCFD8E3),
+                fontSize = 11.sp,
+                fontFamily = FontFamily.Monospace,
+            )
+        }
+    }
+}
+
+private fun Modifier.media3ControlModifier(
+    interactionConfig: PlayerInteractionConfig,
+    onUserInteraction: () -> Unit,
+    focusRequester: FocusRequester? = null,
+): Modifier = composed {
+    var isFocused by remember { mutableStateOf(false) }
+    this
+        .then(focusRequester?.let { Modifier.focusRequester(it) } ?: Modifier)
+        .graphicsLayer(
+            scaleX = if (isFocused) 1.08f else 1f,
+            scaleY = if (isFocused) 1.08f else 1f,
+        )
+        .onFocusChanged {
+            isFocused = it.isFocused
+            if (it.isFocused) {
+                onUserInteraction()
+            }
+        }
+        .then(
+            if (interactionConfig.enableFocus) {
+                Modifier.focusable()
+            } else {
+                Modifier
+            }
+        )
+        .background(
+            color = if (isFocused) Color.White.copy(alpha = 0.16f) else Color.Transparent,
+            shape = RoundedCornerShape(18.dp),
+        )
+}
+
+private fun Key.isConfirmKey(): Boolean {
+    return this == Key.DirectionCenter || this == Key.Enter || this == Key.NumPadEnter
+}
+
+private fun Key.isDirectionalKey(): Boolean {
+    return this == Key.DirectionLeft ||
+        this == Key.DirectionRight ||
+        this == Key.DirectionUp ||
+        this == Key.DirectionDown
 }
 
 @UnstableApi

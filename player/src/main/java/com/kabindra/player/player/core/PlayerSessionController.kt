@@ -28,6 +28,7 @@ interface PlayerSessionController {
     fun selectVideoTrack(trackId: String)
     fun showController()
     fun hideController()
+    fun consumeBackPress(): Boolean
     fun showStatsPanel()
     fun hideStatsPanel()
 }
