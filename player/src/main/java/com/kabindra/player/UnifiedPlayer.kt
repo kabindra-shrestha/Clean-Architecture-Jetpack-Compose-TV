@@ -102,7 +102,7 @@ import androidx.media3.exoplayer.source.LoadEventInfo
 import androidx.media3.exoplayer.source.MediaLoadData
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.compose.ContentFrame
-import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
+import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
 import com.kabindra.player.player.telemetry.collector.DefaultPlaybackTelemetryCollector
 import com.kabindra.player.player.telemetry.collector.NoOpPlaybackTelemetryCollector
 import com.kabindra.player.player.telemetry.collector.PlaybackTelemetryCollector
@@ -614,7 +614,7 @@ fun UnifiedPlayer(
             ContentFrame(
                 player = player,
                 modifier = Modifier.fillMaxSize(),
-                surfaceType = SURFACE_TYPE_TEXTURE_VIEW,
+                surfaceType = SURFACE_TYPE_SURFACE_VIEW,
                 contentScale = ContentScale.Fit,
                 keepContentOnReset = true,
             )
@@ -710,7 +710,23 @@ fun UnifiedPlayer(
             )
         }
 
-        if (controllerMode == PlayerControllerMode.Custom && uiState.isControllerVisible) {
+        val controllerVisible =
+            controllerMode == PlayerControllerMode.Custom && uiState.isControllerVisible
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(16.dp)
+                .graphicsLayer {
+                    alpha = if (controllerVisible) 1f else 0f
+                }
+                // Block pointer events when invisible so taps still reach the video
+                .then(
+                    if (!controllerVisible) Modifier.pointerInput(Unit) { /* consume nothing */ }
+                    else Modifier
+                )
+        ) {
             CustomControllerOverlay(
                 player = player,
                 uiState = uiState,
