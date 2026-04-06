@@ -2,6 +2,7 @@ package com.kabindra.tv.iptv.data.model
 
 import com.kabindra.tv.iptv.domain.entity.ChannelCategory
 import com.kabindra.tv.iptv.domain.entity.LiveChannel
+import com.kabindra.tv.iptv.domain.entity.MediaPlaybackType
 import com.kabindra.tv.iptv.domain.entity.MediaStreamType
 import com.kabindra.tv.iptv.domain.entity.MovieCategory
 import com.kabindra.tv.iptv.domain.entity.MovieDetail
@@ -12,6 +13,12 @@ enum class MediaStreamTypeDTO {
     Progressive,
 }
 
+enum class MediaPlaybackTypeDTO {
+    Live,
+    Dvr,
+    Movie,
+}
+
 data class LiveChannelDTO(
     val id: String,
     val categoryId: String,
@@ -19,6 +26,7 @@ data class LiveChannelDTO(
     val currentProgram: String,
     val streamUrl: String,
     val streamType: MediaStreamTypeDTO,
+    val playbackType: MediaPlaybackTypeDTO,
     val logoUrl: String,
 )
 
@@ -37,6 +45,7 @@ data class MovieSummaryDTO(
     val backdropUrl: String,
     val streamUrl: String,
     val streamType: MediaStreamTypeDTO,
+    val playbackType: MediaPlaybackTypeDTO,
 )
 
 data class MovieCategoryDTO(
@@ -55,6 +64,7 @@ data class MovieDetailDTO(
     val backdropUrl: String,
     val streamUrl: String,
     val streamType: MediaStreamTypeDTO,
+    val playbackType: MediaPlaybackTypeDTO,
     val alsoWatch: List<MovieSummaryDTO>,
 )
 
@@ -85,6 +95,7 @@ fun MovieDetailDTO.toDomain(): MovieDetail {
         backdropUrl = backdropUrl,
         streamUrl = streamUrl,
         streamType = streamType.toDomain(),
+        playbackType = playbackType.toDomain(),
         alsoWatch = alsoWatch.map(MovieSummaryDTO::toDomain)
     )
 }
@@ -97,6 +108,7 @@ private fun LiveChannelDTO.toDomain(): LiveChannel {
         currentProgram = currentProgram,
         streamUrl = streamUrl,
         streamType = streamType.toDomain(),
+        playbackType = playbackType.toDomain(),
         logoUrl = logoUrl
     )
 }
@@ -110,7 +122,8 @@ private fun MovieSummaryDTO.toDomain(): MovieSummary {
         posterUrl = posterUrl,
         backdropUrl = backdropUrl,
         streamUrl = streamUrl,
-        streamType = streamType.toDomain()
+        streamType = streamType.toDomain(),
+        playbackType = playbackType.toDomain()
     )
 }
 
@@ -118,5 +131,13 @@ private fun MediaStreamTypeDTO.toDomain(): MediaStreamType {
     return when (this) {
         MediaStreamTypeDTO.Hls -> MediaStreamType.Hls
         MediaStreamTypeDTO.Progressive -> MediaStreamType.Progressive
+    }
+}
+
+private fun MediaPlaybackTypeDTO.toDomain(): MediaPlaybackType {
+    return when (this) {
+        MediaPlaybackTypeDTO.Live -> MediaPlaybackType.Live
+        MediaPlaybackTypeDTO.Dvr -> MediaPlaybackType.Dvr
+        MediaPlaybackTypeDTO.Movie -> MediaPlaybackType.Movie
     }
 }

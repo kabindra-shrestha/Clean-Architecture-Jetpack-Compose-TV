@@ -1,6 +1,8 @@
 package com.kabindra.tv.iptv.presentation.ui.screen.movie.player
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,6 +14,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.tv.material3.MaterialTheme
 import com.kabindra.player.PlayerContentType
 import com.kabindra.player.PlayerControllerMode
@@ -23,6 +26,7 @@ import com.kabindra.player.PlayerSourceType
 import com.kabindra.player.UnifiedPlayer
 import com.kabindra.player.defaultPlayerInteractionConfig
 import com.kabindra.player.rememberPlayerHostState
+import com.kabindra.tv.iptv.domain.entity.MediaPlaybackType
 import com.kabindra.tv.iptv.domain.entity.MediaStreamType
 import com.kabindra.tv.iptv.domain.entity.MovieDetail
 import com.kabindra.tv.iptv.presentation.ui.component.ButtonComponent
@@ -49,6 +53,11 @@ fun MoviePlayerScreen(
     val state by viewModel.state.collectAsState()
     val playerHostState = rememberPlayerHostState(movieId)
     val interactionConfig = defaultPlayerInteractionConfig(PlayerExperience.AndroidTv)
+    val playerAlpha by animateFloatAsState(
+        targetValue = if (state.movie != null) 1f else 0f,
+        animationSpec = tween(durationMillis = 240),
+        label = "movie_player_alpha",
+    )
 
     BackHandler {
         if (!playerHostState.consumeBackPress()) {
@@ -76,21 +85,6 @@ fun MoviePlayerScreen(
                 experience = PlayerExperience.AndroidTv,
                 controllerMode = PlayerControllerMode.Custom,
                 features = PlayerFeatures(
-                    /*showStreamDetails = true,
-                    showPreviousButton = false,
-                    showNextButton = false,
-                    showRewindButton = true,
-                    showFastForwardButton = true,
-                    showSeekBar = true,
-                    showSubtitles = true,
-                    showQualitySelector = true,
-                    showAudioSelector = true,
-                    showEpgAction = false,
-                    showStatsForNerds = false,
-                    showPlaybackSpeed = true,
-                    showShuffleButton = false,
-                    showLoopButton = true,
-                    showGoLiveButton = false,*/
                     showBackButton = true,
                     showStreamDetails = true,
                     showPlayPauseButton = true,
@@ -102,15 +96,17 @@ fun MoviePlayerScreen(
                     showSubtitles = true,
                     showQualitySelector = true,
                     showAudioSelector = true,
-                    showEpgAction = true,
+                    showEpgAction = false,
                     showStatsForNerds = true,
                     showPlaybackSpeed = true,
-                    showShuffleButton = true,
+                    showShuffleButton = false,
                     showLoopButton = true,
                     showGoLiveButton = true,
                 ),
                 interactionConfig = interactionConfig,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer(alpha = playerAlpha)
             )
         }
 
@@ -151,7 +147,7 @@ private fun MovieDetail.toPlayerItem(): PlayerItem {
         title = title,
         streamUrl = streamUrl,
         sourceType = streamType.toPlayerSourceType(),
-        contentType = PlayerContentType.Vod,
+        contentType = playbackType.toPlayerContentType(),
         posterUrl = posterUrl,
         subtitle = subtitle,
         description = description,
@@ -162,5 +158,13 @@ private fun MediaStreamType.toPlayerSourceType(): PlayerSourceType {
     return when (this) {
         MediaStreamType.Hls -> PlayerSourceType.Hls
         MediaStreamType.Progressive -> PlayerSourceType.Progressive
+    }
+}
+
+private fun MediaPlaybackType.toPlayerContentType(): PlayerContentType {
+    return when (this) {
+        MediaPlaybackType.Live -> PlayerContentType.Live
+        MediaPlaybackType.Dvr -> PlayerContentType.Dvr
+        MediaPlaybackType.Movie -> PlayerContentType.Vod
     }
 }

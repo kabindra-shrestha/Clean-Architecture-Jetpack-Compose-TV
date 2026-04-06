@@ -23,7 +23,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
@@ -42,6 +44,7 @@ import com.kabindra.player.defaultPlayerInteractionConfig
 import com.kabindra.player.rememberPlayerHostState
 import com.kabindra.tv.iptv.domain.entity.ChannelCategory
 import com.kabindra.tv.iptv.domain.entity.LiveChannel
+import com.kabindra.tv.iptv.domain.entity.MediaPlaybackType
 import com.kabindra.tv.iptv.domain.entity.MediaStreamType
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazy
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazyLayout
@@ -136,6 +139,26 @@ fun LiveTVPlayerScreen(
         modifier = Modifier
             .fillMaxSize()
             .mainBackground()
+            .onPreviewKeyEvent { event ->
+                if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                if (playerHostState.uiState.isControllerVisible || state.isChannelOverlayVisible) {
+                    return@onPreviewKeyEvent false
+                }
+
+                when (event.key) {
+                    Key.DirectionUp -> {
+                        viewModel.selectRelativeChannel(offset = 1)
+                        true
+                    }
+
+                    Key.DirectionDown -> {
+                        viewModel.selectRelativeChannel(offset = -1)
+                        true
+                    }
+
+                    else -> false
+                }
+            }
     ) {
         if (allChannels.isNotEmpty()) {
             UnifiedPlayer(
@@ -143,6 +166,7 @@ fun LiveTVPlayerScreen(
                     items = allChannels.map(LiveChannel::toPlayerItem),
                     startIndex = selectedChannelIndex,
                     autoPlay = true,
+                    circularNavigation = true,
                 ),
                 hostState = playerHostState,
                 experience = PlayerExperience.AndroidTv,
@@ -162,8 +186,8 @@ fun LiveTVPlayerScreen(
                     showEpgAction = true,
                     showStatsForNerds = true,
                     showPlaybackSpeed = true,
-                    showShuffleButton = true,
-                    showLoopButton = true,
+                    showShuffleButton = false,
+                    showLoopButton = false,
                     showGoLiveButton = true,
                 ),
                 interactionConfig = interactionConfig,
@@ -361,14 +385,14 @@ private fun LiveChannel.toPlayerItem(): PlayerItem {
         title = title,
         streamUrl = streamUrl,
         sourceType = streamType.toPlayerSourceType(),
-        contentType = PlayerContentType.Live,
+        contentType = playbackType.toPlayerContentType(),
         posterUrl = logoUrl,
         programInfo = PlayerProgramInfo(
             channelName = title,
             currentTitle = currentProgram,
         ),
         subtitle = currentProgram,
-        isSeekable = streamType != MediaStreamType.Hls,
+        isSeekable = playbackType != MediaPlaybackType.Live,
     )
 }
 
@@ -376,5 +400,13 @@ private fun MediaStreamType.toPlayerSourceType(): PlayerSourceType {
     return when (this) {
         MediaStreamType.Hls -> PlayerSourceType.Hls
         MediaStreamType.Progressive -> PlayerSourceType.Progressive
+    }
+}
+
+private fun MediaPlaybackType.toPlayerContentType(): PlayerContentType {
+    return when (this) {
+        MediaPlaybackType.Live -> PlayerContentType.Live
+        MediaPlaybackType.Dvr -> PlayerContentType.Dvr
+        MediaPlaybackType.Movie -> PlayerContentType.Vod
     }
 }

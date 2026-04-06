@@ -1,8 +1,7 @@
 package com.kabindra.tv.iptv.presentation.ui.screen.navigation
 
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -30,13 +29,17 @@ fun MainScreen() {
 
         NavDisplay(
             backStack = backStack,
-            onBack = { backStack.removeLastOrNull() },
+            onBack = {
+                if (backStack.size > 1) {
+                    backStack.removeLastOrNull()
+                }
+            },
             entryProvider = entryProvider {
                 entry<SplashRoute> {
                     SplashScreen(
                         innerPadding = innerPadding,
                         onNavigateDashboard = {
-                            backStack.removeLastOrNull()
+                            backStack.clear()
                             backStack.add(DashboardRoute)
                         }
                     )
@@ -79,6 +82,7 @@ fun MainScreen() {
                             backStack.add(MoviePlayerRoute(movieId))
                         },
                         onNavigateMovieDetail = { movieId ->
+                            backStack.removeLastOrNull()
                             backStack.add(MovieDetailRoute(movieId))
                         }
                     )
@@ -94,34 +98,13 @@ fun MainScreen() {
                 }
             },
             transitionSpec = {
-                // Slide in from right when navigating forward
-                slideInHorizontally(
-                    initialOffsetX = { it },
-                    animationSpec = tween(1000)
-                ) togetherWith slideOutHorizontally(
-                    targetOffsetX = { -it },
-                    animationSpec = tween(1000)
-                )
+                EnterTransition.None togetherWith ExitTransition.None
             },
             popTransitionSpec = {
-                // Slide in from left when navigating back
-                slideInHorizontally(
-                    initialOffsetX = { -it },
-                    animationSpec = tween(1000)
-                ) togetherWith slideOutHorizontally(
-                    targetOffsetX = { it },
-                    animationSpec = tween(1000)
-                )
+                EnterTransition.None togetherWith ExitTransition.None
             },
             predictivePopTransitionSpec = {
-                // Slide in from left when navigating back
-                slideInHorizontally(
-                    initialOffsetX = { -it },
-                    animationSpec = tween(1000)
-                ) togetherWith slideOutHorizontally(
-                    targetOffsetX = { it },
-                    animationSpec = tween(1000)
-                )
+                EnterTransition.None togetherWith ExitTransition.None
             }
         )
     }

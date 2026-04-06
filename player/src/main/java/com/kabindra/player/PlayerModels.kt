@@ -43,6 +43,18 @@ enum class PlayerPanel {
     Stats,
 }
 
+enum class PlayerPlaybackErrorPhase {
+    Initial,
+    Switching,
+    Replay,
+}
+
+@Immutable
+data class PlayerPlaybackErrorState(
+    val message: String,
+    val phase: PlayerPlaybackErrorPhase,
+)
+
 @Immutable
 data class PlayerSubtitleTrack(
     val id: String,
@@ -107,6 +119,7 @@ data class PlayerPlaylist(
     val repeatMode: PlayerRepeatMode = PlayerRepeatMode.Off,
     val loopSingleItem: Boolean = false,
     val shuffleEnabled: Boolean = false,
+    val circularNavigation: Boolean = false,
 )
 
 @Immutable
@@ -245,7 +258,7 @@ data class PlayerUiState(
     val activePanel: PlayerPanel = PlayerPanel.None,
     val isControllerVisible: Boolean = true,
     val isStatsVisible: Boolean = false,
-    val errorMessage: String? = null,
+    val playbackError: PlayerPlaybackErrorState? = null,
 )
 
 internal const val PLAYER_VIDEO_TRACK_AUTO = "player_video_track_auto"

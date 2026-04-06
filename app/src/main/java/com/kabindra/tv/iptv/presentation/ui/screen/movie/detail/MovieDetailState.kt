@@ -1,6 +1,7 @@
 package com.kabindra.tv.iptv.presentation.ui.screen.movie.detail
 
 import com.kabindra.tv.iptv.domain.entity.MovieDetail
+import com.kabindra.tv.iptv.domain.entity.MovieSummary
 import com.kabindra.tv.iptv.utils.constants.ConfirmationType
 import com.kabindra.tv.iptv.utils.constants.ResponseType
 
@@ -18,5 +19,6 @@ data class MovieDetailState(
     val confirmationType: ConfirmationType = ConfirmationType.None,
     val confirmationMessage: String = "",
     val movie: MovieDetail? = null,
+    val recommendedMovies: List<MovieSummary> = emptyList(),
     val currentMovieId: String? = null,
 )

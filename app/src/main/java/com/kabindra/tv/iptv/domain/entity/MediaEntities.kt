@@ -5,6 +5,12 @@ enum class MediaStreamType {
     Progressive,
 }
 
+enum class MediaPlaybackType {
+    Live,
+    Dvr,
+    Movie,
+}
+
 data class LiveChannel(
     val id: String,
     val categoryId: String,
@@ -12,6 +18,7 @@ data class LiveChannel(
     val currentProgram: String,
     val streamUrl: String,
     val streamType: MediaStreamType,
+    val playbackType: MediaPlaybackType,
     val logoUrl: String,
 )
 
@@ -30,6 +37,7 @@ data class MovieSummary(
     val backdropUrl: String,
     val streamUrl: String,
     val streamType: MediaStreamType,
+    val playbackType: MediaPlaybackType,
 )
 
 data class MovieCategory(
@@ -48,5 +56,6 @@ data class MovieDetail(
     val backdropUrl: String,
     val streamUrl: String,
     val streamType: MediaStreamType,
+    val playbackType: MediaPlaybackType,
     val alsoWatch: List<MovieSummary>,
 )

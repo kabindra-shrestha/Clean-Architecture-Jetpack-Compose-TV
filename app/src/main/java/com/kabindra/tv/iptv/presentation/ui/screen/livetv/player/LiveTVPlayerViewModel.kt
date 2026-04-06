@@ -80,6 +80,20 @@ class LiveTVPlayerViewModel(
         }
     }
 
+    fun selectRelativeChannel(offset: Int) {
+        if (offset == 0) return
+
+        val allChannels = _state.value.categories.flatMap(ChannelCategory::channels)
+        if (allChannels.isEmpty()) return
+
+        val currentIndex = allChannels.indexOfFirst { it.id == _state.value.selectedChannelId }
+            .takeIf { it >= 0 }
+            ?: 0
+        val targetIndex = (currentIndex + offset).floorMod(allChannels.size)
+        val targetChannel = allChannels[targetIndex]
+        selectChannel(targetChannel.id, closeOverlay = true)
+    }
+
     fun showChannelOverlay() {
         _state.update { it.copy(isChannelOverlayVisible = true) }
     }
@@ -96,5 +110,9 @@ class LiveTVPlayerViewModel(
             }
         }
         return null
+    }
+
+    private fun Int.floorMod(mod: Int): Int {
+        return ((this % mod) + mod) % mod
     }
 }

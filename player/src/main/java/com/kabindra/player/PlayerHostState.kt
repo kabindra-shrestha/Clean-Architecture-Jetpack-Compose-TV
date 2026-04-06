@@ -29,6 +29,7 @@ class PlayerHostState internal constructor() : PlayerSessionController {
     private var subtitleTargets: Map<String, PlayerTrackTarget> = emptyMap()
     private var audioTargets: Map<String, PlayerTrackTarget> = emptyMap()
     private var videoTargets: Map<String, PlayerTrackTarget> = emptyMap()
+    private var nextPlaybackErrorPhase: PlayerPlaybackErrorPhase = PlayerPlaybackErrorPhase.Initial
 
     internal fun attach(
         player: ExoPlayer,
@@ -85,6 +86,26 @@ class PlayerHostState internal constructor() : PlayerSessionController {
         )
     }
 
+    internal fun markNextPlaybackErrorPhase(phase: PlayerPlaybackErrorPhase) {
+        nextPlaybackErrorPhase = phase
+    }
+
+    internal fun clearPlaybackError() {
+        if (uiState.playbackError != null) {
+            uiState = uiState.copy(playbackError = null)
+        }
+    }
+
+    internal fun setPlaybackError(message: String?) {
+        val resolvedMessage = message?.takeIf(String::isNotBlank) ?: return
+        uiState = uiState.copy(
+            playbackError = PlayerPlaybackErrorState(
+                message = resolvedMessage,
+                phase = nextPlaybackErrorPhase,
+            )
+        )
+    }
+
     override fun play() {
         player?.playWhenReady = true
     }
@@ -120,7 +141,14 @@ class PlayerHostState internal constructor() : PlayerSessionController {
     override fun next() {
         val currentPlayer = player ?: return
         if (currentPlayer.hasNextMediaItem()) {
+            markNextPlaybackErrorPhase(PlayerPlaybackErrorPhase.Switching)
+            clearPlaybackError()
             currentPlayer.seekToNextMediaItem()
+            currentPlayer.playWhenReady = true
+        } else if (uiState.playlist.circularNavigation && currentPlayer.mediaItemCount > 1) {
+            markNextPlaybackErrorPhase(PlayerPlaybackErrorPhase.Switching)
+            clearPlaybackError()
+            currentPlayer.seekToDefaultPosition(0)
             currentPlayer.playWhenReady = true
         }
     }
@@ -128,7 +156,14 @@ class PlayerHostState internal constructor() : PlayerSessionController {
     override fun previous() {
         val currentPlayer = player ?: return
         if (currentPlayer.hasPreviousMediaItem()) {
+            markNextPlaybackErrorPhase(PlayerPlaybackErrorPhase.Switching)
+            clearPlaybackError()
             currentPlayer.seekToPreviousMediaItem()
+            currentPlayer.playWhenReady = true
+        } else if (uiState.playlist.circularNavigation && currentPlayer.mediaItemCount > 1) {
+            markNextPlaybackErrorPhase(PlayerPlaybackErrorPhase.Switching)
+            clearPlaybackError()
+            currentPlayer.seekToDefaultPosition(currentPlayer.mediaItemCount - 1)
             currentPlayer.playWhenReady = true
         }
     }
@@ -136,6 +171,8 @@ class PlayerHostState internal constructor() : PlayerSessionController {
     override fun playItem(index: Int) {
         val currentPlayer = player ?: return
         if (index !in 0 until currentPlayer.mediaItemCount) return
+        markNextPlaybackErrorPhase(PlayerPlaybackErrorPhase.Switching)
+        clearPlaybackError()
         currentPlayer.seekToDefaultPosition(index)
         currentPlayer.playWhenReady = true
     }
@@ -148,6 +185,15 @@ class PlayerHostState internal constructor() : PlayerSessionController {
     override fun jumpToLiveEdge() {
         val currentPlayer = player ?: return
         currentPlayer.seekToDefaultPosition()
+        currentPlayer.playWhenReady = true
+    }
+
+    override fun replayCurrent() {
+        val currentPlayer = player ?: return
+        markNextPlaybackErrorPhase(PlayerPlaybackErrorPhase.Replay)
+        clearPlaybackError()
+        currentPlayer.seekToDefaultPosition(currentPlayer.currentMediaItemIndex.coerceAtLeast(0))
+        currentPlayer.prepare()
         currentPlayer.playWhenReady = true
     }
 

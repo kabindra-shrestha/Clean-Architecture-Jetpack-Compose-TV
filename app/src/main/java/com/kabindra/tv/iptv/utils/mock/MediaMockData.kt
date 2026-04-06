@@ -2,6 +2,7 @@ package com.kabindra.tv.iptv.utils.mock
 
 import com.kabindra.tv.iptv.data.model.ChannelCategoryDTO
 import com.kabindra.tv.iptv.data.model.LiveChannelDTO
+import com.kabindra.tv.iptv.data.model.MediaPlaybackTypeDTO
 import com.kabindra.tv.iptv.data.model.MediaStreamTypeDTO
 import com.kabindra.tv.iptv.data.model.MovieCategoryDTO
 import com.kabindra.tv.iptv.data.model.MovieDetailDTO
@@ -12,84 +13,50 @@ private const val muxHls = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
 fun mockLiveTVCategories(): List<ChannelCategoryDTO> {
     return listOf(
         ChannelCategoryDTO(
-            id = "featured",
-            title = "Featured",
+            id = "live",
+            title = "Live",
             channels = listOf(
                 liveChannel(
-                    id = "featured_1",
-                    categoryId = "featured",
+                    id = "live_1",
+                    categoryId = "live",
                     title = "Nature TV",
                     currentProgram = "Wildlife Stories",
                     streamUrl = muxHls,
+                    playbackType = MediaPlaybackTypeDTO.Live,
                     logoLabel = "Nature+TV"
                 ),
                 liveChannel(
-                    id = "featured_2",
-                    categoryId = "featured",
+                    id = "live_2",
+                    categoryId = "live",
                     title = "Action Max",
                     currentProgram = "Night Chase",
                     streamUrl = muxHls,
+                    playbackType = MediaPlaybackTypeDTO.Live,
                     logoLabel = "Action+Max"
-                ),
-                liveChannel(
-                    id = "featured_3",
-                    categoryId = "featured",
-                    title = "Family Hub",
-                    currentProgram = "Weekend Picks",
-                    streamUrl = muxHls,
-                    logoLabel = "Family+Hub"
                 )
             )
         ),
         ChannelCategoryDTO(
-            id = "sports",
-            title = "Sports",
+            id = "dvr",
+            title = "DVR",
             channels = listOf(
                 liveChannel(
-                    id = "sports_1",
-                    categoryId = "sports",
+                    id = "dvr_1",
+                    categoryId = "dvr",
                     title = "Arena One",
                     currentProgram = "Premier Highlights",
                     streamUrl = muxHls,
+                    playbackType = MediaPlaybackTypeDTO.Dvr,
                     logoLabel = "Arena+One"
                 ),
                 liveChannel(
-                    id = "sports_2",
-                    categoryId = "sports",
+                    id = "dvr_2",
+                    categoryId = "dvr",
                     title = "Sport Live",
                     currentProgram = "Game Night",
                     streamUrl = muxHls,
+                    playbackType = MediaPlaybackTypeDTO.Dvr,
                     logoLabel = "Sport+Live"
-                ),
-                liveChannel(
-                    id = "sports_3",
-                    categoryId = "sports",
-                    title = "Velocity",
-                    currentProgram = "Racing Recap",
-                    streamUrl = muxHls,
-                    logoLabel = "Velocity"
-                )
-            )
-        ),
-        ChannelCategoryDTO(
-            id = "kids",
-            title = "Kids",
-            channels = listOf(
-                liveChannel(
-                    id = "kids_1",
-                    categoryId = "kids",
-                    title = "Cartoon Time",
-                    currentProgram = "Sunny Adventures",
-                    streamUrl = muxHls,
-                    logoLabel = "Cartoon+Time"
-                ),
-                liveChannel(
-                    id = "kids_2",
-                    categoryId = "kids",
-                    title = "Junior Play",
-                    currentProgram = "Playhouse Party",
-                    streamUrl = muxHls,
-                    logoLabel = "Junior+Play"
                 )
             )
         )
@@ -217,6 +184,7 @@ fun mockMovieDetail(movieId: String): MovieDetailDTO {
         backdropUrl = movie.backdropUrl,
         streamUrl = movie.streamUrl,
         streamType = movie.streamType,
+        playbackType = movie.playbackType,
         alsoWatch = allMovie
             .filterNot { it.id == movieId }
             .take(5)
@@ -229,6 +197,7 @@ private fun liveChannel(
     title: String,
     currentProgram: String,
     streamUrl: String,
+    playbackType: MediaPlaybackTypeDTO,
     logoLabel: String,
 ): LiveChannelDTO {
     return LiveChannelDTO(
@@ -238,6 +207,7 @@ private fun liveChannel(
         currentProgram = currentProgram,
         streamUrl = streamUrl,
         streamType = MediaStreamTypeDTO.Hls,
+        playbackType = playbackType,
         logoUrl = "https://placehold.co/240x135/FFFFFF/1A1029.png?text=$logoLabel"
     )
 }
@@ -256,10 +226,11 @@ private fun movie(
         categoryId = categoryId,
         title = title,
         subtitle = subtitle,
-        posterUrl = "https://picsum.photos/seed/$posterSeed/400/600",
-        backdropUrl = "https://picsum.photos/seed/$backdropSeed/1280/720",
+        posterUrl = "https://placehold.co/400x600/221433/F3EFFA.png?text=$posterSeed",
+        backdropUrl = "https://placehold.co/1280x720/160B27/F3EFFA.png?text=$backdropSeed",
         streamUrl = streamUrl,
-        streamType = MediaStreamTypeDTO.Hls
+        streamType = MediaStreamTypeDTO.Hls,
+        playbackType = MediaPlaybackTypeDTO.Movie
     )
 }
 

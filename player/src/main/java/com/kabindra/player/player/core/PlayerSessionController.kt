@@ -19,6 +19,7 @@ interface PlayerSessionController {
     fun playItem(index: Int)
     fun togglePlayPause()
     fun jumpToLiveEdge()
+    fun replayCurrent()
     fun setRepeatMode(repeatMode: PlayerRepeatMode)
     fun setShuffleEnabled(enabled: Boolean)
     fun setPlaybackSpeed(speed: Float)
