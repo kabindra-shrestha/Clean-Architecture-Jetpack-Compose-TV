@@ -38,6 +38,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -75,6 +77,10 @@ private object MovieDetailScreenTokens {
     const val railTopPadding = 18
     const val railSpacing = 14
     const val contentSpacing = 2
+    const val railHorizontalPadding = 20
+    const val railBottomPadding = 18
+    const val railItemBottomPadding = 12
+    const val playButtonFocusDelayMillis = 140L
 }
 
 @Composable
@@ -89,6 +95,7 @@ fun MovieDetailScreen(
     val state by viewModel.state.collectAsState()
     val railState = key(state.movie?.id) { rememberBaseLazyState() }
     val verticalState = rememberLazyListState()
+    val playButtonFocusRequester = remember(state.movie?.id) { FocusRequester() }
     var isRecommendationFocused by remember(state.movie?.id) { mutableStateOf(false) }
     var highlightedMovieId by remember(state.movie?.id) { mutableStateOf<String?>(null) }
 
@@ -96,6 +103,12 @@ fun MovieDetailScreen(
 
     LaunchedEffect(movieId) {
         viewModel.loadMovie(movieId)
+    }
+
+    LaunchedEffect(state.movie?.id) {
+        if (state.movie == null) return@LaunchedEffect
+        delay(MovieDetailScreenTokens.playButtonFocusDelayMillis)
+        playButtonFocusRequester.requestFocus()
     }
 
     LaunchedEffect(isRecommendationFocused, state.movie?.id) {
@@ -252,21 +265,20 @@ fun MovieDetailScreen(
                                         maxLines = 8
                                     )
 
-                                    Box(
-                                        modifier = Modifier.onFocusChanged {
-                                            if (it.hasFocus && isRecommendationFocused) {
-                                                isRecommendationFocused = false
-                                                highlightedMovieId = null
-                                            }
-                                        }
-                                    ) {
-                                        ButtonComponent(
-                                            modifier = Modifier.padding(top = MovieDetailScreenTokens.buttonTopPadding.sdp),
-                                            text = "Play Movie",
-                                            icon = Icons.Default.PlayArrow,
-                                            onClick = { onNavigateMoviePlayer(displayedMovie.id) }
-                                        )
-                                    }
+                                    ButtonComponent(
+                                        modifier = Modifier
+                                            .padding(top = MovieDetailScreenTokens.buttonTopPadding.sdp)
+                                            .focusRequester(playButtonFocusRequester)
+                                            .onFocusChanged {
+                                                if (it.hasFocus && isRecommendationFocused) {
+                                                    isRecommendationFocused = false
+                                                    highlightedMovieId = null
+                                                }
+                                            },
+                                        text = "Play Movie",
+                                        icon = Icons.Default.PlayArrow,
+                                        onClick = { onNavigateMoviePlayer(displayedMovie.id) }
+                                    )
                                 }
 
                                 CardImage(
@@ -293,14 +305,17 @@ fun MovieDetailScreen(
                         if (recommendations.isNotEmpty()) {
                             item(key = "also_watch") {
                                 Column(
-                                    modifier = Modifier.offset(y = railLift),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .offset(y = railLift),
                                     verticalArrangement = Arrangement.spacedBy(MovieDetailScreenTokens.railSpacing.sdp)
                                 ) {
                                     TextComponent(
                                         text = "Also Watch",
                                         type = TextType.Title,
                                         size = TextSize.Large,
-                                        color = MaterialTheme.colorScheme.onSurface
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.padding(horizontal = MovieDetailScreenTokens.horizontalPadding.sdp)
                                     )
 
                                     BaseLazy(
@@ -311,18 +326,24 @@ fun MovieDetailScreen(
                                         orientation = BaseLazyOrientation.Horizontal,
                                         platform = BaseLazyPlatform.AndroidTv,
                                         tvConfig = TvLazyConfig(
+                                            requestInitialFocus = false,
                                             initialFocusedIndex = 0,
                                             autoScrollOnFocus = true,
                                             focusedItemOffsetFraction = 0.14f,
                                         ),
-                                        contentPadding = PaddingValues(top = MovieDetailScreenTokens.railTopPadding.sdp),
+                                        contentPadding = PaddingValues(
+                                            start = MovieDetailScreenTokens.railHorizontalPadding.sdp,
+                                            top = MovieDetailScreenTokens.railTopPadding.sdp,
+                                            end = MovieDetailScreenTokens.railHorizontalPadding.sdp,
+                                            bottom = MovieDetailScreenTokens.railBottomPadding.sdp
+                                        ),
                                         arrangement = Arrangement.spacedBy(MovieDetailScreenTokens.railSpacing.sdp),
                                         userScrollEnabled = true,
                                         key = { _, item -> item.id },
                                         contentType = { _, _ -> "also_watch" }
                                     ) { _, item, itemModifier ->
                                         PosterCardComponent(
-                                            modifier = itemModifier,
+                                            modifier = itemModifier.padding(bottom = MovieDetailScreenTokens.railItemBottomPadding.sdp),
                                             title = item.title,
                                             subtitle = item.subtitle,
                                             posterUrl = item.posterUrl,
