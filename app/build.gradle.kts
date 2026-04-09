@@ -19,6 +19,10 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
+        // WebSocket server config — change to your intranet server
+        buildConfigField("String", "WS_HOST", "\"65.1.133.50\"")
+        buildConfigField("int", "WS_PORT", "3066")
+        buildConfigField("String", "WS_PATH", "\"/\"")
     }
 
     buildTypes {
@@ -36,6 +40,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -65,6 +70,8 @@ dependencies {
     implementation(libs.androidx.paging.compose)
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
+
+    implementation(libs.androidx.work.runtime.ktx)
 
     implementation(platform(libs.koin.bom))
     implementation(libs.bundles.koin)

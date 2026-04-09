@@ -13,6 +13,7 @@ import com.kabindra.tv.iptv.domain.repository.remote.movie.MovieRepository
 import com.kabindra.tv.iptv.domain.usecase.remote.livetv.LiveTVUseCase
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieBrowseUseCase
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieDetailUseCase
+import com.kabindra.tv.iptv.presentation.ui.screen.dashboard.NotificationViewModel
 import com.kabindra.tv.iptv.presentation.ui.screen.livetv.player.LiveTVPlayerViewModel
 import com.kabindra.tv.iptv.presentation.ui.screen.movie.content.MovieContentViewModel
 import com.kabindra.tv.iptv.presentation.ui.screen.movie.detail.MovieDetailViewModel
@@ -123,6 +124,7 @@ val provideUseCaseModule = module {
 
 val provideViewModelModule = module {
     viewModelOf(::SplashViewModel)
+    viewModelOf(::NotificationViewModel)
     viewModelOf(::LiveTVPlayerViewModel)
     viewModelOf(::MovieContentViewModel)
     viewModelOf(::MovieDetailViewModel)

@@ -2,21 +2,21 @@ package com.kabindra.tv.iptv.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-private val plum950 = Color(0xFF0E061D)
-private val plum900 = Color(0xFF100020)
-private val plum875 = Color(0xFF11051E)
-private val plum850 = Color(0xFF16092E)
-private val plum800 = Color(0xFF1A0C30)
-private val plum750 = Color(0xFF230730)
-private val plum700 = Color(0xFF30103F)
-private val plum650 = Color(0xFF3A144B)
-private val lavender400 = Color(0xFF938AA7)
-private val lavender350 = Color(0xFFA79AB9)
-private val lavender200 = Color(0xFFD9CAEB)
-private val lavender150 = Color(0xFFE7DDF2)
-private val lavender100 = Color(0xFFF4EFFA)
-private val lavender050 = Color(0xFFF8F4FC)
-private val textSoft = Color(0xFFF2EEF7)
+val plum950 = Color(0xFF0E061D)
+val plum900 = Color(0xFF100020)
+val plum875 = Color(0xFF11051E)
+val plum850 = Color(0xFF16092E)
+val plum800 = Color(0xFF1A0C30)
+val plum750 = Color(0xFF230730)
+val plum700 = Color(0xFF30103F)
+val plum650 = Color(0xFF3A144B)
+val lavender400 = Color(0xFF938AA7)
+val lavender350 = Color(0xFFA79AB9)
+val lavender200 = Color(0xFFD9CAEB)
+val lavender150 = Color(0xFFE7DDF2)
+val lavender100 = Color(0xFFF4EFFA)
+val lavender050 = Color(0xFFF8F4FC)
+val textSoft = Color(0xFFF2EEF7)
 
 val primaryLight = plum700
 val onPrimaryLight = Color(0xFFFFFFFF)
@@ -115,3 +115,15 @@ val tabSelected = plum650
 val tabUnselected = lavender350
 val textSelected = Color(0xFFFFFFFF)
 val textUnselected = lavender350
+
+// Priority colors
+val ColorCritical = Color(0xFFB3261E)
+val ColorHigh = Color(0xFFFF6F00)
+val ColorNormal = Color(0xFF2D6BE4)
+val ColorLow = Color(0xFF2EC4A9)
+
+// Connection State colors
+val ConnectionStateConnected = Color(0xFF2EC4A9)
+val ConnectionStateError = Color(0xFFEF5350)
+val ConnectionStateConnecting = Color(0xFFFFD54F)
+val ConnectionStateDisconnected = Color(0xFF546E7A)

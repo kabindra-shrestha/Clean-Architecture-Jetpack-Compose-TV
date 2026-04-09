@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Jetpack Compose TV Clean Architecture</string>
+    <string name="channel_socket_status_name">Socket Status</string>
+    <string name="channel_socket_status_desc">Shows persistent socket connection state</string>
+    <string name="channel_alerts_name">Alerts</string>
+    <string name="channel_alerts_desc">Incoming socket notification alerts</string>
+    <string name="notification_service_title">TV Notify</string>
+    <string name="notification_service_connected">Connected to intranet server</string>
+    <string name="notification_service_reconnecting">Reconnecting to server\u2026</string>
+    <string name="notification_service_disconnected">Disconnected</string>
 </resources>

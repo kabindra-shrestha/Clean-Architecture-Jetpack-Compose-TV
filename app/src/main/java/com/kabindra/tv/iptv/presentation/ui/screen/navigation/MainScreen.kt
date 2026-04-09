@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
+import com.kabindra.tv.iptv.MainActivity
 import com.kabindra.tv.iptv.presentation.ui.screen.dashboard.DashboardScreen
 import com.kabindra.tv.iptv.presentation.ui.screen.livetv.player.LiveTVPlayerScreen
 import com.kabindra.tv.iptv.presentation.ui.screen.movie.content.MovieScreen
@@ -19,7 +20,7 @@ import com.kabindra.tv.iptv.presentation.ui.screen.splash.SplashScreen
 import org.koin.compose.koinInject
 
 @Composable
-fun MainScreen() {
+fun MainScreen(payload: MainActivity.AlertPayload?) {
     val snackBarHostState: SnackbarHostState = koinInject()
 
     val backStack = rememberNavBackStack(SplashRoute)
@@ -47,6 +48,7 @@ fun MainScreen() {
                 entry<DashboardRoute> {
                     DashboardScreen(
                         innerPadding = innerPadding,
+                        payload = payload,
                         onNavigateLiveTV = {
                             backStack.add(LiveTVPlayerRoute)
                         },

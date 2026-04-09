@@ -15,13 +15,13 @@ import com.kabindra.tv.iptv.presentation.ui.theme.JetpackComposeTVCleanArchitect
 import okio.FileSystem
 
 @Composable
-fun App(modifier: Modifier) {
+fun App(modifier: Modifier, payload: MainActivity.AlertPayload?) {
     JetpackComposeTVCleanArchitectureTheme {
         setSingletonImageLoaderFactory { context ->
             getAsyncImageLoader(context)
         }
 
-        MainScreen()
+        MainScreen(payload)
     }
 }
 

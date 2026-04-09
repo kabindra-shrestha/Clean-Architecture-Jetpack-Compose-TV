@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+    Network Security Configuration
+    ─────────────────────────────────────────────────────────────────────────────
+    Restricts all network traffic to intranet hosts only.
+    No cleartext or TLS traffic is allowed to public internet domains.
+
+    IMPORTANT: Replace the domain/ip entries below with your actual intranet
+    server host or IP address range.
+-->
+<network-security-config>
+
+    <!-- Block all cleartext (non-TLS) traffic by default -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <!-- Trust system CAs -->
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!--
+        Intranet WebSocket Server
+        If your intranet does NOT have TLS set up yet, set cleartextTrafficPermitted="true"
+        and optionally add a <trust-anchors> block for your internal CA.
+    -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Replace with your actual intranet host or IP -->
+        <domain includeSubdomains="true">65.1.133.50</domain>
+        <domain includeSubdomains="true">intranet.local</domain>
+        <!-- Add more intranet hosts as needed -->
+    </domain-config>
+
+</network-security-config>

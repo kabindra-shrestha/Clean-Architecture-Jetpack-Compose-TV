@@ -1,5 +1,10 @@
 package com.kabindra.tv.iptv.presentation.ui.screen.dashboard
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -16,7 +22,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.MaterialTheme
+import com.kabindra.tv.iptv.MainActivity
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazy
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazyLayout
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazyOrientation
@@ -26,11 +34,13 @@ import com.kabindra.tv.iptv.presentation.ui.component.TextComponent
 import com.kabindra.tv.iptv.presentation.ui.component.TextSize
 import com.kabindra.tv.iptv.presentation.ui.component.TextType
 import com.kabindra.tv.iptv.presentation.ui.component.TvLazyConfig
+import com.kabindra.tv.iptv.presentation.ui.component.notification.ForegroundAlertOverlay
 import com.kabindra.tv.iptv.presentation.ui.component.rememberBaseLazyState
 import com.kabindra.tv.iptv.utils.enums.DashboardMenuType
 import com.kabindra.tv.iptv.utils.extensions.mainBackground
 import kotlinx.coroutines.delay
 import network.chaintech.sdpcomposemultiplatform.sdp
+import org.koin.compose.viewmodel.koinViewModel
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -42,14 +52,25 @@ private object DashboardScreenTokens {
 
 @Composable
 fun DashboardScreen(
+    viewModel: NotificationViewModel = koinViewModel(),
     innerPadding: PaddingValues,
+    payload: MainActivity.AlertPayload?,
     onNavigateLiveTV: () -> Unit,
     onNavigateMovie: () -> Unit,
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     val menuItems = remember { DashboardMenuType.entries.toList() }
     val lazyState = rememberBaseLazyState()
     var selectedMenu by remember { mutableStateOf(DashboardMenuType.LiveTV) }
     val clockText by rememberDashboardClockText()
+
+    LaunchedEffect(payload) {
+        println("Dashboard Screen payload: $payload")
+        val safePayload = payload ?: return@LaunchedEffect
+        if (safePayload.notifId.isBlank()) return@LaunchedEffect
+        viewModel.updatePayloadAlert(safePayload)
+    }
 
     Box(
         modifier = Modifier
@@ -127,6 +148,20 @@ fun DashboardScreen(
                     }
                 }
             )
+        }
+
+        // ── Foreground Alert Dialog ──
+        AnimatedVisibility(
+            visible = uiState.showAlertDialog && uiState.activeAlert != null,
+            enter = fadeIn() + slideInVertically { -it / 3 },
+            exit = fadeOut() + slideOutVertically { -it / 3 }
+        ) {
+            uiState.activeAlert?.let { message ->
+                ForegroundAlertOverlay(
+                    message = message,
+                    onDismiss = { viewModel.clearNotifications() }
+                )
+            }
         }
     }
 }
