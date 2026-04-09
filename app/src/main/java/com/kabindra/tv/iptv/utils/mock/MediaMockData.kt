@@ -226,8 +226,8 @@ private fun movie(
         categoryId = categoryId,
         title = title,
         subtitle = subtitle,
-        posterUrl = "https://placehold.co/400x600/221433/F3EFFA.png?text=$posterSeed",
-        backdropUrl = "https://placehold.co/1280x720/160B27/F3EFFA.png?text=$backdropSeed",
+        posterUrl = "https://picsum.photos/seed/$posterSeed/400/600.jpg",
+        backdropUrl = "https://picsum.photos/seed/$backdropSeed/1280/720.jpg",
         streamUrl = streamUrl,
         streamType = MediaStreamTypeDTO.Hls,
         playbackType = MediaPlaybackTypeDTO.Movie

@@ -45,25 +45,28 @@ fun ImageHandlerURL(
     isClickable: Boolean = false,
     onClick: () -> Unit = {}
 ) {
-    var loaded by remember { mutableStateOf(false) }
+    var loaded by remember(image) { mutableStateOf(false) }
+    val decoratedModifier = modifier
+        .then(
+            if (circular) {
+                Modifier
+                    .clip(CircleShape)
+                    .background(backgroundColor)
+            } else {
+                Modifier
+            }
+        )
+        .then(
+            if (isClickable) {
+                Modifier.clickable { onClick() }
+            } else {
+                Modifier
+            }
+        )
 
     AsyncImage(
-        modifier = modifier
-            .then(
-                if (circular)
-                    modifier
-                        .clip(CircleShape)
-                        .background(backgroundColor)
-                else
-                    modifier
-            )
-            .then(
-                if (isClickable)
-                    modifier.clickable { onClick() }
-                else
-                    modifier
-            ),
-        model = image,
+        modifier = decoratedModifier,
+        model = image.takeIf { it.isNotBlank() },
         contentDescription = contentDescription,
         contentScale = contentScale,
         placeholder = rememberVectorPainter(image = placeholder),
@@ -86,16 +89,17 @@ fun ImageHandlerRes(
     circular: Boolean = false,
     backgroundColor: Color = transparent
 ) {
+    val decoratedModifier = modifier.then(
+        if (circular) {
+            Modifier
+                .clip(CircleShape)
+                .background(backgroundColor)
+        } else {
+            Modifier
+        }
+    )
     Image(
-        modifier = modifier
-            .then(
-                if (circular)
-                    modifier
-                        .clip(CircleShape)
-                        .background(backgroundColor)
-                else
-                    modifier
-            ),
+        modifier = decoratedModifier,
         painter = painterResource(image),
         contentDescription = contentDescription,
         contentScale = ContentScale.Fit
@@ -115,22 +119,25 @@ fun ImageHandlerVector(
     isClickable: Boolean = false,
     onClick: () -> Unit = {}
 ) {
+    val decoratedModifier = modifier
+        .then(
+            if (circular) {
+                Modifier
+                    .clip(CircleShape)
+                    .background(backgroundColor)
+            } else {
+                Modifier
+            }
+        )
+        .then(
+            if (isClickable) {
+                Modifier.clickable { onClick() }
+            } else {
+                Modifier
+            }
+        )
     Icon(
-        modifier = modifier
-            .then(
-                if (circular)
-                    modifier
-                        .clip(CircleShape)
-                        .background(backgroundColor)
-                else
-                    modifier
-            )
-            .then(
-                if (isClickable)
-                    modifier.clickable { onClick() }
-                else
-                    modifier
-            ),
+        modifier = decoratedModifier,
         imageVector = image ?: Icons.Default.Image,
         contentDescription = contentDescription,
         tint = tint ?: LocalContentColor.current
@@ -147,16 +154,17 @@ fun ImageHandlerLottie(
     circular: Boolean = false,
     backgroundColor: Color = transparent
 ) {
+    val decoratedModifier = modifier.then(
+        if (circular) {
+            Modifier
+                .clip(CircleShape)
+                .background(backgroundColor)
+        } else {
+            Modifier
+        }
+    )
     LottieAnimation(
-        modifier = modifier
-            .then(
-                if (circular)
-                    modifier
-                        .clip(CircleShape)
-                        .background(backgroundColor)
-                else
-                    modifier
-            ),
+        modifier = decoratedModifier,
         composition = image,
         contentScale = ContentScale.Fit
     )
