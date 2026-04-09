@@ -45,7 +45,7 @@ fun ForegroundAlertOverlay(
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
-            dismissOnBackPress = true,
+            dismissOnBackPress = false,
             dismissOnClickOutside = false,   // keep modal — user must press Dismiss
             usePlatformDefaultWidth = false  // let us control the width ourselves
         )
