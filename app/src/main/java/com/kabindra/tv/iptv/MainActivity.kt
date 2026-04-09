@@ -73,7 +73,11 @@ class MainActivity : ComponentActivity() {
 
             val isCritical = priorityEnum == NotificationPriority.CRITICAL
 
-            App(modifier = Modifier, payload)
+            App(
+                modifier = Modifier,
+                payload = payload.takeIf { it.notifId.isNotBlank() },
+                onPayloadConsumed = { consumePayload() },
+            )
         }
     }
 
@@ -100,6 +104,10 @@ class MainActivity : ComponentActivity() {
         // Release wakelock via service if available
         releaseWakeLockFromService()
         finish()
+    }
+
+    private fun consumePayload() {
+        payload = AlertPayload()
     }
 
     private fun releaseWakeLockFromService() {

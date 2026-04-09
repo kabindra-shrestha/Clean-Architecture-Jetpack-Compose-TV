@@ -40,6 +40,7 @@ class NotificationViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(NotificationUiState())
     val uiState: StateFlow<NotificationUiState> = _uiState.asStateFlow()
+    private val handledPayloadIds = linkedSetOf<String>()
 
     init {
         observeService()
@@ -96,6 +97,14 @@ class NotificationViewModel : ViewModel() {
             Log.w(TAG, "Received null payload, ignoring")
             return
         }
+        if (payload.notifId.isBlank()) {
+            Log.w(TAG, "Received blank payload id, ignoring")
+            return
+        }
+        if (!handledPayloadIds.add(payload.notifId)) {
+            Log.i(TAG, "Payload ${payload.notifId} already handled, ignoring duplicate")
+            return
+        }
 
         payload.let {
             val message = NotificationMessage(
@@ -113,6 +122,15 @@ class NotificationViewModel : ViewModel() {
                     showAlertDialog = true
                 )
             }
+        }
+    }
+
+    fun dismissActiveAlert() {
+        _uiState.update {
+            it.copy(
+                showAlertDialog = false,
+                activeAlert = null,
+            )
         }
     }
 

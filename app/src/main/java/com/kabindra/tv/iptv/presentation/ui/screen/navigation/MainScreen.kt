@@ -20,7 +20,10 @@ import com.kabindra.tv.iptv.presentation.ui.screen.splash.SplashScreen
 import org.koin.compose.koinInject
 
 @Composable
-fun MainScreen(payload: MainActivity.AlertPayload?) {
+fun MainScreen(
+    payload: MainActivity.AlertPayload?,
+    onPayloadConsumed: () -> Unit,
+) {
     val snackBarHostState: SnackbarHostState = koinInject()
 
     val backStack = rememberNavBackStack(SplashRoute)
@@ -49,6 +52,7 @@ fun MainScreen(payload: MainActivity.AlertPayload?) {
                     DashboardScreen(
                         innerPadding = innerPadding,
                         payload = payload,
+                        onPayloadConsumed = onPayloadConsumed,
                         onNavigateLiveTV = {
                             backStack.add(LiveTVPlayerRoute)
                         },

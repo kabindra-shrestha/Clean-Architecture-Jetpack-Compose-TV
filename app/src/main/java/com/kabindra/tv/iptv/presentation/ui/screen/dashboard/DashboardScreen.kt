@@ -55,6 +55,7 @@ fun DashboardScreen(
     viewModel: NotificationViewModel = koinViewModel(),
     innerPadding: PaddingValues,
     payload: MainActivity.AlertPayload?,
+    onPayloadConsumed: () -> Unit,
     onNavigateLiveTV: () -> Unit,
     onNavigateMovie: () -> Unit,
 ) {
@@ -70,6 +71,7 @@ fun DashboardScreen(
         val safePayload = payload ?: return@LaunchedEffect
         if (safePayload.notifId.isBlank()) return@LaunchedEffect
         viewModel.updatePayloadAlert(safePayload)
+        onPayloadConsumed()
     }
 
     Box(
@@ -159,7 +161,7 @@ fun DashboardScreen(
             uiState.activeAlert?.let { message ->
                 ForegroundAlertOverlay(
                     message = message,
-                    onDismiss = { viewModel.clearNotifications() }
+                    onDismiss = { viewModel.dismissActiveAlert() }
                 )
             }
         }
