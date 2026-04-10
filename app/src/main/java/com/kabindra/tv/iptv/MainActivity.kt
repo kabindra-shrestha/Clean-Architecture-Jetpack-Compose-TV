@@ -87,7 +87,7 @@ class MainActivity : ComponentActivity() {
         payload = payloadFromIntent(intent)
     }
 
-    @Deprecated("Deprecated in Java")
+    /*@Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         // Block back-button dismissal for CRITICAL priority
         val isCritical = runCatching {
@@ -98,7 +98,7 @@ class MainActivity : ComponentActivity() {
             dismissAlert()
         }
         // For CRITICAL: back press is ignored — must use Dismiss button
-    }
+    }*/
 
     private fun dismissAlert() {
         // Release wakelock via service if available

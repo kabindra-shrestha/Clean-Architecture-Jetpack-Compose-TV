@@ -121,7 +121,6 @@ fun MovieDetailScreen(
         modifier = Modifier
             .fillMaxSize()
             .mainBackground()
-            .padding(innerPadding)
     ) {
         state.movie?.let { movie ->
             val recommendations = state.recommendedMovies.ifEmpty { movie.alsoWatch }
@@ -238,7 +237,9 @@ fun MovieDetailScreen(
                             ) {
                                 Column(
                                     modifier = Modifier.width(MovieDetailScreenTokens.infoColumnWidth.sdp),
-                                    verticalArrangement = Arrangement.spacedBy(MovieDetailScreenTokens.heroSpacing.sdp)
+                                    verticalArrangement = Arrangement.spacedBy(
+                                        MovieDetailScreenTokens.heroSpacing.sdp
+                                    )
                                 ) {
                                     Column(
                                         verticalArrangement = Arrangement.spacedBy(6.sdp)
@@ -308,7 +309,9 @@ fun MovieDetailScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .offset(y = railLift),
-                                    verticalArrangement = Arrangement.spacedBy(MovieDetailScreenTokens.railSpacing.sdp)
+                                    verticalArrangement = Arrangement.spacedBy(
+                                        MovieDetailScreenTokens.railSpacing.sdp
+                                    )
                                 ) {
                                     TextComponent(
                                         text = "Also Watch",

@@ -78,7 +78,6 @@ fun DashboardScreen(
         modifier = Modifier
             .fillMaxSize()
             .mainBackground()
-            .padding(innerPadding)
     ) {
         TextComponent(
             modifier = Modifier

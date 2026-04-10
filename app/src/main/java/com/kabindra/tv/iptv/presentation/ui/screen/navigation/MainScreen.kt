@@ -1,7 +1,8 @@
 package com.kabindra.tv.iptv.presentation.ui.screen.navigation
 
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -104,13 +105,34 @@ fun MainScreen(
                 }
             },
             transitionSpec = {
-                EnterTransition.None togetherWith ExitTransition.None
+                // Slide in from right when navigating forward
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(1000)
+                ) togetherWith slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(1000)
+                )
             },
             popTransitionSpec = {
-                EnterTransition.None togetherWith ExitTransition.None
+                // Slide in from left when navigating back
+                slideInHorizontally(
+                    initialOffsetX = { -it },
+                    animationSpec = tween(1000)
+                ) togetherWith slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(1000)
+                )
             },
             predictivePopTransitionSpec = {
-                EnterTransition.None togetherWith ExitTransition.None
+                // Slide in from left when navigating back
+                slideInHorizontally(
+                    initialOffsetX = { -it },
+                    animationSpec = tween(1000)
+                ) togetherWith slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(1000)
+                )
             }
         )
     }
