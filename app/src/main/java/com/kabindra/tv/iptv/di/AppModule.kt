@@ -3,16 +3,23 @@ package com.kabindra.tv.iptv.di
 import androidx.compose.material3.SnackbarHostState
 import com.kabindra.tv.iptv.data.repository.remote.livetv.LiveTVRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.remote.movie.MovieRepositoryImpl
+import com.kabindra.tv.iptv.data.repository.xtream.movie.MovieXtreamRepositoryImpl
 import com.kabindra.tv.iptv.data.source.remote.ApiService
 import com.kabindra.tv.iptv.data.source.remote.livetv.FakeLiveTVRemoteDataSource
 import com.kabindra.tv.iptv.data.source.remote.livetv.LiveTVRemoteDataSource
 import com.kabindra.tv.iptv.data.source.remote.movie.FakeMovieRemoteDataSource
 import com.kabindra.tv.iptv.data.source.remote.movie.MovieRemoteDataSource
+import com.kabindra.tv.iptv.data.source.xtream.XtreamService
+import com.kabindra.tv.iptv.data.source.xtream.movie.MovieXtreamDataSource
+import com.kabindra.tv.iptv.data.source.xtream.movie.MovieXtreamDataSourceImpl
 import com.kabindra.tv.iptv.domain.repository.remote.livetv.LiveTVRepository
 import com.kabindra.tv.iptv.domain.repository.remote.movie.MovieRepository
+import com.kabindra.tv.iptv.domain.repository.xtream.movie.MovieXtreamRepository
 import com.kabindra.tv.iptv.domain.usecase.remote.livetv.LiveTVUseCase
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieBrowseUseCase
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieDetailUseCase
+import com.kabindra.tv.iptv.domain.usecase.xtream.movie.MovieBrowseXtreamUseCase
+import com.kabindra.tv.iptv.domain.usecase.xtream.movie.MovieDetailXtreamUseCase
 import com.kabindra.tv.iptv.presentation.ui.screen.dashboard.NotificationViewModel
 import com.kabindra.tv.iptv.presentation.ui.screen.livetv.player.LiveTVPlayerViewModel
 import com.kabindra.tv.iptv.presentation.ui.screen.movie.content.MovieContentViewModel
@@ -29,6 +36,7 @@ import com.kabindra.tv.iptv.utils.constants.Header.Companion.HEADER_USER_DEVICE_
 import com.kabindra.tv.iptv.utils.constants.Header.Companion.HEADER_USER_DEVICE_PLATFORM
 import com.kabindra.tv.iptv.utils.constants.Header.Companion.HEADER_USER_DEVICE_VERSION
 import com.kabindra.tv.iptv.utils.getPlatform
+import io.github.saifullah.xtream.Xtream
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.HttpTimeout
@@ -102,24 +110,60 @@ val provideHttpClientModule = module {
     singleOf(::provideHttpClient)
 }
 
+val provideXtreamClientModule = module {
+    fun provideXtreamClient(): Xtream {
+        return Xtream {
+            auth {
+                protocol = "http"
+                host = "tv.quierover.xyz"
+                port = 8080
+                username = "SAMIR18"
+                password = "Banana18"
+            }
+
+            // Optional: Configure timeouts
+            socketTimeoutMillis = 30000
+            connectTimeoutMillis = 30000
+            requestTimeoutMillis = 30000
+
+            // Optional: Enable caching
+            useCache = true
+
+            // Optional: Configure retry
+            maxRetries = 3
+            retryDelayMillis = 1000
+        }
+    }
+
+    singleOf(::provideXtreamClient)
+}
+
 val provideApiServiceModule = module {
     singleOf(::ApiService)
+    singleOf(::XtreamService)
 }
 
 val provideDataSourceModule = module {
     single<LiveTVRemoteDataSource> { FakeLiveTVRemoteDataSource() }
     single<MovieRemoteDataSource> { FakeMovieRemoteDataSource() }
+
+    singleOf(::MovieXtreamDataSourceImpl).bind<MovieXtreamDataSource>()
 }
 
 val provideRepositoryModule = module {
     singleOf(::LiveTVRepositoryImpl).bind<LiveTVRepository>()
     singleOf(::MovieRepositoryImpl).bind<MovieRepository>()
+
+    singleOf(::MovieXtreamRepositoryImpl).bind<MovieXtreamRepository>()
 }
 
 val provideUseCaseModule = module {
     singleOf(::LiveTVUseCase)
     singleOf(::MovieBrowseUseCase)
     singleOf(::MovieDetailUseCase)
+
+    singleOf(::MovieBrowseXtreamUseCase)
+    singleOf(::MovieDetailXtreamUseCase)
 }
 
 val provideViewModelModule = module {

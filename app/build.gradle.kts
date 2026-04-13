@@ -82,4 +82,6 @@ dependencies {
     implementation(libs.lottie.compose)
 
     implementation(libs.sdp.ssp)
+
+    implementation(libs.xtream.api)
 }

@@ -10,7 +10,7 @@
 <network-security-config>
 
     <!-- Block all cleartext (non-TLS) traffic by default -->
-    <base-config cleartextTrafficPermitted="false">
+    <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
             <!-- Trust system CAs -->
             <certificates src="system" />

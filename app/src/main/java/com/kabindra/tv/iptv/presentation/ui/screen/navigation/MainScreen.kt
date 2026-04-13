@@ -108,30 +108,30 @@ fun MainScreen(
                 // Slide in from right when navigating forward
                 slideInHorizontally(
                     initialOffsetX = { it },
-                    animationSpec = tween(1000)
+                    animationSpec = tween(500)
                 ) togetherWith slideOutHorizontally(
                     targetOffsetX = { -it },
-                    animationSpec = tween(1000)
+                    animationSpec = tween(500)
                 )
             },
             popTransitionSpec = {
                 // Slide in from left when navigating back
                 slideInHorizontally(
                     initialOffsetX = { -it },
-                    animationSpec = tween(1000)
+                    animationSpec = tween(500)
                 ) togetherWith slideOutHorizontally(
                     targetOffsetX = { it },
-                    animationSpec = tween(1000)
+                    animationSpec = tween(500)
                 )
             },
             predictivePopTransitionSpec = {
                 // Slide in from left when navigating back
                 slideInHorizontally(
                     initialOffsetX = { -it },
-                    animationSpec = tween(1000)
+                    animationSpec = tween(500)
                 ) togetherWith slideOutHorizontally(
                     targetOffsetX = { it },
-                    animationSpec = tween(1000)
+                    animationSpec = tween(500)
                 )
             }
         )

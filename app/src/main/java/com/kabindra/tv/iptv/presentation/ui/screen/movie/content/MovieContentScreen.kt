@@ -115,7 +115,7 @@ fun MovieScreen(
                             )
                             ButtonComponent(
                                 text = "Retry",
-                                onClick = viewModel::loadContent
+                                onClick = viewModel::getMovieCategories
                             )
                         }
                     }
