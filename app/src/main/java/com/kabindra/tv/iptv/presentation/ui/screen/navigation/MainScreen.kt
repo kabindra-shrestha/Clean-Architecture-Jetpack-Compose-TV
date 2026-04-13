@@ -14,7 +14,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.kabindra.tv.iptv.MainActivity
 import com.kabindra.tv.iptv.presentation.ui.screen.dashboard.DashboardScreen
 import com.kabindra.tv.iptv.presentation.ui.screen.livetv.player.LiveTVPlayerScreen
-import com.kabindra.tv.iptv.presentation.ui.screen.movie.content.MovieScreen
+import com.kabindra.tv.iptv.presentation.ui.screen.movie.content.MovieContentScreen
 import com.kabindra.tv.iptv.presentation.ui.screen.movie.detail.MovieDetailScreen
 import com.kabindra.tv.iptv.presentation.ui.screen.movie.player.MoviePlayerScreen
 import com.kabindra.tv.iptv.presentation.ui.screen.splash.SplashScreen
@@ -71,7 +71,7 @@ fun MainScreen(
                     )
                 }
                 entry<MovieRoute> {
-                    MovieScreen(
+                    MovieContentScreen(
                         innerPadding = innerPadding,
                         onNavigateMovieDetail = { movieId ->
                             backStack.add(MovieDetailRoute(movieId))

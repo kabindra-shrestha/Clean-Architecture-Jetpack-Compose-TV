@@ -42,7 +42,7 @@ private object MovieScreenTokens {
 }
 
 @Composable
-fun MovieScreen(
+fun MovieContentScreen(
     viewModel: MovieContentViewModel = koinViewModel(),
     innerPadding: PaddingValues,
     onNavigateMovieDetail: (String) -> Unit,
