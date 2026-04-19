@@ -3,6 +3,7 @@ package com.kabindra.tv.iptv.di
 import androidx.compose.material3.SnackbarHostState
 import com.kabindra.tv.iptv.data.repository.remote.livetv.LiveTVRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.remote.movie.MovieRepositoryImpl
+import com.kabindra.tv.iptv.data.repository.xtream.livetv.LiveTVXtreamRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.xtream.movie.MovieXtreamRepositoryImpl
 import com.kabindra.tv.iptv.data.source.remote.ApiService
 import com.kabindra.tv.iptv.data.source.remote.livetv.FakeLiveTVRemoteDataSource
@@ -10,14 +11,18 @@ import com.kabindra.tv.iptv.data.source.remote.livetv.LiveTVRemoteDataSource
 import com.kabindra.tv.iptv.data.source.remote.movie.FakeMovieRemoteDataSource
 import com.kabindra.tv.iptv.data.source.remote.movie.MovieRemoteDataSource
 import com.kabindra.tv.iptv.data.source.xtream.XtreamService
+import com.kabindra.tv.iptv.data.source.xtream.livetv.LiveTVXtreamDataSource
+import com.kabindra.tv.iptv.data.source.xtream.livetv.LiveTVXtreamDataSourceImpl
 import com.kabindra.tv.iptv.data.source.xtream.movie.MovieXtreamDataSource
 import com.kabindra.tv.iptv.data.source.xtream.movie.MovieXtreamDataSourceImpl
 import com.kabindra.tv.iptv.domain.repository.remote.livetv.LiveTVRepository
 import com.kabindra.tv.iptv.domain.repository.remote.movie.MovieRepository
+import com.kabindra.tv.iptv.domain.repository.xtream.livetv.LiveTVXtreamRepository
 import com.kabindra.tv.iptv.domain.repository.xtream.movie.MovieXtreamRepository
 import com.kabindra.tv.iptv.domain.usecase.remote.livetv.LiveTVUseCase
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieBrowseUseCase
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieDetailUseCase
+import com.kabindra.tv.iptv.domain.usecase.xtream.livetv.LiveTVXtreamUseCase
 import com.kabindra.tv.iptv.domain.usecase.xtream.movie.MovieBrowseXtreamUseCase
 import com.kabindra.tv.iptv.domain.usecase.xtream.movie.MovieDetailXtreamUseCase
 import com.kabindra.tv.iptv.presentation.ui.screen.dashboard.NotificationViewModel
@@ -147,6 +152,7 @@ val provideDataSourceModule = module {
     single<LiveTVRemoteDataSource> { FakeLiveTVRemoteDataSource() }
     single<MovieRemoteDataSource> { FakeMovieRemoteDataSource() }
 
+    singleOf(::LiveTVXtreamDataSourceImpl).bind<LiveTVXtreamDataSource>()
     singleOf(::MovieXtreamDataSourceImpl).bind<MovieXtreamDataSource>()
 }
 
@@ -154,6 +160,7 @@ val provideRepositoryModule = module {
     singleOf(::LiveTVRepositoryImpl).bind<LiveTVRepository>()
     singleOf(::MovieRepositoryImpl).bind<MovieRepository>()
 
+    singleOf(::LiveTVXtreamRepositoryImpl).bind<LiveTVXtreamRepository>()
     singleOf(::MovieXtreamRepositoryImpl).bind<MovieXtreamRepository>()
 }
 
@@ -162,6 +169,7 @@ val provideUseCaseModule = module {
     singleOf(::MovieBrowseUseCase)
     singleOf(::MovieDetailUseCase)
 
+    singleOf(::LiveTVXtreamUseCase)
     singleOf(::MovieBrowseXtreamUseCase)
     singleOf(::MovieDetailXtreamUseCase)
 }

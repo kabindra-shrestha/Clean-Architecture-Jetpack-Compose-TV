@@ -225,7 +225,7 @@ fun LiveTVPlayerScreen(
                     )
                     ButtonComponent(
                         text = "Retry",
-                        onClick = viewModel::loadContent
+                        onClick = viewModel::getLiveTVChannels
                     )
                 }
             }
