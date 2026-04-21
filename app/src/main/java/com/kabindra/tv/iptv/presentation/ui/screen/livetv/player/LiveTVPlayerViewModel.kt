@@ -148,22 +148,23 @@ class LiveTVPlayerViewModel(
             val mappedChannels = channelMap[cat.category_id]?.map { channel ->
                 LiveChannel(
                     id = channel.stream_id.toString(),
-                    categoryId = channel.category_id,
-                    title = channel.name,
+                    categoryId = channel.category_id ?: "",
+                    title = channel.name ?: "",
                     currentProgram = "",
                     // streamUrl = channel.direct_source,
+                    // streamUrl = "http://tv.quierover.xyz/live/SAMIR18/Banana18/127668.ts",
                     streamUrl = "http://tv.quierover.xyz/live/SAMIR18/Banana18/${channel.stream_id}.ts",
-                    streamType = MediaStreamType.Hls, // Live streams use HLS
+                    streamType = MediaStreamType.Progressive,
                     playbackType = MediaPlaybackType.Live,
-                    logoUrl = channel.stream_icon
+                    logoUrl = channel.stream_icon ?: ""
                 )
             } ?: emptyList()
 
             // Only include categories that have channels
             if (mappedChannels.isNotEmpty()) {
                 ChannelCategory(
-                    id = cat.category_id,
-                    title = cat.category_name,
+                    id = cat.category_id ?: "",
+                    title = cat.category_name ?: "",
                     channels = mappedChannels
                 )
             } else {

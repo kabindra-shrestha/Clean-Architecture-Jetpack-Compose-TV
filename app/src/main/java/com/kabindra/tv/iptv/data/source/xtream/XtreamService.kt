@@ -18,7 +18,7 @@ class XtreamService(private val xtream: Xtream) {
 
     suspend fun getLiveTVChannels(): List<LiveTVDTO> {
         return xtream.custom.get {
-            url("http://tv.quierover.xyz/player_api.php?username=SAMIR18&password=Banana18&action=get_live_streams&params[offset]=10&params[items_per_page]=3")
+            url("http://tv.quierover.xyz/player_api.php?username=SAMIR18&password=Banana18&action=get_live_streams&params[offset]=10&params[items_per_page]=10")
         }
     }
 
@@ -30,7 +30,7 @@ class XtreamService(private val xtream: Xtream) {
 
     suspend fun getMovies(): List<MovieDTO> {
         return xtream.custom.get {
-            url("http://tv.quierover.xyz/player_api.php?username=SAMIR18&password=Banana18&action=get_vod_streams&params[offset]=10&params[items_per_page]=2")
+            url("http://tv.quierover.xyz/player_api.php?username=SAMIR18&password=Banana18&action=get_vod_streams&params[offset]=10&params[items_per_page]=10")
         }
     }
 

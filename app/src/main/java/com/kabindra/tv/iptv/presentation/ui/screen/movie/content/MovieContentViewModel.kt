@@ -180,13 +180,15 @@ class MovieContentViewModel(
             val mappedMovies = movieMap[cat.category_id]?.map { movie ->
                 VODSummary(
                     id = movie.stream_id.toString(),
-                    categoryId = movie.category_id,
-                    title = movie.name,
-                    subtitle = movie.title,
-                    posterUrl = movie.stream_icon,
-                    backdropUrl = movie.stream_icon,
-                    streamUrl = movie.direct_source,
-                    streamType = MediaStreamType.Hls, // Live streams use HLS
+                    categoryId = movie.category_id ?: "",
+                    title = movie.name ?: "",
+                    subtitle = movie.title ?: "",
+                    posterUrl = movie.stream_icon ?: "",
+                    backdropUrl = movie.stream_icon ?: "",
+                    // streamUrl = movie.direct_source,
+                    // streamUrl = "http://tv.quierover.xyz/live/SAMIR18/Banana18/127668.ts",
+                    streamUrl = "http://tv.quierover.xyz/live/SAMIR18/Banana18/${movie.stream_id}.ts",
+                    streamType = MediaStreamType.Progressive,
                     playbackType = MediaPlaybackType.Live
                 )
             } ?: emptyList()
@@ -194,8 +196,8 @@ class MovieContentViewModel(
             // Only include categories that have movies
             if (mappedMovies.isNotEmpty()) {
                 VODCategory(
-                    id = cat.category_id,
-                    title = cat.category_name,
+                    id = cat.category_id ?: "",
+                    title = cat.category_name ?: "",
                     movies = mappedMovies
                 )
             } else {
@@ -209,8 +211,8 @@ class MovieContentViewModel(
     }
 
     fun reset() {
-        categories = listOf<MovieCategory>()
-        movies = listOf<Movie>()
+        categories = listOf()
+        movies = listOf()
 
         _state.value = MovieContentState()
     }
