@@ -4,9 +4,9 @@ import com.kabindra.tv.iptv.data.model.ChannelCategoryDTO
 import com.kabindra.tv.iptv.data.model.LiveChannelDTO
 import com.kabindra.tv.iptv.data.model.MediaPlaybackTypeDTO
 import com.kabindra.tv.iptv.data.model.MediaStreamTypeDTO
-import com.kabindra.tv.iptv.data.model.MovieCategoryDTO
-import com.kabindra.tv.iptv.data.model.MovieDetailDTO
-import com.kabindra.tv.iptv.data.model.MovieSummaryDTO
+import com.kabindra.tv.iptv.data.model.VODCategoryDTO
+import com.kabindra.tv.iptv.data.model.VODDetailDTO
+import com.kabindra.tv.iptv.data.model.VODSummaryDTO
 
 private const val muxHls = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
 
@@ -63,9 +63,9 @@ fun mockLiveTVCategories(): List<ChannelCategoryDTO> {
     )
 }
 
-fun mockMovieCategories(): List<MovieCategoryDTO> {
+fun mockMovieCategories(): List<VODCategoryDTO> {
     return listOf(
-        MovieCategoryDTO(
+        VODCategoryDTO(
             id = "action",
             title = "Action",
             movies = listOf(
@@ -98,7 +98,7 @@ fun mockMovieCategories(): List<MovieCategoryDTO> {
                 )
             )
         ),
-        MovieCategoryDTO(
+        VODCategoryDTO(
             id = "drama",
             title = "Drama",
             movies = listOf(
@@ -131,7 +131,7 @@ fun mockMovieCategories(): List<MovieCategoryDTO> {
                 )
             )
         ),
-        MovieCategoryDTO(
+        VODCategoryDTO(
             id = "documentary",
             title = "Documentary",
             movies = listOf(
@@ -167,14 +167,14 @@ fun mockMovieCategories(): List<MovieCategoryDTO> {
     )
 }
 
-fun mockMovieDetail(movieId: String): MovieDetailDTO {
+fun mockMovieDetail(movieId: String): VODDetailDTO {
     val categories = mockMovieCategories()
-    val allMovie = categories.flatMap(MovieCategoryDTO::movies)
+    val allMovie = categories.flatMap(VODCategoryDTO::movies)
     val movie = requireNotNull(allMovie.firstOrNull { it.id == movieId }) {
         "Movie not found for id=$movieId"
     }
 
-    return MovieDetailDTO(
+    return VODDetailDTO(
         id = movie.id,
         categoryId = movie.categoryId,
         title = movie.title,
@@ -220,8 +220,8 @@ private fun movie(
     posterSeed: String,
     backdropSeed: String,
     streamUrl: String,
-): MovieSummaryDTO {
-    return MovieSummaryDTO(
+): VODSummaryDTO {
+    return VODSummaryDTO(
         id = id,
         categoryId = categoryId,
         title = title,

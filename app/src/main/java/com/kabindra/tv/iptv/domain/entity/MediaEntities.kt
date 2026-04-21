@@ -28,7 +28,7 @@ data class ChannelCategory(
     val channels: List<LiveChannel>,
 )
 
-data class MovieSummary(
+data class VODSummary(
     val id: String,
     val categoryId: String,
     val title: String,
@@ -40,13 +40,13 @@ data class MovieSummary(
     val playbackType: MediaPlaybackType,
 )
 
-data class MovieCategory(
+data class VODCategory(
     val id: String,
     val title: String,
-    val movies: List<MovieSummary>,
+    val movies: List<VODSummary>,
 )
 
-data class MovieDetail(
+data class VODDetail(
     val id: String,
     val categoryId: String,
     val title: String,
@@ -57,5 +57,5 @@ data class MovieDetail(
     val streamUrl: String,
     val streamType: MediaStreamType,
     val playbackType: MediaPlaybackType,
-    val alsoWatch: List<MovieSummary>,
+    val alsoWatch: List<VODSummary>,
 )

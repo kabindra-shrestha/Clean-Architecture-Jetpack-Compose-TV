@@ -28,7 +28,7 @@ import com.kabindra.player.defaultPlayerInteractionConfig
 import com.kabindra.player.rememberPlayerHostState
 import com.kabindra.tv.iptv.domain.entity.MediaPlaybackType
 import com.kabindra.tv.iptv.domain.entity.MediaStreamType
-import com.kabindra.tv.iptv.domain.entity.MovieDetail
+import com.kabindra.tv.iptv.domain.entity.VODDetail
 import com.kabindra.tv.iptv.presentation.ui.component.ButtonComponent
 import com.kabindra.tv.iptv.presentation.ui.component.LoadingIndicator
 import com.kabindra.tv.iptv.presentation.ui.component.TextComponent
@@ -141,7 +141,7 @@ fun MoviePlayerScreen(
     }
 }
 
-private fun MovieDetail.toPlayerItem(): PlayerItem {
+private fun VODDetail.toPlayerItem(): PlayerItem {
     return PlayerItem(
         id = id,
         title = title,

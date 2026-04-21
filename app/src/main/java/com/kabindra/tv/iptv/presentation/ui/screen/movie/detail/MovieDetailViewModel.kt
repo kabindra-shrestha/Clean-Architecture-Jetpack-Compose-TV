@@ -2,8 +2,8 @@ package com.kabindra.tv.iptv.presentation.ui.screen.movie.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kabindra.tv.iptv.domain.entity.MovieCategory
-import com.kabindra.tv.iptv.domain.entity.MovieSummary
+import com.kabindra.tv.iptv.domain.entity.VODCategory
+import com.kabindra.tv.iptv.domain.entity.VODSummary
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieBrowseUseCase
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieDetailUseCase
 import com.kabindra.tv.iptv.utils.ktor.Result
@@ -96,12 +96,12 @@ class MovieDetailViewModel(
 
     private fun buildRecommendedMovies(
         movieId: String,
-        categories: List<MovieCategory>,
-        fallback: List<MovieSummary>,
-    ): List<MovieSummary> {
+        categories: List<VODCategory>,
+        fallback: List<VODSummary>,
+    ): List<VODSummary> {
         val seed = movieId.hashCode().toLong()
         return categories
-            .flatMap(MovieCategory::movies)
+            .flatMap(VODCategory::movies)
             .filterNot { it.id == movieId }
             .ifEmpty { fallback }
             .shuffled(Random(seed))

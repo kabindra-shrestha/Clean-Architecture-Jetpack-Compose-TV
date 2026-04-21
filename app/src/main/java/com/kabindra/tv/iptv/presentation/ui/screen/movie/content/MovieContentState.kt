@@ -1,6 +1,6 @@
 package com.kabindra.tv.iptv.presentation.ui.screen.movie.content
 
-import com.kabindra.tv.iptv.domain.entity.MovieCategory
+import com.kabindra.tv.iptv.domain.entity.VODCategory
 import com.kabindra.tv.iptv.utils.constants.ConfirmationType
 import com.kabindra.tv.iptv.utils.constants.ResponseType
 
@@ -17,6 +17,6 @@ data class MovieContentState(
     val errorMessage: String = "",
     val confirmationType: ConfirmationType = ConfirmationType.None,
     val confirmationMessage: String = "",
-    val categories: List<MovieCategory> = emptyList(),
+    val categories: List<VODCategory> = emptyList(),
     val selectedCategoryId: String? = null,
 )

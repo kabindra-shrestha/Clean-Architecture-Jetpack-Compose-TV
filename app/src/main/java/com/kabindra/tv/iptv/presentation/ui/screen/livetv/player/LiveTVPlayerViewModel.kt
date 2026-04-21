@@ -4,6 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kabindra.tv.iptv.domain.entity.ChannelCategory
 import com.kabindra.tv.iptv.domain.entity.LiveChannel
+import com.kabindra.tv.iptv.domain.entity.LiveTV
+import com.kabindra.tv.iptv.domain.entity.LiveTVCategory
+import com.kabindra.tv.iptv.domain.entity.MediaPlaybackType
+import com.kabindra.tv.iptv.domain.entity.MediaStreamType
 import com.kabindra.tv.iptv.domain.usecase.remote.livetv.LiveTVUseCase
 import com.kabindra.tv.iptv.domain.usecase.xtream.livetv.LiveTVXtreamUseCase
 import com.kabindra.tv.iptv.utils.ktor.Result
@@ -20,9 +24,11 @@ class LiveTVPlayerViewModel(
     private val _state = MutableStateFlow(LiveTVPlayerState())
     val state: StateFlow<LiveTVPlayerState> = _state.asStateFlow()
 
+    private var categories = listOf<LiveTVCategory>()
+    private var channels = listOf<LiveTV>()
+
     init {
         getLiveTVCategories()
-        getLiveTVChannels()
     }
 
     /*fun getLiveTVChannels() {
@@ -73,18 +79,9 @@ class LiveTVPlayerViewModel(
 
                     is Result.Success -> {
                         println("LiveTVPlayerViewModel executeGetLiveTVCategories: Success ${result.data}")
-                        val categories = result.data
-                        val firstCategory = categories.firstOrNull()
-                        // val firstChannel = firstCategory?.channels?.firstOrNull()
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = "",
-                                // categories = categories,
-                                // selectedCategoryId = it.selectedCategoryId ?: firstCategory?.id,
-                                // selectedChannelId = it.selectedChannelId ?: firstChannel?.id
-                            )
-                        }
+                        categories = result.data
+
+                        getLiveTVChannels()
                     }
 
                     is Result.Error -> {
@@ -112,16 +109,18 @@ class LiveTVPlayerViewModel(
 
                     is Result.Success -> {
                         println("LiveTVPlayerViewModel executeGetLiveTVChannels: Success ${result.data}")
-                        val categories = result.data
-                        val firstCategory = categories.firstOrNull()
-                        // val firstChannel = firstCategory?.channels?.firstOrNull()
+                        channels = result.data
+
+                        val mappedCategories = mapToChannelCategories(categories, channels)
+                        val firstCategory = mappedCategories.firstOrNull()
+                        val firstChannel = firstCategory?.channels?.firstOrNull()
                         _state.update {
                             it.copy(
                                 isLoading = false,
                                 errorMessage = "",
-                                // categories = categories,
-                                // selectedCategoryId = it.selectedCategoryId ?: firstCategory?.id,
-                                // selectedChannelId = it.selectedChannelId ?: firstChannel?.id
+                                categories = mappedCategories,
+                                selectedCategoryId = it.selectedCategoryId ?: firstCategory?.id,
+                                selectedChannelId = it.selectedChannelId ?: firstChannel?.id
                             )
                         }
                     }
@@ -136,6 +135,39 @@ class LiveTVPlayerViewModel(
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private fun mapToChannelCategories(
+        categories: List<LiveTVCategory>,
+        channels: List<LiveTV>
+    ): List<ChannelCategory> {
+        val channelMap = channels.groupBy { it.category_id }
+        return categories.mapNotNull { cat ->
+            val mappedChannels = channelMap[cat.category_id]?.map { channel ->
+                LiveChannel(
+                    id = channel.stream_id.toString(),
+                    categoryId = channel.category_id,
+                    title = channel.name,
+                    currentProgram = "",
+                    // streamUrl = channel.direct_source,
+                    streamUrl = "http://tv.quierover.xyz/live/SAMIR18/Banana18/${channel.stream_id}.ts",
+                    streamType = MediaStreamType.Hls, // Live streams use HLS
+                    playbackType = MediaPlaybackType.Live,
+                    logoUrl = channel.stream_icon
+                )
+            } ?: emptyList()
+
+            // Only include categories that have channels
+            if (mappedChannels.isNotEmpty()) {
+                ChannelCategory(
+                    id = cat.category_id,
+                    title = cat.category_name,
+                    channels = mappedChannels
+                )
+            } else {
+                null
             }
         }
     }

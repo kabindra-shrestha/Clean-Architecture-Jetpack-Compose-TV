@@ -1,6 +1,6 @@
 package com.kabindra.tv.iptv.presentation.ui.screen.movie.player
 
-import com.kabindra.tv.iptv.domain.entity.MovieDetail
+import com.kabindra.tv.iptv.domain.entity.VODDetail
 import com.kabindra.tv.iptv.utils.constants.ConfirmationType
 import com.kabindra.tv.iptv.utils.constants.ResponseType
 
@@ -17,6 +17,6 @@ data class MoviePlayerState(
     val errorMessage: String = "",
     val confirmationType: ConfirmationType = ConfirmationType.None,
     val confirmationMessage: String = "",
-    val movie: MovieDetail? = null,
+    val movie: VODDetail? = null,
     val currentMovieId: String? = null,
 )

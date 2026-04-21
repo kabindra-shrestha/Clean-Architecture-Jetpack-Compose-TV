@@ -4,9 +4,9 @@ import com.kabindra.tv.iptv.domain.entity.ChannelCategory
 import com.kabindra.tv.iptv.domain.entity.LiveChannel
 import com.kabindra.tv.iptv.domain.entity.MediaPlaybackType
 import com.kabindra.tv.iptv.domain.entity.MediaStreamType
-import com.kabindra.tv.iptv.domain.entity.MovieCategory
-import com.kabindra.tv.iptv.domain.entity.MovieDetail
-import com.kabindra.tv.iptv.domain.entity.MovieSummary
+import com.kabindra.tv.iptv.domain.entity.VODCategory
+import com.kabindra.tv.iptv.domain.entity.VODDetail
+import com.kabindra.tv.iptv.domain.entity.VODSummary
 
 enum class MediaStreamTypeDTO {
     Hls,
@@ -36,7 +36,7 @@ data class ChannelCategoryDTO(
     val channels: List<LiveChannelDTO>,
 )
 
-data class MovieSummaryDTO(
+data class VODSummaryDTO(
     val id: String,
     val categoryId: String,
     val title: String,
@@ -48,13 +48,13 @@ data class MovieSummaryDTO(
     val playbackType: MediaPlaybackTypeDTO,
 )
 
-data class MovieCategoryDTO(
+data class VODCategoryDTO(
     val id: String,
     val title: String,
-    val movies: List<MovieSummaryDTO>,
+    val movies: List<VODSummaryDTO>,
 )
 
-data class MovieDetailDTO(
+data class VODDetailDTO(
     val id: String,
     val categoryId: String,
     val title: String,
@@ -65,7 +65,7 @@ data class MovieDetailDTO(
     val streamUrl: String,
     val streamType: MediaStreamTypeDTO,
     val playbackType: MediaPlaybackTypeDTO,
-    val alsoWatch: List<MovieSummaryDTO>,
+    val alsoWatch: List<VODSummaryDTO>,
 )
 
 fun ChannelCategoryDTO.toDomain(): ChannelCategory {
@@ -76,16 +76,16 @@ fun ChannelCategoryDTO.toDomain(): ChannelCategory {
     )
 }
 
-fun MovieCategoryDTO.toDomain(): MovieCategory {
-    return MovieCategory(
+fun VODCategoryDTO.toDomain(): VODCategory {
+    return VODCategory(
         id = id,
         title = title,
-        movies = movies.map(MovieSummaryDTO::toDomain)
+        movies = movies.map(VODSummaryDTO::toDomain)
     )
 }
 
-fun MovieDetailDTO.toDomain(): MovieDetail {
-    return MovieDetail(
+fun VODDetailDTO.toDomain(): VODDetail {
+    return VODDetail(
         id = id,
         categoryId = categoryId,
         title = title,
@@ -96,7 +96,7 @@ fun MovieDetailDTO.toDomain(): MovieDetail {
         streamUrl = streamUrl,
         streamType = streamType.toDomain(),
         playbackType = playbackType.toDomain(),
-        alsoWatch = alsoWatch.map(MovieSummaryDTO::toDomain)
+        alsoWatch = alsoWatch.map(VODSummaryDTO::toDomain)
     )
 }
 
@@ -113,8 +113,8 @@ private fun LiveChannelDTO.toDomain(): LiveChannel {
     )
 }
 
-private fun MovieSummaryDTO.toDomain(): MovieSummary {
-    return MovieSummary(
+private fun VODSummaryDTO.toDomain(): VODSummary {
+    return VODSummary(
         id = id,
         categoryId = categoryId,
         title = title,
