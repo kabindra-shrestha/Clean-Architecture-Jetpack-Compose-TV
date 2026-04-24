@@ -151,9 +151,7 @@ class LiveTVPlayerViewModel(
                     categoryId = channel.category_id ?: "",
                     title = channel.name ?: "",
                     currentProgram = "",
-                    // streamUrl = channel.direct_source,
-                    // streamUrl = "http://tv.quierover.xyz/live/SAMIR18/Banana18/127668.ts",
-                    streamUrl = "http://tv.quierover.xyz/live/SAMIR18/Banana18/${channel.stream_id}.ts",
+                    streamUrl = channel.direct_source?:"",
                     streamType = MediaStreamType.Progressive,
                     playbackType = MediaPlaybackType.Live,
                     logoUrl = channel.stream_icon ?: ""

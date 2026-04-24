@@ -1,5 +1,6 @@
 package com.kabindra.tv.iptv.data.repository.xtream.movie
 
+import com.kabindra.tv.iptv.data.model.MovieDetailDTO
 import com.kabindra.tv.iptv.data.model.toDomain
 import com.kabindra.tv.iptv.data.source.xtream.movie.MovieXtreamDataSource
 import com.kabindra.tv.iptv.domain.entity.Movie
@@ -41,7 +42,7 @@ class MovieXtreamRepositoryImpl(
         }
     }
 
-    override suspend fun getMovieDetail(streamId: Long): Flow<Result<XtreamMovieDetail>> = flow {
+    override suspend fun getMovieDetail(streamId: Long): Flow<Result<MovieDetailDTO>> = flow {
         emit(Result.Loading)
         try {
             emit(Result.Success(xtreamDataSource.getMovieDetail(streamId)))

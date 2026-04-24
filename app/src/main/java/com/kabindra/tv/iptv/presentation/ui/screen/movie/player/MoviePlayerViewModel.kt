@@ -2,7 +2,10 @@ package com.kabindra.tv.iptv.presentation.ui.screen.movie.player
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kabindra.tv.iptv.data.model.toDomain
+import com.kabindra.tv.iptv.domain.entity.toVODDetail
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieDetailUseCase
+import com.kabindra.tv.iptv.domain.usecase.xtream.movie.MovieDetailXtreamUseCase
 import com.kabindra.tv.iptv.utils.ktor.Result
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,15 +15,16 @@ import kotlinx.coroutines.launch
 
 class MoviePlayerViewModel(
     private val movieDetailUseCase: MovieDetailUseCase,
+    private val movieDetailXtreamUseCase: MovieDetailXtreamUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(MoviePlayerState())
     val state: StateFlow<MoviePlayerState> = _state.asStateFlow()
 
-    fun loadMovie(movieId: String) {
+    fun getMovieDetail(movieId: String) {
         if (_state.value.currentMovieId == movieId && _state.value.movie != null) return
 
         viewModelScope.launch {
-            movieDetailUseCase.executeGetMovieDetail(movieId).collect { result ->
+            movieDetailXtreamUseCase.executeGetMovieDetail(movieId.toLong()).collect { result ->
                 when (result) {
                     is Result.Initial -> Unit
                     is Result.Loading -> {
@@ -34,17 +38,23 @@ class MoviePlayerViewModel(
                     }
 
                     is Result.Success -> {
+                        println("MovieDetailViewModel executeGetMovieDetail: Success ${result.data}")
+                        val movieDetailDTO = result.data
+                        val movieDetail = movieDetailDTO.toDomain()
+                        val vodDetail = movieDetail.toVODDetail()
+                        println("MovieDetailViewModel convertedToVODDetail: $vodDetail")
                         _state.update {
                             it.copy(
                                 isLoading = false,
                                 errorMessage = "",
-                                movie = result.data,
+                                movie = vodDetail,
                                 currentMovieId = movieId
                             )
                         }
                     }
 
                     is Result.Error -> {
+                        println("MovieDetailViewModel executeGetMovieDetail: Error ${result.error.message}")
                         _state.update {
                             it.copy(
                                 isLoading = false,

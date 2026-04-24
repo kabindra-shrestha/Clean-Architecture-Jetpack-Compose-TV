@@ -72,7 +72,7 @@ fun MovieDetailScreen(
     BackHandler(onBack = onBack)
 
     LaunchedEffect(movieId) {
-        viewModel.loadMovie(movieId)
+        viewModel.getMovieDetail(movieId)
     }
 
     Box(

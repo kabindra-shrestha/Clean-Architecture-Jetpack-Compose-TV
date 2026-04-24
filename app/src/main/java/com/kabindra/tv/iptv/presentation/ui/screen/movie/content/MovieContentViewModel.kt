@@ -10,7 +10,6 @@ import com.kabindra.tv.iptv.domain.entity.VODCategory
 import com.kabindra.tv.iptv.domain.entity.VODSummary
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieBrowseUseCase
 import com.kabindra.tv.iptv.domain.usecase.xtream.movie.MovieBrowseXtreamUseCase
-import com.kabindra.tv.iptv.domain.usecase.xtream.movie.MovieDetailXtreamUseCase
 import com.kabindra.tv.iptv.utils.ktor.Result
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,52 +20,12 @@ import kotlinx.coroutines.launch
 class MovieContentViewModel(
     private val movieBrowseUseCase: MovieBrowseUseCase,
     private val movieBrowseXtreamUseCase: MovieBrowseXtreamUseCase,
-    private val movieDetailXtreamUseCase: MovieDetailXtreamUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(MovieContentState())
     val state: StateFlow<MovieContentState> = _state.asStateFlow()
 
     private var categories = listOf<MovieCategory>()
     private var movies = listOf<Movie>()
-
-    init {
-        // getMovieCategories()
-        // getMovieDetail()
-    }
-
-    /*fun getMovies() {
-        viewModelScope.launch {
-            movieBrowseXtreamUseCase.executeGetMovies().collect { result ->
-                when (result) {
-                    is Result.Initial -> Unit
-                    is Result.Loading -> {
-                        _state.update { it.copy(isLoading = true, errorMessage = "") }
-                    }
-
-                    is Result.Success -> {
-                        println("MovieContentViewModel executeGetMovies: Success ${result.data}")
-                        val categories = result.data
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = "",
-                            )
-                        }
-                    }
-
-                    is Result.Error -> {
-                        println("MovieContentViewModel executeGetMovies: Error ${result.error.message}")
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = result.error.message
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }*/
 
     fun getMovieCategories() {
         viewModelScope.launch {
@@ -137,40 +96,6 @@ class MovieContentViewModel(
         }
     }
 
-    fun getMovieDetail() {
-        viewModelScope.launch {
-            movieDetailXtreamUseCase.executeGetMovieDetail(123456).collect { result ->
-                when (result) {
-                    is Result.Initial -> Unit
-                    is Result.Loading -> {
-                        _state.update { it.copy(isLoading = true, errorMessage = "") }
-                    }
-
-                    is Result.Success -> {
-                        println("MovieContentViewModel executeGetMovieDetail: Success ${result.data}")
-                        val categories = result.data
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = "",
-                            )
-                        }
-                    }
-
-                    is Result.Error -> {
-                        println("MovieContentViewModel executeGetMovieDetail: Error ${result.error.message}")
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = result.error.message
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     private fun mapToMovieCategories(
         categories: List<MovieCategory>,
         movies: List<Movie>
@@ -185,9 +110,7 @@ class MovieContentViewModel(
                     subtitle = movie.title ?: "",
                     posterUrl = movie.stream_icon ?: "",
                     backdropUrl = movie.stream_icon ?: "",
-                    // streamUrl = movie.direct_source,
-                    // streamUrl = "http://tv.quierover.xyz/live/SAMIR18/Banana18/127668.ts",
-                    streamUrl = "http://tv.quierover.xyz/live/SAMIR18/Banana18/${movie.stream_id}.ts",
+                    streamUrl = movie.direct_source ?: "",
                     streamType = MediaStreamType.Progressive,
                     playbackType = MediaPlaybackType.Live
                 )

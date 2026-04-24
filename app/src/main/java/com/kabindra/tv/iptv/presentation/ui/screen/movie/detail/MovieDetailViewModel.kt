@@ -2,10 +2,13 @@ package com.kabindra.tv.iptv.presentation.ui.screen.movie.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kabindra.tv.iptv.data.model.toDomain
 import com.kabindra.tv.iptv.domain.entity.VODCategory
 import com.kabindra.tv.iptv.domain.entity.VODSummary
+import com.kabindra.tv.iptv.domain.entity.toVODDetail
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieBrowseUseCase
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieDetailUseCase
+import com.kabindra.tv.iptv.domain.usecase.xtream.movie.MovieDetailXtreamUseCase
 import com.kabindra.tv.iptv.utils.ktor.Result
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,44 +20,16 @@ import kotlin.random.Random
 class MovieDetailViewModel(
     private val movieBrowseUseCase: MovieBrowseUseCase,
     private val movieDetailUseCase: MovieDetailUseCase,
+    private val movieDetailXtreamUseCase: MovieDetailXtreamUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(MovieDetailState())
     val state: StateFlow<MovieDetailState> = _state.asStateFlow()
 
-    fun loadMovie(movieId: String) {
+    fun getMovieDetail(movieId: String) {
         if (_state.value.currentMovieId == movieId && _state.value.movie != null) return
 
         viewModelScope.launch {
-            movieBrowseUseCase.executeGetMovieCategories().collect { result ->
-                when (result) {
-                    is Result.Initial,
-                    is Result.Loading -> Unit
-
-                    is Result.Success -> {
-                        _state.update { currentState ->
-                            currentState.copy(
-                                recommendedMovies = buildRecommendedMovies(
-                                    movieId = movieId,
-                                    categories = result.data,
-                                    fallback = currentState.movie?.alsoWatch.orEmpty()
-                                )
-                            )
-                        }
-                    }
-
-                    is Result.Error -> {
-                        _state.update { currentState ->
-                            currentState.copy(
-                                recommendedMovies = currentState.movie?.alsoWatch.orEmpty()
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        viewModelScope.launch {
-            movieDetailUseCase.executeGetMovieDetail(movieId).collect { result ->
+            movieDetailXtreamUseCase.executeGetMovieDetail(movieId.toLong()).collect { result ->
                 when (result) {
                     is Result.Initial -> Unit
                     is Result.Loading -> {
@@ -69,18 +44,24 @@ class MovieDetailViewModel(
                     }
 
                     is Result.Success -> {
+                        println("MovieDetailViewModel executeGetMovieDetail: Success ${result.data}")
+                        val movieDetailDTO = result.data
+                        val movieDetail = movieDetailDTO.toDomain()
+                        val vodDetail = movieDetail.toVODDetail()
+                        println("MovieDetailViewModel convertedToVODDetail: $vodDetail")
                         _state.update {
                             it.copy(
                                 isLoading = false,
                                 errorMessage = "",
-                                movie = result.data,
-                                recommendedMovies = it.recommendedMovies.ifEmpty { result.data.alsoWatch },
+                                movie = vodDetail,
+                                recommendedMovies = emptyList(),
                                 currentMovieId = movieId
                             )
                         }
                     }
 
                     is Result.Error -> {
+                        println("MovieDetailViewModel executeGetMovieDetail: Error ${result.error.message}")
                         _state.update {
                             it.copy(
                                 isLoading = false,

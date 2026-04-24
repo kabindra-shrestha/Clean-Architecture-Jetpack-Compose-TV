@@ -66,7 +66,7 @@ fun MoviePlayerScreen(
     }
 
     LaunchedEffect(movieId) {
-        viewModel.loadMovie(movieId)
+        viewModel.getMovieDetail(movieId)
     }
 
     Box(
