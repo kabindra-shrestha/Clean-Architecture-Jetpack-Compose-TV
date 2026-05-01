@@ -98,6 +98,7 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
+import androidx.media3.common.text.CueGroup
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
@@ -107,6 +108,7 @@ import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.source.LoadEventInfo
 import androidx.media3.exoplayer.source.MediaLoadData
 import androidx.media3.ui.PlayerView
+import androidx.media3.ui.SubtitleView
 import androidx.media3.ui.compose.ContentFrame
 import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
 import com.kabindra.player.player.telemetry.collector.DefaultPlaybackTelemetryCollector
@@ -544,6 +546,9 @@ fun UnifiedPlayer(
             hostState.clearPlaybackError()
             player.seekToDefaultPosition(targetIndex)
         }
+        if (player.mediaItemCount > 0 && player.playbackState == Player.STATE_IDLE) {
+            player.prepare()
+        }
         if (playlist.autoPlay && allowPlayback) {
             player.playWhenReady = true
         }
@@ -635,6 +640,10 @@ fun UnifiedPlayer(
                 surfaceType = SURFACE_TYPE_TEXTURE_VIEW,
                 contentScale = ContentScale.Fit,
                 keepContentOnReset = true,
+            )
+            SubtitleOverlay(
+                player = player,
+                modifier = Modifier.fillMaxSize()
             )
         } else {
             AndroidView(
@@ -1003,6 +1012,51 @@ private fun PlayerText(
         ),
         textAlign = textAlign,
     )
+}
+
+@Composable
+private fun SubtitleOverlay(
+    player: Player,
+    modifier: Modifier = Modifier,
+) {
+    var subtitleView by remember { mutableStateOf<SubtitleView?>(null) }
+
+    AndroidView(
+        modifier = modifier,
+        factory = { context ->
+            SubtitleView(context).apply {
+                isClickable = false
+                isFocusable = false
+                setUserDefaultStyle()
+                setUserDefaultTextSize()
+            }
+        },
+        update = { view ->
+            subtitleView = view
+            if (player.isCommandAvailable(Player.COMMAND_GET_TEXT)) {
+                view.setCues(player.currentCues.cues)
+            }
+        },
+    )
+
+    DisposableEffect(player, subtitleView) {
+        val view = subtitleView ?: return@DisposableEffect onDispose {}
+        val listener = object : Player.Listener {
+            override fun onCues(cueGroup: CueGroup) {
+                view.setCues(cueGroup.cues)
+            }
+        }
+
+        if (player.isCommandAvailable(Player.COMMAND_GET_TEXT)) {
+            view.setCues(player.currentCues.cues)
+        }
+        player.addListener(listener)
+
+        onDispose {
+            player.removeListener(listener)
+            view.setCues(null)
+        }
+    }
 }
 
 @Composable
@@ -2095,20 +2149,38 @@ private fun PlayerItem.toMediaItem(): MediaItem {
     }
 
     if (subtitleTracks.isNotEmpty()) {
+        val hasDefaultSubtitle = subtitleTracks.any(PlayerSubtitleTrack::isDefault)
         builder.setSubtitleConfigurations(
-            subtitleTracks.mapNotNull { track ->
-                val trackUrl = track.url ?: return@mapNotNull null
+            subtitleTracks.mapIndexedNotNull { index, track ->
+                val trackUrl =
+                    track.url?.takeIf(String::isNotBlank) ?: return@mapIndexedNotNull null
                 MediaItem.SubtitleConfiguration.Builder(Uri.parse(trackUrl))
-                    .setMimeType(track.mimeType)
+                    .setMimeType(track.mimeType ?: inferSubtitleMimeType(trackUrl))
                     .setLanguage(track.language)
                     .setLabel(track.label)
-                    .setSelectionFlags(if (track.isDefault) C.SELECTION_FLAG_DEFAULT else 0)
+                    .setSelectionFlags(
+                        if (track.isDefault || (!hasDefaultSubtitle && index == 0)) {
+                            C.SELECTION_FLAG_DEFAULT
+                        } else {
+                            0
+                        }
+                    )
                     .build()
             }
         )
     }
 
     return builder.build()
+}
+
+private fun inferSubtitleMimeType(url: String): String {
+    val normalizedUrl = url.substringBefore('?').substringBefore('#').lowercase(Locale.ROOT)
+    return when {
+        normalizedUrl.endsWith(".vtt") -> MimeTypes.TEXT_VTT
+        normalizedUrl.endsWith(".ttml") || normalizedUrl.endsWith(".dfxp") -> MimeTypes.APPLICATION_TTML
+        normalizedUrl.endsWith(".ssa") || normalizedUrl.endsWith(".ass") -> MimeTypes.TEXT_SSA
+        else -> MimeTypes.APPLICATION_SUBRIP
+    }
 }
 
 @Composable

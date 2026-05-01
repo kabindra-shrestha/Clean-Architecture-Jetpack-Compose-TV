@@ -58,4 +58,5 @@ data class VODDetail(
     val streamType: MediaStreamType,
     val playbackType: MediaPlaybackType,
     val alsoWatch: List<VODSummary>,
+    val subtitleUrls: List<String> = emptyList(),
 )

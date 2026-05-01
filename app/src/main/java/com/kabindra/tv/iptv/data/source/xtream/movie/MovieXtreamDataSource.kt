@@ -4,7 +4,6 @@ import com.kabindra.tv.iptv.data.model.MovieCategoryDTO
 import com.kabindra.tv.iptv.data.model.MovieDTO
 import com.kabindra.tv.iptv.data.model.MovieDetailDTO
 import com.kabindra.tv.iptv.data.source.xtream.XtreamService
-import io.github.saifullah.xtream.model.XtreamMovieDetail
 
 interface MovieXtreamDataSource {
     suspend fun getMovies(): List<MovieDTO>

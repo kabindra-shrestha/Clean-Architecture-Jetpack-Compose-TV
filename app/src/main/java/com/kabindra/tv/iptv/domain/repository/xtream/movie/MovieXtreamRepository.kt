@@ -4,7 +4,6 @@ import com.kabindra.tv.iptv.data.model.MovieDetailDTO
 import com.kabindra.tv.iptv.domain.entity.Movie
 import com.kabindra.tv.iptv.domain.entity.MovieCategory
 import com.kabindra.tv.iptv.utils.ktor.Result
-import io.github.saifullah.xtream.model.XtreamMovieDetail
 import kotlinx.coroutines.flow.Flow
 
 interface MovieXtreamRepository {

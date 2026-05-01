@@ -123,8 +123,7 @@ fun DashboardScreen(
             platform = BaseLazyPlatform.AndroidTv,
             tvConfig = TvLazyConfig(
                 initialFocusedIndex = DashboardMenuType.LiveTV.ordinal,
-                autoScrollOnFocus = true,
-                focusedItemOffsetFraction = 0.16f
+                autoScrollOnFocus = true
             ),
             contentPadding = PaddingValues(horizontal = DashboardScreenTokens.contentHorizontalPadding.sdp),
             arrangement = Arrangement.spacedBy(DashboardScreenTokens.menuSpacing.sdp),

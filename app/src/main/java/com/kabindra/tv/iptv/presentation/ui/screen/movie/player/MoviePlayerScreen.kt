@@ -23,6 +23,7 @@ import com.kabindra.player.PlayerFeatures
 import com.kabindra.player.PlayerItem
 import com.kabindra.player.PlayerPlaylist
 import com.kabindra.player.PlayerSourceType
+import com.kabindra.player.PlayerSubtitleTrack
 import com.kabindra.player.UnifiedPlayer
 import com.kabindra.player.defaultPlayerInteractionConfig
 import com.kabindra.player.rememberPlayerHostState
@@ -151,6 +152,14 @@ private fun VODDetail.toPlayerItem(): PlayerItem {
         posterUrl = posterUrl,
         subtitle = subtitle,
         description = description,
+        subtitleTracks = subtitleUrls.mapIndexed { index, url ->
+            PlayerSubtitleTrack(
+                id = "movie_subtitle_$index",
+                label = "Subtitle ${index + 1}",
+                url = url,
+                isDefault = index == 0,
+            )
+        },
     )
 }
 

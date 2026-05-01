@@ -1,6 +1,9 @@
 package com.kabindra.tv.iptv.presentation.ui.component
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.gestures.BringIntoViewSpec
+import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +20,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,7 +29,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -41,7 +44,6 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.launch
 import network.chaintech.sdpcomposemultiplatform.sdp
 import kotlin.math.roundToInt
 
@@ -56,7 +58,8 @@ data class TvLazyConfig(
     val restoreFocus: Boolean = true,
     val initialFocusedIndex: Int = 0,
     val autoScrollOnFocus: Boolean = true,
-    val focusedItemOffsetFraction: Float = 0.08f,
+    val focusedItemParentFraction: Float = 0.5f,
+    val focusedItemChildFraction: Float = 0.5f,
 )
 
 @Stable
@@ -170,6 +173,7 @@ fun <T : Any> BaseLazy(
         state = state,
         itemCount = items.size,
         layout = layout,
+        orientation = orientation,
         platform = platform,
         tvConfig = tvConfig
     )
@@ -197,37 +201,37 @@ fun <T : Any> BaseLazy(
     val containerModifier = modifier.then(tvSupport?.containerModifier ?: Modifier)
 
     if (layout == BaseLazyLayout.List && orientation == BaseLazyOrientation.Vertical) {
-        LazyColumn(
-            state = state.listState,
-            modifier = containerModifier,
-            contentPadding = contentPadding,
-            verticalArrangement = arrangement,
-            userScrollEnabled = userScrollEnabled
-        ) {
-            items(
-                count = items.size,
-                key = itemKey,
-                contentType = itemContentType
-            ) { index ->
-                val itemModifier = rememberBaseLazyItemModifier(
-                    index = index,
-                    state = state,
-                    layout = layout,
-                    tvSupport = tvSupport,
-                    tvConfig = tvConfig
-                )
-                itemContent(index, items[index], itemModifier)
-            }
-
-            if (isLoading) {
-                item(contentType = "static_loading_footer") {
-                    loadingContent()
+        ProvideTvBringIntoViewSpec(tvSupport = tvSupport, tvConfig = tvConfig) {
+            LazyColumn(
+                state = state.listState,
+                modifier = containerModifier,
+                contentPadding = contentPadding,
+                verticalArrangement = arrangement,
+                userScrollEnabled = userScrollEnabled
+            ) {
+                items(
+                    count = items.size,
+                    key = itemKey,
+                    contentType = itemContentType
+                ) { index ->
+                    val itemModifier = rememberBaseLazyItemModifier(
+                        index = index,
+                        state = state,
+                        tvSupport = tvSupport
+                    )
+                    itemContent(index, items[index], itemModifier)
                 }
-            }
 
-            if (!errorMessage.isNullOrBlank()) {
-                item(contentType = "static_error_footer") {
-                    errorContent(errorMessage, onRetry)
+                if (isLoading) {
+                    item(contentType = "static_loading_footer") {
+                        loadingContent()
+                    }
+                }
+
+                if (!errorMessage.isNullOrBlank()) {
+                    item(contentType = "static_error_footer") {
+                        errorContent(errorMessage, onRetry)
+                    }
                 }
             }
         }
@@ -235,37 +239,37 @@ fun <T : Any> BaseLazy(
     }
 
     if (layout == BaseLazyLayout.List && orientation == BaseLazyOrientation.Horizontal) {
-        LazyRow(
-            state = state.listState,
-            modifier = containerModifier,
-            contentPadding = contentPadding,
-            horizontalArrangement = arrangement,
-            userScrollEnabled = userScrollEnabled
-        ) {
-            items(
-                count = items.size,
-                key = itemKey,
-                contentType = itemContentType
-            ) { index ->
-                val itemModifier = rememberBaseLazyItemModifier(
-                    index = index,
-                    state = state,
-                    layout = layout,
-                    tvSupport = tvSupport,
-                    tvConfig = tvConfig
-                )
-                itemContent(index, items[index], itemModifier)
-            }
-
-            if (isLoading) {
-                item(contentType = "static_loading_footer") {
-                    loadingContent()
+        ProvideTvBringIntoViewSpec(tvSupport = tvSupport, tvConfig = tvConfig) {
+            LazyRow(
+                state = state.listState,
+                modifier = containerModifier,
+                contentPadding = contentPadding,
+                horizontalArrangement = arrangement,
+                userScrollEnabled = userScrollEnabled
+            ) {
+                items(
+                    count = items.size,
+                    key = itemKey,
+                    contentType = itemContentType
+                ) { index ->
+                    val itemModifier = rememberBaseLazyItemModifier(
+                        index = index,
+                        state = state,
+                        tvSupport = tvSupport
+                    )
+                    itemContent(index, items[index], itemModifier)
                 }
-            }
 
-            if (!errorMessage.isNullOrBlank()) {
-                item(contentType = "static_error_footer") {
-                    errorContent(errorMessage, onRetry)
+                if (isLoading) {
+                    item(contentType = "static_loading_footer") {
+                        loadingContent()
+                    }
+                }
+
+                if (!errorMessage.isNullOrBlank()) {
+                    item(contentType = "static_error_footer") {
+                        errorContent(errorMessage, onRetry)
+                    }
                 }
             }
         }
@@ -273,8 +277,54 @@ fun <T : Any> BaseLazy(
     }
 
     if (layout == BaseLazyLayout.Grid && orientation == BaseLazyOrientation.Vertical) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(spanCount),
+        ProvideTvBringIntoViewSpec(tvSupport = tvSupport, tvConfig = tvConfig) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(spanCount),
+                state = state.gridState,
+                modifier = containerModifier,
+                contentPadding = contentPadding,
+                verticalArrangement = arrangement,
+                horizontalArrangement = arrangement,
+                userScrollEnabled = userScrollEnabled
+            ) {
+                items(
+                    count = items.size,
+                    key = itemKey,
+                    contentType = itemContentType
+                ) { index ->
+                    val itemModifier = rememberBaseLazyItemModifier(
+                        index = index,
+                        state = state,
+                        tvSupport = tvSupport
+                    )
+                    itemContent(index, items[index], itemModifier)
+                }
+
+                if (isLoading) {
+                    item(
+                        span = { GridItemSpan(maxLineSpan) },
+                        contentType = "static_loading_footer"
+                    ) {
+                        loadingContent()
+                    }
+                }
+
+                if (!errorMessage.isNullOrBlank()) {
+                    item(
+                        span = { GridItemSpan(maxLineSpan) },
+                        contentType = "static_error_footer"
+                    ) {
+                        errorContent(errorMessage, onRetry)
+                    }
+                }
+            }
+        }
+        return
+    }
+
+    ProvideTvBringIntoViewSpec(tvSupport = tvSupport, tvConfig = tvConfig) {
+        LazyHorizontalGrid(
+            rows = GridCells.Fixed(spanCount),
             state = state.gridState,
             modifier = containerModifier,
             contentPadding = contentPadding,
@@ -290,9 +340,7 @@ fun <T : Any> BaseLazy(
                 val itemModifier = rememberBaseLazyItemModifier(
                     index = index,
                     state = state,
-                    layout = layout,
-                    tvSupport = tvSupport,
-                    tvConfig = tvConfig
+                    tvSupport = tvSupport
                 )
                 itemContent(index, items[index], itemModifier)
             }
@@ -307,44 +355,6 @@ fun <T : Any> BaseLazy(
                 item(span = { GridItemSpan(maxLineSpan) }, contentType = "static_error_footer") {
                     errorContent(errorMessage, onRetry)
                 }
-            }
-        }
-        return
-    }
-
-    LazyHorizontalGrid(
-        rows = GridCells.Fixed(spanCount),
-        state = state.gridState,
-        modifier = containerModifier,
-        contentPadding = contentPadding,
-        verticalArrangement = arrangement,
-        horizontalArrangement = arrangement,
-        userScrollEnabled = userScrollEnabled
-    ) {
-        items(
-            count = items.size,
-            key = itemKey,
-            contentType = itemContentType
-        ) { index ->
-            val itemModifier = rememberBaseLazyItemModifier(
-                index = index,
-                state = state,
-                layout = layout,
-                tvSupport = tvSupport,
-                tvConfig = tvConfig
-            )
-            itemContent(index, items[index], itemModifier)
-        }
-
-        if (isLoading) {
-            item(span = { GridItemSpan(maxLineSpan) }, contentType = "static_loading_footer") {
-                loadingContent()
-            }
-        }
-
-        if (!errorMessage.isNullOrBlank()) {
-            item(span = { GridItemSpan(maxLineSpan) }, contentType = "static_error_footer") {
-                errorContent(errorMessage, onRetry)
             }
         }
     }
@@ -400,6 +410,7 @@ fun <T : Any> BaseLazy(
         state = state,
         itemCount = itemCount,
         layout = layout,
+        orientation = orientation,
         platform = platform,
         tvConfig = tvConfig
     )
@@ -415,84 +426,124 @@ fun <T : Any> BaseLazy(
     val containerModifier = modifier.then(tvSupport?.containerModifier ?: Modifier)
 
     if (layout == BaseLazyLayout.List && orientation == BaseLazyOrientation.Vertical) {
-        LazyColumn(
-            state = state.listState,
-            modifier = containerModifier,
-            contentPadding = contentPadding,
-            verticalArrangement = arrangement,
-            userScrollEnabled = userScrollEnabled
-        ) {
-            items(
-                count = itemCount,
-                key = itemKey,
-                contentType = itemContentType
-            ) { index ->
-                val itemModifier = rememberBaseLazyItemModifier(
-                    index = index,
-                    state = state,
-                    layout = layout,
-                    tvSupport = tvSupport,
-                    tvConfig = tvConfig
-                )
-                val item = pagingItems[index]
-                if (item != null) {
-                    itemContent(index, item, itemModifier)
-                } else {
-                    placeholderContent(index)
+        ProvideTvBringIntoViewSpec(tvSupport = tvSupport, tvConfig = tvConfig) {
+            LazyColumn(
+                state = state.listState,
+                modifier = containerModifier,
+                contentPadding = contentPadding,
+                verticalArrangement = arrangement,
+                userScrollEnabled = userScrollEnabled
+            ) {
+                items(
+                    count = itemCount,
+                    key = itemKey,
+                    contentType = itemContentType
+                ) { index ->
+                    val itemModifier = rememberBaseLazyItemModifier(
+                        index = index,
+                        state = state,
+                        tvSupport = tvSupport
+                    )
+                    val item = pagingItems[index]
+                    if (item != null) {
+                        itemContent(index, item, itemModifier)
+                    } else {
+                        placeholderContent(index)
+                    }
                 }
-            }
 
-            AppendLoadStateContent(
-                appendState = appendState,
-                retry = pagingItems::retry,
-                loadingContent = loadingContent,
-                errorContent = errorContent
-            )
+                AppendLoadStateContent(
+                    appendState = appendState,
+                    retry = pagingItems::retry,
+                    loadingContent = loadingContent,
+                    errorContent = errorContent
+                )
+            }
         }
         return
     }
 
     if (layout == BaseLazyLayout.List && orientation == BaseLazyOrientation.Horizontal) {
-        LazyRow(
-            state = state.listState,
-            modifier = containerModifier,
-            contentPadding = contentPadding,
-            horizontalArrangement = arrangement,
-            userScrollEnabled = userScrollEnabled
-        ) {
-            items(
-                count = itemCount,
-                key = itemKey,
-                contentType = itemContentType
-            ) { index ->
-                val itemModifier = rememberBaseLazyItemModifier(
-                    index = index,
-                    state = state,
-                    layout = layout,
-                    tvSupport = tvSupport,
-                    tvConfig = tvConfig
-                )
-                val item = pagingItems[index]
-                if (item != null) {
-                    itemContent(index, item, itemModifier)
-                } else {
-                    placeholderContent(index)
+        ProvideTvBringIntoViewSpec(tvSupport = tvSupport, tvConfig = tvConfig) {
+            LazyRow(
+                state = state.listState,
+                modifier = containerModifier,
+                contentPadding = contentPadding,
+                horizontalArrangement = arrangement,
+                userScrollEnabled = userScrollEnabled
+            ) {
+                items(
+                    count = itemCount,
+                    key = itemKey,
+                    contentType = itemContentType
+                ) { index ->
+                    val itemModifier = rememberBaseLazyItemModifier(
+                        index = index,
+                        state = state,
+                        tvSupport = tvSupport
+                    )
+                    val item = pagingItems[index]
+                    if (item != null) {
+                        itemContent(index, item, itemModifier)
+                    } else {
+                        placeholderContent(index)
+                    }
                 }
-            }
 
-            AppendLoadStateContent(
-                appendState = appendState,
-                retry = pagingItems::retry,
-                loadingContent = loadingContent,
-                errorContent = errorContent
-            )
+                AppendLoadStateContent(
+                    appendState = appendState,
+                    retry = pagingItems::retry,
+                    loadingContent = loadingContent,
+                    errorContent = errorContent
+                )
+            }
         }
         return
     }
 
     if (layout == BaseLazyLayout.Grid && orientation == BaseLazyOrientation.Vertical) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(spanCount),
+        ProvideTvBringIntoViewSpec(tvSupport = tvSupport, tvConfig = tvConfig) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(spanCount),
+                state = state.gridState,
+                modifier = containerModifier,
+                contentPadding = contentPadding,
+                verticalArrangement = arrangement,
+                horizontalArrangement = arrangement,
+                userScrollEnabled = userScrollEnabled
+            ) {
+                items(
+                    count = itemCount,
+                    key = itemKey,
+                    contentType = itemContentType
+                ) { index ->
+                    val itemModifier = rememberBaseLazyItemModifier(
+                        index = index,
+                        state = state,
+                        tvSupport = tvSupport
+                    )
+                    val item = pagingItems[index]
+                    if (item != null) {
+                        itemContent(index, item, itemModifier)
+                    } else {
+                        placeholderContent(index)
+                    }
+                }
+
+                AppendGridLoadStateContent(
+                    appendState = appendState,
+                    retry = pagingItems::retry,
+                    loadingContent = loadingContent,
+                    errorContent = errorContent
+                )
+            }
+        }
+        return
+    }
+
+    ProvideTvBringIntoViewSpec(tvSupport = tvSupport, tvConfig = tvConfig) {
+        LazyHorizontalGrid(
+            rows = GridCells.Fixed(spanCount),
             state = state.gridState,
             modifier = containerModifier,
             contentPadding = contentPadding,
@@ -508,9 +559,7 @@ fun <T : Any> BaseLazy(
                 val itemModifier = rememberBaseLazyItemModifier(
                     index = index,
                     state = state,
-                    layout = layout,
-                    tvSupport = tvSupport,
-                    tvConfig = tvConfig
+                    tvSupport = tvSupport
                 )
                 val item = pagingItems[index]
                 if (item != null) {
@@ -527,44 +576,6 @@ fun <T : Any> BaseLazy(
                 errorContent = errorContent
             )
         }
-        return
-    }
-
-    LazyHorizontalGrid(
-        rows = GridCells.Fixed(spanCount),
-        state = state.gridState,
-        modifier = containerModifier,
-        contentPadding = contentPadding,
-        verticalArrangement = arrangement,
-        horizontalArrangement = arrangement,
-        userScrollEnabled = userScrollEnabled
-    ) {
-        items(
-            count = itemCount,
-            key = itemKey,
-            contentType = itemContentType
-        ) { index ->
-            val itemModifier = rememberBaseLazyItemModifier(
-                index = index,
-                state = state,
-                layout = layout,
-                tvSupport = tvSupport,
-                tvConfig = tvConfig
-            )
-            val item = pagingItems[index]
-            if (item != null) {
-                itemContent(index, item, itemModifier)
-            } else {
-                placeholderContent(index)
-            }
-        }
-
-        AppendGridLoadStateContent(
-            appendState = appendState,
-            retry = pagingItems::retry,
-            loadingContent = loadingContent,
-            errorContent = errorContent
-        )
     }
 }
 
@@ -747,12 +758,55 @@ private fun ObserveEndReached(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ProvideTvBringIntoViewSpec(
+    tvSupport: TvLazySupport?,
+    tvConfig: TvLazyConfig,
+    content: @Composable () -> Unit,
+) {
+    if (tvSupport == null || !tvConfig.autoScrollOnFocus) {
+        content()
+        return
+    }
+
+    val parentFraction = tvConfig.focusedItemParentFraction.coerceIn(0f, 1f)
+    val childFraction = tvConfig.focusedItemChildFraction.coerceIn(0f, 1f)
+    val bringIntoViewSpec = remember(parentFraction, childFraction) {
+        object : BringIntoViewSpec {
+            override fun calculateScrollDistance(
+                offset: Float,
+                size: Float,
+                containerSize: Float
+            ): Float {
+                val initialTargetForLeadingEdge =
+                    parentFraction * containerSize - childFraction * size
+                val targetForLeadingEdge = if (
+                    size <= containerSize &&
+                    containerSize - initialTargetForLeadingEdge < size
+                ) {
+                    containerSize - size
+                } else {
+                    initialTargetForLeadingEdge
+                }
+                return offset - targetForLeadingEdge
+            }
+        }
+    }
+
+    CompositionLocalProvider(
+        LocalBringIntoViewSpec provides bringIntoViewSpec,
+        content = content,
+    )
+}
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun rememberTvLazySupport(
     state: BaseLazyState,
     itemCount: Int,
     layout: BaseLazyLayout,
+    orientation: BaseLazyOrientation,
     platform: BaseLazyPlatform,
     tvConfig: TvLazyConfig,
 ): TvLazySupport? {
@@ -767,7 +821,7 @@ private fun rememberTvLazySupport(
     val fallbackRequester = remember(tvConfig.initialFocusedIndex) { FocusRequester() }
     val focusRequesters = remember { mutableStateMapOf<Int, FocusRequester>() }
 
-    LaunchedEffect(itemCount, layout, tvConfig, state.hasHandledFocusRequest) {
+    LaunchedEffect(itemCount, layout, orientation, tvConfig, state.hasHandledFocusRequest) {
         if (!tvConfig.requestInitialFocus || state.hasHandledFocusRequest || itemCount == 0) {
             return@LaunchedEffect
         }
@@ -777,12 +831,12 @@ private fun rememberTvLazySupport(
             else -> tvConfig.initialFocusedIndex.coerceIn(0, itemCount - 1)
         }
 
-        scrollItemIntoPosition(
+        scrollItemToInitialFocusPosition(
             state = state,
             layout = layout,
+            orientation = orientation,
             index = targetIndex,
-            focusedItemOffsetFraction = tvConfig.focusedItemOffsetFraction,
-            animate = false
+            tvConfig = tvConfig,
         )
 
         repeat(12) {
@@ -797,13 +851,14 @@ private fun rememberTvLazySupport(
         state.hasHandledFocusRequest = true
     }
 
-    return remember(fallbackRequester, focusRequesters) {
+    return remember(fallbackRequester, focusRequesters, tvConfig.initialFocusedIndex) {
         TvLazySupport(
             containerModifier = Modifier
                 .focusRestorer(fallbackRequester)
                 .focusGroup(),
             fallbackRequester = fallbackRequester,
-            focusRequesters = focusRequesters
+            focusRequesters = focusRequesters,
+            initialFocusedIndex = tvConfig.initialFocusedIndex
         )
     }
 }
@@ -812,16 +867,13 @@ private fun rememberTvLazySupport(
 private fun rememberBaseLazyItemModifier(
     index: Int,
     state: BaseLazyState,
-    layout: BaseLazyLayout,
     tvSupport: TvLazySupport?,
-    tvConfig: TvLazyConfig,
 ): Modifier {
     if (tvSupport == null) return Modifier
 
-    val coroutineScope = rememberCoroutineScope()
     val focusRequester =
-        remember(index, tvSupport.fallbackRequester, tvConfig.initialFocusedIndex) {
-            if (index == tvConfig.initialFocusedIndex) {
+        remember(index, tvSupport.fallbackRequester, tvSupport.initialFocusedIndex) {
+            if (index == tvSupport.initialFocusedIndex) {
                 tvSupport.fallbackRequester
             } else {
                 FocusRequester()
@@ -840,63 +892,83 @@ private fun rememberBaseLazyItemModifier(
         .onFocusChanged { focusState ->
             if (focusState.isFocused) {
                 state.lastFocusedIndex = index
-                if (tvConfig.autoScrollOnFocus) {
-                    coroutineScope.launch {
-                        scrollItemIntoPosition(
-                            state = state,
-                            layout = layout,
-                            index = index,
-                            focusedItemOffsetFraction = tvConfig.focusedItemOffsetFraction,
-                            animate = true
-                        )
-                    }
-                }
             }
         }
 }
 
-private suspend fun scrollItemIntoPosition(
+private suspend fun scrollItemToInitialFocusPosition(
     state: BaseLazyState,
     layout: BaseLazyLayout,
+    orientation: BaseLazyOrientation,
     index: Int,
-    focusedItemOffsetFraction: Float,
-    animate: Boolean,
+    tvConfig: TvLazyConfig,
 ) {
-    val scrollOffset = when (layout) {
-        BaseLazyLayout.List -> {
-            val viewportSize =
-                state.listState.layoutInfo.viewportEndOffset - state.listState.layoutInfo.viewportStartOffset
-            (viewportSize * focusedItemOffsetFraction.coerceIn(0f, 1f)).roundToInt()
-        }
-
-        BaseLazyLayout.Grid -> {
-            val viewportSize =
-                state.gridState.layoutInfo.viewportEndOffset - state.gridState.layoutInfo.viewportStartOffset
-            (viewportSize * focusedItemOffsetFraction.coerceIn(0f, 1f)).roundToInt()
-        }
+    val scrollOffset = if (tvConfig.autoScrollOnFocus) {
+        calculateInitialFocusScrollOffset(
+            state = state,
+            layout = layout,
+            orientation = orientation,
+            tvConfig = tvConfig,
+        )
+    } else {
+        0
     }
 
     when (layout) {
+        BaseLazyLayout.List -> state.listState.scrollToItem(
+            index = index,
+            scrollOffset = scrollOffset
+        )
+
+        BaseLazyLayout.Grid -> state.gridState.scrollToItem(
+            index = index,
+            scrollOffset = scrollOffset
+        )
+    }
+}
+
+private fun calculateInitialFocusScrollOffset(
+    state: BaseLazyState,
+    layout: BaseLazyLayout,
+    orientation: BaseLazyOrientation,
+    tvConfig: TvLazyConfig,
+): Int {
+    val viewportSize = when (layout) {
         BaseLazyLayout.List -> {
-            if (animate) {
-                state.listState.animateScrollToItem(index = index, scrollOffset = scrollOffset)
-            } else {
-                state.listState.scrollToItem(index = index, scrollOffset = scrollOffset)
-            }
+            state.listState.layoutInfo.viewportEndOffset - state.listState.layoutInfo.viewportStartOffset
         }
 
         BaseLazyLayout.Grid -> {
-            if (animate) {
-                state.gridState.animateScrollToItem(index = index, scrollOffset = scrollOffset)
+            state.gridState.layoutInfo.viewportEndOffset - state.gridState.layoutInfo.viewportStartOffset
+        }
+    }
+
+    val itemSize = when (layout) {
+        BaseLazyLayout.List -> {
+            state.listState.layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: 0
+        }
+
+        BaseLazyLayout.Grid -> {
+            val size = state.gridState.layoutInfo.visibleItemsInfo.firstOrNull()?.size
+            if (orientation == BaseLazyOrientation.Vertical) {
+                size?.height ?: 0
             } else {
-                state.gridState.scrollToItem(index = index, scrollOffset = scrollOffset)
+                size?.width ?: 0
             }
         }
     }
+
+    if (viewportSize <= 0 || itemSize <= 0) return 0
+
+    val desiredLeadingEdge =
+        viewportSize * tvConfig.focusedItemParentFraction.coerceIn(0f, 1f) -
+                itemSize * tvConfig.focusedItemChildFraction.coerceIn(0f, 1f)
+    return -desiredLeadingEdge.roundToInt()
 }
 
 private data class TvLazySupport(
     val containerModifier: Modifier,
     val fallbackRequester: FocusRequester,
     val focusRequesters: MutableMap<Int, FocusRequester>,
+    val initialFocusedIndex: Int,
 )

@@ -59,7 +59,11 @@ object ExoPlayerUtils {
 
         val trackSelectionFactory = AdaptiveTrackSelection.Factory()
         val trackSelector = DefaultTrackSelector(context, trackSelectionFactory)
-        /*trackSelector.setParameters(trackSelector.buildUponParameters().setMaxVideoSizeSd())*/
+        trackSelector.setParameters(
+            trackSelector.buildUponParameters()
+                .setSelectTextByDefault(true)
+                .setSelectUndeterminedTextLanguage(true)
+        )
 
         val loadControl = Builder()
             .setBufferDurationsMs(

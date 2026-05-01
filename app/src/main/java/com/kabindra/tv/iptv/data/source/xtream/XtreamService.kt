@@ -6,7 +6,6 @@ import com.kabindra.tv.iptv.data.model.MovieCategoryDTO
 import com.kabindra.tv.iptv.data.model.MovieDTO
 import com.kabindra.tv.iptv.data.model.MovieDetailDTO
 import io.github.saifullah.xtream.Xtream
-import io.github.saifullah.xtream.model.XtreamMovieDetail
 import io.ktor.client.request.url
 
 class XtreamService(private val xtream: Xtream) {

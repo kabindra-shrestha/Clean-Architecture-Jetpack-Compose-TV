@@ -1,6 +1,7 @@
 package com.kabindra.tv.iptv.presentation.ui.screen.movie.detail
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.tv.material3.MaterialTheme
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazy
@@ -82,6 +86,43 @@ fun MovieDetailScreen(
     ) {
         state.movie?.let { movie ->
             val recommendations = state.recommendedMovies.ifEmpty { movie.alsoWatch }
+
+            CardImage(
+                config = CardImageConfig(
+                    source = CardImageSource.Url,
+                    url = movie.backdropUrl,
+                    contentDescription = movie.title,
+                    contentScale = ContentScale.Crop
+                ),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .aspectRatio(16f / 9f)
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .aspectRatio(16f / 9f)
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.background.copy(alpha = 0.95f),
+                                MaterialTheme.colorScheme.background.copy(alpha = 0.76f),
+                                Color.Transparent
+                            ),
+                            start = Offset.Zero,
+                            end = Offset(1220f, 0f)
+                        )
+                    )
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                MaterialTheme.colorScheme.background.copy(alpha = 0.9f)
+                            )
+                        )
+                    )
+            )
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -173,7 +214,6 @@ fun MovieDetailScreen(
                                     requestInitialFocus = false,
                                     initialFocusedIndex = 0,
                                     autoScrollOnFocus = true,
-                                    focusedItemOffsetFraction = 0.14f,
                                 ),
                                 contentPadding = PaddingValues(
                                     start = MovieDetailScreenTokens.railHorizontalPadding.sdp,

@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.media3.common.C
 import androidx.media3.common.PlaybackParameters
+import androidx.media3.common.Player
 import androidx.media3.common.TrackGroup
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.exoplayer.ExoPlayer
@@ -144,12 +145,12 @@ class PlayerHostState internal constructor() : PlayerSessionController {
             markNextPlaybackErrorPhase(PlayerPlaybackErrorPhase.Switching)
             clearPlaybackError()
             currentPlayer.seekToNextMediaItem()
-            currentPlayer.playWhenReady = true
+            currentPlayer.resumePlaybackAfterItemChange()
         } else if (uiState.playlist.circularNavigation && currentPlayer.mediaItemCount > 1) {
             markNextPlaybackErrorPhase(PlayerPlaybackErrorPhase.Switching)
             clearPlaybackError()
             currentPlayer.seekToDefaultPosition(0)
-            currentPlayer.playWhenReady = true
+            currentPlayer.resumePlaybackAfterItemChange()
         }
     }
 
@@ -159,12 +160,12 @@ class PlayerHostState internal constructor() : PlayerSessionController {
             markNextPlaybackErrorPhase(PlayerPlaybackErrorPhase.Switching)
             clearPlaybackError()
             currentPlayer.seekToPreviousMediaItem()
-            currentPlayer.playWhenReady = true
+            currentPlayer.resumePlaybackAfterItemChange()
         } else if (uiState.playlist.circularNavigation && currentPlayer.mediaItemCount > 1) {
             markNextPlaybackErrorPhase(PlayerPlaybackErrorPhase.Switching)
             clearPlaybackError()
             currentPlayer.seekToDefaultPosition(currentPlayer.mediaItemCount - 1)
-            currentPlayer.playWhenReady = true
+            currentPlayer.resumePlaybackAfterItemChange()
         }
     }
 
@@ -174,7 +175,7 @@ class PlayerHostState internal constructor() : PlayerSessionController {
         markNextPlaybackErrorPhase(PlayerPlaybackErrorPhase.Switching)
         clearPlaybackError()
         currentPlayer.seekToDefaultPosition(index)
-        currentPlayer.playWhenReady = true
+        currentPlayer.resumePlaybackAfterItemChange()
     }
 
     override fun togglePlayPause() {
@@ -185,7 +186,7 @@ class PlayerHostState internal constructor() : PlayerSessionController {
     override fun jumpToLiveEdge() {
         val currentPlayer = player ?: return
         currentPlayer.seekToDefaultPosition()
-        currentPlayer.playWhenReady = true
+        currentPlayer.resumePlaybackAfterItemChange()
     }
 
     override fun replayCurrent() {
@@ -290,6 +291,13 @@ class PlayerHostState internal constructor() : PlayerSessionController {
         } else {
             uiState = uiState.copy(isStatsVisible = false)
         }
+    }
+
+    private fun ExoPlayer.resumePlaybackAfterItemChange() {
+        if (mediaItemCount > 0 && playbackState == Player.STATE_IDLE) {
+            prepare()
+        }
+        playWhenReady = true
     }
 }
 

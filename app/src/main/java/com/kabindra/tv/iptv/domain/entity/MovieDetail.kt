@@ -97,13 +97,17 @@ fun MovieDetail.toVODDetail(): VODDetail {
         id = movieData?.streamId?.toString() ?: "",
         categoryId = movieData?.categoryId ?: "",
         title = info?.name ?: movieData?.title ?: "",
-        subtitle = info?.oName ?: "",
+        subtitle = info?.genre ?: "",
         description = info?.plot ?: info?.description ?: "",
         posterUrl = info?.coverBig ?: info?.movieImage ?: "",
         backdropUrl = info?.backdropPath?.firstOrNull() ?: "",
         streamUrl = movieData?.directSource ?: "",
         streamType = MediaStreamType.Progressive,
         playbackType = MediaPlaybackType.Movie,
-        alsoWatch = emptyList()
+        alsoWatch = emptyList(),
+        subtitleUrls = info?.subtitles.orEmpty()
+            .map(String::trim)
+            .filter(String::isNotBlank)
+            .distinct()
     )
 }
