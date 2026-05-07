@@ -11,7 +11,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.tv.material3.DenseListItem
 import network.chaintech.sdpcomposemultiplatform.sdp
-import androidx.tv.material3.ListItem as TvListItem
+import androidx.tv.material3.ListItem
 
 enum class ListItemType { Default, Dense }
 
@@ -43,7 +43,7 @@ fun ListItemComponent(
     onClick: () -> Unit = {},
 ) {
     when (type) {
-        ListItemType.Default -> TvListItem(
+        ListItemType.Default -> ListItem(
             modifier = modifier,
             selected = selected,
             onClick = onClick,

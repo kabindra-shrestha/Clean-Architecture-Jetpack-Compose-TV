@@ -2,6 +2,7 @@ package com.kabindra.tv.iptv.data.source.xtream.livetv
 
 import com.kabindra.tv.iptv.data.model.LiveTVCategoryDTO
 import com.kabindra.tv.iptv.data.model.LiveTVDTO
+import com.kabindra.tv.iptv.data.source.UserCredentialsProvider
 import com.kabindra.tv.iptv.data.source.xtream.XtreamService
 
 interface LiveTVXtreamDataSource {
@@ -9,13 +10,30 @@ interface LiveTVXtreamDataSource {
     suspend fun getLiveTVChannels(): List<LiveTVDTO>
 }
 
-class LiveTVXtreamDataSourceImpl(private val xtreamService: XtreamService) :
-    LiveTVXtreamDataSource {
+class LiveTVXtreamDataSourceImpl(
+    private val xtreamService: XtreamService,
+    private val userCredentialsProvider: UserCredentialsProvider
+) : LiveTVXtreamDataSource {
+
     override suspend fun getLiveTVCategories(): List<LiveTVCategoryDTO> {
-        return xtreamService.getLiveTVCategories()
+        val user = userCredentialsProvider.getCurrentUser()
+            ?: throw IllegalStateException("User not logged in")
+
+        return xtreamService.getLiveTVCategories(
+            serverName = user.server_name ?: throw IllegalStateException("Server name not found"),
+            username = user.username ?: throw IllegalStateException("Username not found"),
+            password = user.password ?: throw IllegalStateException("Password not found")
+        )
     }
 
     override suspend fun getLiveTVChannels(): List<LiveTVDTO> {
-        return xtreamService.getLiveTVChannels()
+        val user = userCredentialsProvider.getCurrentUser()
+            ?: throw IllegalStateException("User not logged in")
+
+        return xtreamService.getLiveTVChannels(
+            serverName = user.server_name ?: throw IllegalStateException("Server name not found"),
+            username = user.username ?: throw IllegalStateException("Username not found"),
+            password = user.password ?: throw IllegalStateException("Password not found")
+        )
     }
 }

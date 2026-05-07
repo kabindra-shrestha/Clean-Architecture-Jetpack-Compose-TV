@@ -14,6 +14,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.kabindra.tv.iptv.MainActivity
 import com.kabindra.tv.iptv.presentation.ui.screen.dashboard.DashboardScreen
 import com.kabindra.tv.iptv.presentation.ui.screen.livetv.player.LiveTVPlayerScreen
+import com.kabindra.tv.iptv.presentation.ui.screen.login.LoginScreen
 import com.kabindra.tv.iptv.presentation.ui.screen.movie.content.MovieContentScreen
 import com.kabindra.tv.iptv.presentation.ui.screen.movie.detail.MovieDetailScreen
 import com.kabindra.tv.iptv.presentation.ui.screen.movie.player.MoviePlayerScreen
@@ -49,11 +50,23 @@ fun MainScreen(
                         }
                     )
                 }
+                entry<LoginRoute> {
+                    LoginScreen(
+                        innerPadding = innerPadding,
+                        onNavigateDashboard = {
+                            backStack.clear()
+                            backStack.add(DashboardRoute)
+                        }
+                    )
+                }
                 entry<DashboardRoute> {
                     DashboardScreen(
                         innerPadding = innerPadding,
                         payload = payload,
                         onPayloadConsumed = onPayloadConsumed,
+                        onNavigateLogin = {
+                            backStack.add(LoginRoute)
+                        },
                         onNavigateLiveTV = {
                             backStack.add(LiveTVPlayerRoute)
                         },

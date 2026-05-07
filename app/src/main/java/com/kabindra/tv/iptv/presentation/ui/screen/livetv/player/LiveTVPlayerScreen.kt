@@ -71,8 +71,8 @@ import org.koin.compose.viewmodel.koinViewModel
 private object LiveTVScreenTokens {
     const val headerHorizontalPadding = 24
     const val headerVerticalPadding = 24
-    const val overlayCategoryWidth = 120
-    const val overlayChannelWidth = 200
+    const val overlayCategoryWidth = 150
+    const val overlayChannelWidth = 250
     const val overlayHorizontalPadding = 18
     const val overlayInnerSpacing = 10
     const val sectionSpacing = 14

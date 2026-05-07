@@ -3,6 +3,7 @@ package com.kabindra.tv.iptv.data.source.xtream.movie
 import com.kabindra.tv.iptv.data.model.MovieCategoryDTO
 import com.kabindra.tv.iptv.data.model.MovieDTO
 import com.kabindra.tv.iptv.data.model.MovieDetailDTO
+import com.kabindra.tv.iptv.data.source.UserCredentialsProvider
 import com.kabindra.tv.iptv.data.source.xtream.XtreamService
 
 interface MovieXtreamDataSource {
@@ -11,18 +12,43 @@ interface MovieXtreamDataSource {
     suspend fun getMovieDetail(streamId: Long): MovieDetailDTO
 }
 
-class MovieXtreamDataSourceImpl(private val xtreamService: XtreamService) : MovieXtreamDataSource {
+class MovieXtreamDataSourceImpl(
+    private val xtreamService: XtreamService,
+    private val userCredentialsProvider: UserCredentialsProvider
+) : MovieXtreamDataSource {
 
     override suspend fun getMovies(): List<MovieDTO> {
-        return xtreamService.getMovies()
+        val user = userCredentialsProvider.getCurrentUser()
+            ?: throw IllegalStateException("User not logged in")
+
+        return xtreamService.getMovies(
+            serverName = user.server_name ?: throw IllegalStateException("Server name not found"),
+            username = user.username ?: throw IllegalStateException("Username not found"),
+            password = user.password ?: throw IllegalStateException("Password not found")
+        )
     }
 
     override suspend fun getMovieCategories(): List<MovieCategoryDTO> {
-        return xtreamService.getMovieCategories()
+        val user = userCredentialsProvider.getCurrentUser()
+            ?: throw IllegalStateException("User not logged in")
+
+        return xtreamService.getMovieCategories(
+            serverName = user.server_name ?: throw IllegalStateException("Server name not found"),
+            username = user.username ?: throw IllegalStateException("Username not found"),
+            password = user.password ?: throw IllegalStateException("Password not found")
+        )
     }
 
     override suspend fun getMovieDetail(streamId: Long): MovieDetailDTO {
-        return xtreamService.getMovieDetail(streamId)
+        val user = userCredentialsProvider.getCurrentUser()
+            ?: throw IllegalStateException("User not logged in")
+
+        return xtreamService.getMovieDetail(
+            serverName = user.server_name ?: throw IllegalStateException("Server name not found"),
+            username = user.username ?: throw IllegalStateException("Username not found"),
+            password = user.password ?: throw IllegalStateException("Password not found"),
+            streamId = streamId
+        )
     }
 
 }

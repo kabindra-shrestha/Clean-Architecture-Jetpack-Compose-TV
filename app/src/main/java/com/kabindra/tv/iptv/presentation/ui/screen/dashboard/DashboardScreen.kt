@@ -56,6 +56,7 @@ fun DashboardScreen(
     innerPadding: PaddingValues,
     payload: MainActivity.AlertPayload?,
     onPayloadConsumed: () -> Unit,
+    onNavigateLogin: () -> Unit,
     onNavigateLiveTV: () -> Unit,
     onNavigateMovie: () -> Unit,
 ) {
@@ -144,7 +145,7 @@ fun DashboardScreen(
                     when (item) {
                         DashboardMenuType.LiveTV -> onNavigateLiveTV()
                         DashboardMenuType.Movie -> onNavigateMovie()
-                        DashboardMenuType.Profile -> Unit
+                        DashboardMenuType.Profile -> onNavigateLogin()
                     }
                 }
             )

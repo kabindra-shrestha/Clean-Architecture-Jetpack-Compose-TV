@@ -10,33 +10,79 @@ import io.ktor.client.request.url
 
 class XtreamService(private val xtream: Xtream) {
 
-    suspend fun getLiveTVCategories(): List<LiveTVCategoryDTO> {
+    /**
+     * Builds the API URL with user credentials
+     * @param serverName: Base URL of the server (e.g., "tv.example.com")
+     * @param username: User's username
+     * @param password: User's password
+     * @param action: API action to perform
+     * @param additionalParams: Additional URL parameters
+     */
+    private fun buildApiUrl(
+        serverName: String,
+        username: String,
+        password: String,
+        action: String,
+        additionalParams: String = ""
+    ): String {
+        return "http://$serverName/player_api.php?username=$username&password=$password&action=$action$additionalParams"
+    }
+
+    suspend fun getLiveTVCategories(
+        serverName: String,
+        username: String,
+        password: String
+    ): List<LiveTVCategoryDTO> {
         return xtream.custom.get {
-            url("http://tv.quierover.xyz/player_api.php?username=SAMIR18&password=Banana18&action=get_live_categories")
+            url(buildApiUrl(serverName, username, password, "get_live_categories"))
         }
     }
 
-    suspend fun getLiveTVChannels(): List<LiveTVDTO> {
+    suspend fun getLiveTVChannels(
+        serverName: String,
+        username: String,
+        password: String,
+        offset: Int = 10,
+        itemsPerPage: Int = 30
+    ): List<LiveTVDTO> {
+        val params = "&params[offset]=$offset&params[items_per_page]=$itemsPerPage"
         return xtream.custom.get {
-            url("http://tv.quierover.xyz/player_api.php?username=SAMIR18&password=Banana18&action=get_live_streams&params[offset]=10&params[items_per_page]=30")
+            url(buildApiUrl(serverName, username, password, "get_live_streams", params))
         }
     }
 
-    suspend fun getMovieCategories(): List<MovieCategoryDTO> {
+    suspend fun getMovieCategories(
+        serverName: String,
+        username: String,
+        password: String
+    ): List<MovieCategoryDTO> {
         return xtream.custom.get {
-            url("http://tv.quierover.xyz/player_api.php?username=SAMIR18&password=Banana18&action=get_vod_categories")
+            url(buildApiUrl(serverName, username, password, "get_vod_categories"))
         }
     }
 
-    suspend fun getMovies(): List<MovieDTO> {
+    suspend fun getMovies(
+        serverName: String,
+        username: String,
+        password: String,
+        offset: Int = 10,
+        itemsPerPage: Int = 30
+    ): List<MovieDTO> {
+        val params = "&params[offset]=$offset&params[items_per_page]=$itemsPerPage"
         return xtream.custom.get {
-            url("http://tv.quierover.xyz/player_api.php?username=SAMIR18&password=Banana18&action=get_vod_streams&params[offset]=10&params[items_per_page]=30")
+            url(buildApiUrl(serverName, username, password, "get_vod_streams", params))
         }
     }
 
-    suspend fun getMovieDetail(streamId: Long): MovieDetailDTO {
+    suspend fun getMovieDetail(
+        serverName: String,
+        username: String,
+        password: String,
+        streamId: Long
+    ): MovieDetailDTO {
+        val params = "&vod_id=$streamId"
         return xtream.custom.get {
-            url("http://tv.quierover.xyz/player_api.php?username=SAMIR18&password=Banana18&action=get_vod_info&vod_id=$streamId")
+            url(buildApiUrl(serverName, username, password, "get_vod_info", params))
         }
     }
 

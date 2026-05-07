@@ -3,6 +3,7 @@ package com.kabindra.tv.iptv.di
 import androidx.compose.material3.SnackbarHostState
 import com.kabindra.tv.iptv.data.repository.remote.livetv.LiveTVRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.remote.movie.MovieRepositoryImpl
+import com.kabindra.tv.iptv.data.repository.room.LoginRoomRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.xtream.livetv.LiveTVXtreamRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.xtream.movie.MovieXtreamRepositoryImpl
 import com.kabindra.tv.iptv.data.source.remote.ApiService
@@ -10,6 +11,10 @@ import com.kabindra.tv.iptv.data.source.remote.livetv.FakeLiveTVRemoteDataSource
 import com.kabindra.tv.iptv.data.source.remote.livetv.LiveTVRemoteDataSource
 import com.kabindra.tv.iptv.data.source.remote.movie.FakeMovieRemoteDataSource
 import com.kabindra.tv.iptv.data.source.remote.movie.MovieRemoteDataSource
+import com.kabindra.tv.iptv.data.source.room.AppDatabase
+import com.kabindra.tv.iptv.data.source.room.getDatabaseBuilder
+import com.kabindra.tv.iptv.data.source.UserCredentialsProvider
+import com.kabindra.tv.iptv.data.source.UserCredentialsProviderImpl
 import com.kabindra.tv.iptv.data.source.xtream.XtreamService
 import com.kabindra.tv.iptv.data.source.xtream.livetv.LiveTVXtreamDataSource
 import com.kabindra.tv.iptv.data.source.xtream.livetv.LiveTVXtreamDataSourceImpl
@@ -17,16 +22,19 @@ import com.kabindra.tv.iptv.data.source.xtream.movie.MovieXtreamDataSource
 import com.kabindra.tv.iptv.data.source.xtream.movie.MovieXtreamDataSourceImpl
 import com.kabindra.tv.iptv.domain.repository.remote.livetv.LiveTVRepository
 import com.kabindra.tv.iptv.domain.repository.remote.movie.MovieRepository
+import com.kabindra.tv.iptv.domain.repository.room.LoginRoomRepository
 import com.kabindra.tv.iptv.domain.repository.xtream.livetv.LiveTVXtreamRepository
 import com.kabindra.tv.iptv.domain.repository.xtream.movie.MovieXtreamRepository
 import com.kabindra.tv.iptv.domain.usecase.remote.livetv.LiveTVUseCase
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieBrowseUseCase
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieDetailUseCase
+import com.kabindra.tv.iptv.domain.usecase.room.LoginRoomUseCase
 import com.kabindra.tv.iptv.domain.usecase.xtream.livetv.LiveTVXtreamUseCase
 import com.kabindra.tv.iptv.domain.usecase.xtream.movie.MovieBrowseXtreamUseCase
 import com.kabindra.tv.iptv.domain.usecase.xtream.movie.MovieDetailXtreamUseCase
 import com.kabindra.tv.iptv.presentation.ui.screen.dashboard.NotificationViewModel
 import com.kabindra.tv.iptv.presentation.ui.screen.livetv.player.LiveTVPlayerViewModel
+import com.kabindra.tv.iptv.presentation.ui.screen.login.LoginViewModel
 import com.kabindra.tv.iptv.presentation.ui.screen.movie.content.MovieContentViewModel
 import com.kabindra.tv.iptv.presentation.ui.screen.movie.detail.MovieDetailViewModel
 import com.kabindra.tv.iptv.presentation.ui.screen.movie.player.MoviePlayerViewModel
@@ -154,6 +162,10 @@ val provideDataSourceModule = module {
 
     singleOf(::LiveTVXtreamDataSourceImpl).bind<LiveTVXtreamDataSource>()
     singleOf(::MovieXtreamDataSourceImpl).bind<MovieXtreamDataSource>()
+
+    single<AppDatabase> { getDatabaseBuilder() }
+
+    single<UserCredentialsProvider> { UserCredentialsProviderImpl(get()) }
 }
 
 val provideRepositoryModule = module {
@@ -162,6 +174,8 @@ val provideRepositoryModule = module {
 
     singleOf(::LiveTVXtreamRepositoryImpl).bind<LiveTVXtreamRepository>()
     singleOf(::MovieXtreamRepositoryImpl).bind<MovieXtreamRepository>()
+
+    singleOf(::LoginRoomRepositoryImpl).bind<LoginRoomRepository>()
 }
 
 val provideUseCaseModule = module {
@@ -172,10 +186,13 @@ val provideUseCaseModule = module {
     singleOf(::LiveTVXtreamUseCase)
     singleOf(::MovieBrowseXtreamUseCase)
     singleOf(::MovieDetailXtreamUseCase)
+
+    singleOf(::LoginRoomUseCase)
 }
 
 val provideViewModelModule = module {
     viewModelOf(::SplashViewModel)
+    viewModelOf(::LoginViewModel)
     viewModelOf(::NotificationViewModel)
     viewModelOf(::LiveTVPlayerViewModel)
     viewModelOf(::MovieContentViewModel)
