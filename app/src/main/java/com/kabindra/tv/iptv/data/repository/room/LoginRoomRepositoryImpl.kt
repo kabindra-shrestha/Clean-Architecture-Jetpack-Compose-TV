@@ -35,4 +35,20 @@ class LoginRoomRepositoryImpl(
             }
         }
 
+    override suspend fun getUser(): Flow<Result<User>> =
+        flow {
+            emit(Result.Loading)
+            try {
+                val responses: List<UserDTO> = appDatabase.userDao.findAll()
+
+                if (responses.isNotEmpty()) {
+                    emit(Result.Success(responses[0].toDomain()))
+                } else {
+                    emit(Result.Error(ResultError.parseException(Exception("No user found"))))
+                }
+            } catch (e: Exception) {
+                emit(Result.Error(ResultError.parseException(e)))
+            }
+        }
+
 }

@@ -10,4 +10,8 @@ class LoginRoomUseCase(private val repository: LoginRoomRepository) {
     suspend fun executeGetLoginUser(loginCheckDataRequest: LoginUserDataRequest): Flow<Result<User>> {
         return repository.getLoginUser(loginCheckDataRequest)
     }
+
+    suspend fun executeGetUser(): Flow<Result<User>> {
+        return repository.getUser()
+    }
 }

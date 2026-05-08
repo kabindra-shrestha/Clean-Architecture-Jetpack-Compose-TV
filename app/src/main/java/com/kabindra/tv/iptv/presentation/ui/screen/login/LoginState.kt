@@ -1,5 +1,6 @@
 package com.kabindra.tv.iptv.presentation.ui.screen.login
 
+import com.kabindra.tv.iptv.domain.entity.User
 import com.kabindra.tv.iptv.utils.constants.ConfirmationType
 import com.kabindra.tv.iptv.utils.constants.ResponseType
 
@@ -17,4 +18,5 @@ data class LoginState(
     val confirmationType: ConfirmationType = ConfirmationType.None,
     val confirmationMessage: String = "",
     val isLogged: Boolean? = false,
+    val user: User? = null,
 )

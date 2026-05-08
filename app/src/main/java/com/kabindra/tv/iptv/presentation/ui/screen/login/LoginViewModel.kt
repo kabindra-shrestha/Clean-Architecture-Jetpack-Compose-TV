@@ -35,8 +35,13 @@ class LoginViewModel(
             }
 
             is LoginEvent.GetUser -> {
+                getUser()
             }
         }
+    }
+
+    init {
+        getUser()
     }
 
     fun getLoginUser(loginCheckDataRequest: LoginUserDataRequest) {
@@ -55,6 +60,40 @@ class LoginViewModel(
                         _loginState.value = _loginState.value.copy(
                             isLoading = false,
                             isLogged = result.data.server_name?.isNotEmpty() == true,
+                            user = result.data
+                        )
+                    }
+
+                    is Result.Error -> {
+                        _loginState.value = _loginState.value.copy(
+                            isError = true,
+                            errorType = ResponseType.None,
+                            errorStatusCode = result.error.statusCode,
+                            errorTitle = "",
+                            errorMessage = result.error.message
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun getUser() {
+        viewModelScope.launch {
+            loginRoomUseCase.executeGetUser().collect { result ->
+                when (result) {
+                    is Result.Initial -> Unit
+
+                    is Result.Loading -> {
+                        _loginState.value = _loginState.value.copy(
+                            isLoading = true
+                        )
+                    }
+
+                    is Result.Success -> {
+                        _loginState.value = _loginState.value.copy(
+                            isLoading = false,
+                            user = result.data
                         )
                     }
 

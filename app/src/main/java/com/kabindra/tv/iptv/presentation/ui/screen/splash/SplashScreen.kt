@@ -47,7 +47,6 @@ fun SplashScreen(
         }
     }
 
-    println("isConnected: $isConnected")
     if (!isConnected) {
         GlobalErrorDialog(
             isVisible = true,
