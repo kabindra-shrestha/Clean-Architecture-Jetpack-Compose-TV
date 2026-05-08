@@ -55,10 +55,12 @@ fun InputComponent(
                             focusManager.moveFocus(FocusDirection.Down)
                             true
                         }
+
                         Key.DirectionUp -> {
                             focusManager.moveFocus(FocusDirection.Up)
                             true
                         }
+
                         else -> false
                     }
                 } else {

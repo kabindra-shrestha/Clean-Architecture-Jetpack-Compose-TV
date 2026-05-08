@@ -2,10 +2,12 @@ package com.kabindra.tv.iptv.presentation.ui.screen.movie.content
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kabindra.tv.iptv.data.source.UserCredentialsProvider
 import com.kabindra.tv.iptv.domain.entity.MediaPlaybackType
 import com.kabindra.tv.iptv.domain.entity.MediaStreamType
 import com.kabindra.tv.iptv.domain.entity.Movie
 import com.kabindra.tv.iptv.domain.entity.MovieCategory
+import com.kabindra.tv.iptv.domain.entity.User
 import com.kabindra.tv.iptv.domain.entity.VODCategory
 import com.kabindra.tv.iptv.domain.entity.VODSummary
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieBrowseUseCase
@@ -20,12 +22,25 @@ import kotlinx.coroutines.launch
 class MovieContentViewModel(
     private val movieBrowseUseCase: MovieBrowseUseCase,
     private val movieBrowseXtreamUseCase: MovieBrowseXtreamUseCase,
+    private val userCredentialsProvider: UserCredentialsProvider,
 ) : ViewModel() {
     private val _state = MutableStateFlow(MovieContentState())
     val state: StateFlow<MovieContentState> = _state.asStateFlow()
 
+    private var userCredentials = User()
     private var categories = listOf<MovieCategory>()
     private var movies = listOf<Movie>()
+
+    init {
+        getUserCredentials()
+    }
+
+    fun getUserCredentials() {
+        viewModelScope.launch {
+            userCredentials = userCredentialsProvider.getCurrentUser()
+                ?: throw IllegalStateException("User not logged in")
+        }
+    }
 
     fun getMovieCategories() {
         viewModelScope.launch {
@@ -103,6 +118,16 @@ class MovieContentViewModel(
         val movieMap = movies.groupBy { it.category_id }
         return categories.mapNotNull { cat ->
             val mappedMovies = movieMap[cat.category_id]?.map { movie ->
+                val streamUrl = if (!movie.direct_source.isNullOrEmpty()) {
+                    movie.direct_source
+                } else {
+                    buildStreamUrl(
+                        serverName = userCredentials.server_name ?: "",
+                        username = userCredentials.username ?: "",
+                        password = userCredentials.password ?: "",
+                        streamId = movie.stream_id.toString()
+                    )
+                }
                 VODSummary(
                     id = movie.stream_id.toString(),
                     categoryId = movie.category_id ?: "",
@@ -110,7 +135,7 @@ class MovieContentViewModel(
                     subtitle = movie.title ?: "",
                     posterUrl = movie.stream_icon ?: "",
                     backdropUrl = movie.stream_icon ?: "",
-                    streamUrl = movie.direct_source ?: "",
+                    streamUrl = streamUrl,
                     streamType = MediaStreamType.Progressive,
                     playbackType = MediaPlaybackType.Live
                 )
@@ -138,5 +163,14 @@ class MovieContentViewModel(
         movies = listOf()
 
         _state.value = MovieContentState()
+    }
+
+    private fun buildStreamUrl(
+        serverName: String,
+        username: String,
+        password: String,
+        streamId: String,
+    ): String {
+        return "http://$serverName/movie/$username/$password/$streamId.ts"
     }
 }

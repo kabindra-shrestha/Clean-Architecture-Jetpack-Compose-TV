@@ -6,6 +6,8 @@ import com.kabindra.tv.iptv.data.repository.remote.movie.MovieRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.room.LoginRoomRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.xtream.livetv.LiveTVXtreamRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.xtream.movie.MovieXtreamRepositoryImpl
+import com.kabindra.tv.iptv.data.source.UserCredentialsProvider
+import com.kabindra.tv.iptv.data.source.UserCredentialsProviderImpl
 import com.kabindra.tv.iptv.data.source.remote.ApiService
 import com.kabindra.tv.iptv.data.source.remote.livetv.FakeLiveTVRemoteDataSource
 import com.kabindra.tv.iptv.data.source.remote.livetv.LiveTVRemoteDataSource
@@ -13,8 +15,6 @@ import com.kabindra.tv.iptv.data.source.remote.movie.FakeMovieRemoteDataSource
 import com.kabindra.tv.iptv.data.source.remote.movie.MovieRemoteDataSource
 import com.kabindra.tv.iptv.data.source.room.AppDatabase
 import com.kabindra.tv.iptv.data.source.room.getDatabaseBuilder
-import com.kabindra.tv.iptv.data.source.UserCredentialsProvider
-import com.kabindra.tv.iptv.data.source.UserCredentialsProviderImpl
 import com.kabindra.tv.iptv.data.source.xtream.XtreamService
 import com.kabindra.tv.iptv.data.source.xtream.livetv.LiveTVXtreamDataSource
 import com.kabindra.tv.iptv.data.source.xtream.livetv.LiveTVXtreamDataSourceImpl

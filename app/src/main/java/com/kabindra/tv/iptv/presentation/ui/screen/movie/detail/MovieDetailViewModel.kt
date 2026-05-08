@@ -3,6 +3,8 @@ package com.kabindra.tv.iptv.presentation.ui.screen.movie.detail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kabindra.tv.iptv.data.model.toDomain
+import com.kabindra.tv.iptv.data.source.UserCredentialsProvider
+import com.kabindra.tv.iptv.domain.entity.User
 import com.kabindra.tv.iptv.domain.entity.VODCategory
 import com.kabindra.tv.iptv.domain.entity.VODSummary
 import com.kabindra.tv.iptv.domain.entity.toVODDetail
@@ -21,9 +23,23 @@ class MovieDetailViewModel(
     private val movieBrowseUseCase: MovieBrowseUseCase,
     private val movieDetailUseCase: MovieDetailUseCase,
     private val movieDetailXtreamUseCase: MovieDetailXtreamUseCase,
+    private val userCredentialsProvider: UserCredentialsProvider,
 ) : ViewModel() {
     private val _state = MutableStateFlow(MovieDetailState())
     val state: StateFlow<MovieDetailState> = _state.asStateFlow()
+
+    private var userCredentials = User()
+
+    init {
+        getUserCredentials()
+    }
+
+    fun getUserCredentials() {
+        viewModelScope.launch {
+            userCredentials = userCredentialsProvider.getCurrentUser()
+                ?: throw IllegalStateException("User not logged in")
+        }
+    }
 
     fun getMovieDetail(movieId: String) {
         if (_state.value.currentMovieId == movieId && _state.value.movie != null) return
@@ -47,7 +63,17 @@ class MovieDetailViewModel(
                         println("MovieDetailViewModel executeGetMovieDetail: Success ${result.data}")
                         val movieDetailDTO = result.data
                         val movieDetail = movieDetailDTO.toDomain()
-                        val vodDetail = movieDetail.toVODDetail()
+                        val streamUrl = if (!movieDetail.movieData?.directSource.isNullOrEmpty()) {
+                            movieDetail.movieData.directSource
+                        } else {
+                            buildStreamUrl(
+                                serverName = userCredentials.server_name ?: "",
+                                username = userCredentials.username ?: "",
+                                password = userCredentials.password ?: "",
+                                streamId = movieDetail.movieData?.streamId.toString()
+                            )
+                        }
+                        val vodDetail = movieDetail.toVODDetail().copy(streamUrl = streamUrl)
                         println("MovieDetailViewModel convertedToVODDetail: $vodDetail")
                         _state.update {
                             it.copy(
@@ -86,5 +112,14 @@ class MovieDetailViewModel(
             .filterNot { it.id == movieId }
             .ifEmpty { fallback }
             .shuffled(Random(seed))
+    }
+
+    private fun buildStreamUrl(
+        serverName: String,
+        username: String,
+        password: String,
+        streamId: String,
+    ): String {
+        return "http://$serverName/movie/$username/$password/$streamId.ts"
     }
 }

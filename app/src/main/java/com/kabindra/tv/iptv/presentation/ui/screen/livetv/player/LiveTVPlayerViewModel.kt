@@ -2,12 +2,14 @@ package com.kabindra.tv.iptv.presentation.ui.screen.livetv.player
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kabindra.tv.iptv.data.source.UserCredentialsProvider
 import com.kabindra.tv.iptv.domain.entity.ChannelCategory
 import com.kabindra.tv.iptv.domain.entity.LiveChannel
 import com.kabindra.tv.iptv.domain.entity.LiveTV
 import com.kabindra.tv.iptv.domain.entity.LiveTVCategory
 import com.kabindra.tv.iptv.domain.entity.MediaPlaybackType
 import com.kabindra.tv.iptv.domain.entity.MediaStreamType
+import com.kabindra.tv.iptv.domain.entity.User
 import com.kabindra.tv.iptv.domain.usecase.remote.livetv.LiveTVUseCase
 import com.kabindra.tv.iptv.domain.usecase.xtream.livetv.LiveTVXtreamUseCase
 import com.kabindra.tv.iptv.utils.ktor.Result
@@ -20,14 +22,17 @@ import kotlinx.coroutines.launch
 class LiveTVPlayerViewModel(
     private val liveTVUseCase: LiveTVUseCase,
     private val liveTVXtreamUseCase: LiveTVXtreamUseCase,
+    private val userCredentialsProvider: UserCredentialsProvider,
 ) : ViewModel() {
     private val _state = MutableStateFlow(LiveTVPlayerState())
     val state: StateFlow<LiveTVPlayerState> = _state.asStateFlow()
 
+    private var userCredentials = User()
     private var categories = listOf<LiveTVCategory>()
     private var channels = listOf<LiveTV>()
 
     init {
+        getUserCredentials()
         getLiveTVCategories()
     }
 
@@ -67,6 +72,13 @@ class LiveTVPlayerViewModel(
             }
         }
     }*/
+
+    fun getUserCredentials() {
+        viewModelScope.launch {
+            userCredentials = userCredentialsProvider.getCurrentUser()
+                ?: throw IllegalStateException("User not logged in")
+        }
+    }
 
     fun getLiveTVCategories() {
         viewModelScope.launch {
@@ -146,12 +158,22 @@ class LiveTVPlayerViewModel(
         val channelMap = channels.groupBy { it.category_id }
         return categories.mapNotNull { cat ->
             val mappedChannels = channelMap[cat.category_id]?.map { channel ->
+                val streamUrl = if (!channel.direct_source.isNullOrEmpty()) {
+                    channel.direct_source
+                } else {
+                    buildStreamUrl(
+                        serverName = userCredentials.server_name ?: "",
+                        username = userCredentials.username ?: "",
+                        password = userCredentials.password ?: "",
+                        streamId = channel.stream_id.toString()
+                    )
+                }
                 LiveChannel(
                     id = channel.stream_id.toString(),
                     categoryId = channel.category_id ?: "",
                     title = channel.name ?: "",
                     currentProgram = "",
-                    streamUrl = channel.direct_source ?: "",
+                    streamUrl = streamUrl,
                     streamType = MediaStreamType.Progressive,
                     playbackType = MediaPlaybackType.Live,
                     logoUrl = channel.stream_icon ?: ""
@@ -226,5 +248,14 @@ class LiveTVPlayerViewModel(
 
     private fun Int.floorMod(mod: Int): Int {
         return ((this % mod) + mod) % mod
+    }
+
+    private fun buildStreamUrl(
+        serverName: String,
+        username: String,
+        password: String,
+        streamId: String,
+    ): String {
+        return "http://$serverName/live/$username/$password/$streamId.ts"
     }
 }
