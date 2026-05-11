@@ -42,7 +42,7 @@ class XtreamService(private val xtream: Xtream) {
         serverName: String,
         username: String,
         password: String,
-        offset: Int = 10,
+        offset: Int = 0,
         itemsPerPage: Int = 30
     ): List<LiveTVDTO> {
         val params = "&params[offset]=$offset&params[items_per_page]=$itemsPerPage"

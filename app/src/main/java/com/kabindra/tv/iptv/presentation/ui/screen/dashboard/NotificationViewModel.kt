@@ -6,12 +6,16 @@ import androidx.lifecycle.viewModelScope
 import com.kabindra.tv.iptv.MainActivity
 import com.kabindra.tv.iptv.domain.entity.ConnectionState
 import com.kabindra.tv.iptv.domain.entity.NotificationMessage
+import com.kabindra.tv.iptv.domain.usecase.room.LiveTVRoomUseCase
 import com.kabindra.tv.iptv.service.SocketForegroundService
 import com.kabindra.tv.iptv.socket.KtorSocketClient
+import com.kabindra.tv.iptv.utils.ktor.Result
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -22,11 +26,26 @@ private const val POLL_INTERVAL_MS = 500L   // Poll for service availability
 // UI State
 // ─────────────────────────────────────────────────────────────────────────────
 
+enum class LiveTVCacheStatus {
+    Checking,
+    Preparing,
+    Ready,
+    Updating,
+    Error,
+}
+
 data class NotificationUiState(
     val connectionState: ConnectionState = ConnectionState.Connecting,
     val notifications: List<NotificationMessage> = emptyList(),
     val activeAlert: NotificationMessage? = null,         // Foreground in-app alert
-    val showAlertDialog: Boolean = false
+    val showAlertDialog: Boolean = false,
+    val liveTVCacheStatus: LiveTVCacheStatus = LiveTVCacheStatus.Checking,
+    val liveTVStatusMessage: String = "Checking live TV data...",
+    val liveTVSyncErrorMessage: String = "",
+    val liveTVCategoryCount: Int = 0,
+    val liveTVChannelCount: Int = 0,
+    val hasLiveTVData: Boolean = false,
+    val isLiveTVSyncing: Boolean = false,
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -36,14 +55,19 @@ data class NotificationUiState(
 // exposes a single UI state to Compose screens.
 // ─────────────────────────────────────────────────────────────────────────────
 
-class NotificationViewModel : ViewModel() {
+class NotificationViewModel(
+    private val liveTVRoomUseCase: LiveTVRoomUseCase,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NotificationUiState())
     val uiState: StateFlow<NotificationUiState> = _uiState.asStateFlow()
     private val handledPayloadIds = linkedSetOf<String>()
+    private var liveTVSyncJob: Job? = null
 
     init {
         observeService()
+        observeLiveTVCache()
+        prepareLiveTVCacheIfNeeded()
     }
 
     /**
@@ -90,7 +114,155 @@ class NotificationViewModel : ViewModel() {
         }
     }
 
+    private fun observeLiveTVCache() {
+        viewModelScope.launch {
+            combine(
+                liveTVRoomUseCase.observeLiveTVCategories(),
+                liveTVRoomUseCase.observeLiveTVChannels(),
+            ) { categoryResult, channelResult ->
+                categoryResult to channelResult
+            }.collect { (categoryResult, channelResult) ->
+                val categoryError = (categoryResult as? Result.Error)?.error?.message
+                val channelError = (channelResult as? Result.Error)?.error?.message
+                val errorMessage = categoryError ?: channelError
+
+                if (errorMessage != null) {
+                    _uiState.update {
+                        it.copy(
+                            liveTVCacheStatus = LiveTVCacheStatus.Error,
+                            liveTVStatusMessage = "Unable to read saved live TV data.",
+                            liveTVSyncErrorMessage = errorMessage,
+                            isLiveTVSyncing = false,
+                        )
+                    }
+                    return@collect
+                }
+
+                val categories = (categoryResult as? Result.Success)?.data ?: return@collect
+                val channels = (channelResult as? Result.Success)?.data ?: return@collect
+                val hasData = categories.isNotEmpty() && channels.isNotEmpty()
+
+                _uiState.update { current ->
+                    val status = when {
+                        current.isLiveTVSyncing -> current.liveTVCacheStatus
+                        hasData -> LiveTVCacheStatus.Ready
+                        else -> current.liveTVCacheStatus
+                    }
+                    val message = when {
+                        current.isLiveTVSyncing -> current.liveTVStatusMessage
+                        hasData -> liveTVReadyMessage(categories.size, channels.size)
+                        else -> current.liveTVStatusMessage
+                    }
+
+                    current.copy(
+                        liveTVCacheStatus = status,
+                        liveTVStatusMessage = message,
+                        liveTVCategoryCount = categories.size,
+                        liveTVChannelCount = channels.size,
+                        hasLiveTVData = hasData,
+                        liveTVSyncErrorMessage = if (hasData) "" else current.liveTVSyncErrorMessage,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun prepareLiveTVCacheIfNeeded() {
+        liveTVSyncJob = viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    liveTVCacheStatus = LiveTVCacheStatus.Checking,
+                    liveTVStatusMessage = "Checking live TV data...",
+                    liveTVSyncErrorMessage = "",
+                )
+            }
+
+            if (liveTVRoomUseCase.hasLiveTVData()) {
+                _uiState.update {
+                    it.copy(
+                        liveTVCacheStatus = LiveTVCacheStatus.Ready,
+                        liveTVStatusMessage = liveTVReadyMessage(
+                            categoryCount = it.liveTVCategoryCount,
+                            channelCount = it.liveTVChannelCount,
+                        ),
+                        hasLiveTVData = true,
+                    )
+                }
+                return@launch
+            }
+
+            runLiveTVSync(isManual = false)
+        }
+    }
+
     // ── Actions ───────────────────────────────────────────────────────────────
+
+    fun syncLiveTVContent() {
+        if (liveTVSyncJob?.isActive == true) return
+
+        liveTVSyncJob = viewModelScope.launch {
+            runLiveTVSync(isManual = true)
+        }
+    }
+
+    private suspend fun runLiveTVSync(isManual: Boolean) {
+        liveTVRoomUseCase.syncLiveTVContent().collect { result ->
+            when (result) {
+                is Result.Initial -> Unit
+                is Result.Loading -> {
+                    _uiState.update {
+                        it.copy(
+                            liveTVCacheStatus = if (isManual) {
+                                LiveTVCacheStatus.Updating
+                            } else {
+                                LiveTVCacheStatus.Preparing
+                            },
+                            liveTVStatusMessage = if (isManual) {
+                                "Updating live TV..."
+                            } else {
+                                "Preparing live TV..."
+                            },
+                            liveTVSyncErrorMessage = "",
+                            isLiveTVSyncing = true,
+                        )
+                    }
+                }
+
+                is Result.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            liveTVCacheStatus = LiveTVCacheStatus.Ready,
+                            liveTVStatusMessage = liveTVReadyMessage(
+                                categoryCount = result.data.categoryCount,
+                                channelCount = result.data.channelCount,
+                            ),
+                            liveTVCategoryCount = result.data.categoryCount,
+                            liveTVChannelCount = result.data.channelCount,
+                            hasLiveTVData = result.data.categoryCount > 0 && result.data.channelCount > 0,
+                            liveTVSyncErrorMessage = "",
+                            isLiveTVSyncing = false,
+                        )
+                    }
+                }
+
+                is Result.Error -> {
+                    val hasCachedData = _uiState.value.hasLiveTVData
+                    _uiState.update {
+                        it.copy(
+                            liveTVCacheStatus = LiveTVCacheStatus.Error,
+                            liveTVStatusMessage = if (hasCachedData) {
+                                "Update failed. Using saved live TV data."
+                            } else {
+                                "Live TV sync failed."
+                            },
+                            liveTVSyncErrorMessage = result.error.message,
+                            isLiveTVSyncing = false,
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     fun updatePayloadAlert(payload: MainActivity.AlertPayload?) {
         if (payload == null) {
@@ -141,6 +313,14 @@ class NotificationViewModel : ViewModel() {
                 showAlertDialog = false,
                 activeAlert = null
             )
+        }
+    }
+
+    private fun liveTVReadyMessage(categoryCount: Int, channelCount: Int): String {
+        return if (categoryCount > 0 && channelCount > 0) {
+            "Live TV ready: $categoryCount categories, $channelCount channels"
+        } else {
+            "Live TV data is ready"
         }
     }
 }

@@ -10,18 +10,17 @@ import com.kabindra.tv.iptv.domain.entity.LiveTVCategory
 import com.kabindra.tv.iptv.domain.entity.MediaPlaybackType
 import com.kabindra.tv.iptv.domain.entity.MediaStreamType
 import com.kabindra.tv.iptv.domain.entity.User
-import com.kabindra.tv.iptv.domain.usecase.remote.livetv.LiveTVUseCase
-import com.kabindra.tv.iptv.domain.usecase.xtream.livetv.LiveTVXtreamUseCase
+import com.kabindra.tv.iptv.domain.usecase.room.LiveTVRoomUseCase
 import com.kabindra.tv.iptv.utils.ktor.Result
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class LiveTVPlayerViewModel(
-    private val liveTVUseCase: LiveTVUseCase,
-    private val liveTVXtreamUseCase: LiveTVXtreamUseCase,
+    private val liveTVRoomUseCase: LiveTVRoomUseCase,
     private val userCredentialsProvider: UserCredentialsProvider,
 ) : ViewModel() {
     private val _state = MutableStateFlow(LiveTVPlayerState())
@@ -32,79 +31,71 @@ class LiveTVPlayerViewModel(
     private var channels = listOf<LiveTV>()
 
     init {
-        getUserCredentials()
-        getLiveTVCategories()
+        observeLiveTVContent()
     }
 
-    /*fun getLiveTVChannels() {
+    private fun observeLiveTVContent() {
         viewModelScope.launch {
-            liveTVUseCase.executeGetLiveTVContent().collect { result ->
-                when (result) {
-                    is Result.Initial -> Unit
-                    is Result.Loading -> {
-                        _state.update { it.copy(isLoading = true, errorMessage = "") }
-                    }
+            combine(
+                liveTVRoomUseCase.observeLiveTVCategories(),
+                liveTVRoomUseCase.observeLiveTVChannels(),
+                userCredentialsProvider.observeCurrentUser(),
+            ) { categoryResult, channelResult, user ->
+                Triple(categoryResult, channelResult, user)
+            }.collect { (categoryResult, channelResult, user) ->
+                val categoryError = (categoryResult as? Result.Error)?.error?.message
+                val channelError = (channelResult as? Result.Error)?.error?.message
+                val errorMessage = categoryError ?: channelError
 
-                    is Result.Success -> {
-                        val categories = result.data
-                        val firstCategory = categories.firstOrNull()
-                        val firstChannel = firstCategory?.channels?.firstOrNull()
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = "",
-                                categories = categories,
-                                selectedCategoryId = it.selectedCategoryId ?: firstCategory?.id,
-                                selectedChannelId = it.selectedChannelId ?: firstChannel?.id
-                            )
-                        }
+                if (errorMessage != null) {
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            isEmpty = false,
+                            errorMessage = errorMessage,
+                        )
                     }
-
-                    is Result.Error -> {
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = result.error.message
-                            )
-                        }
-                    }
+                    return@collect
                 }
-            }
-        }
-    }*/
 
-    fun getUserCredentials() {
-        viewModelScope.launch {
-            userCredentials = userCredentialsProvider.getCurrentUser()
-                ?: throw IllegalStateException("User not logged in")
-        }
-    }
-
-    fun getLiveTVCategories() {
-        viewModelScope.launch {
-            liveTVXtreamUseCase.executeGetLiveTVCategories().collect { result ->
-                when (result) {
-                    is Result.Initial -> Unit
-                    is Result.Loading -> {
-                        _state.update { it.copy(isLoading = true, errorMessage = "") }
-                    }
-
-                    is Result.Success -> {
-                        println("LiveTVPlayerViewModel executeGetLiveTVCategories: Success ${result.data}")
-                        categories = result.data
-
-                        getLiveTVChannels()
-                    }
-
-                    is Result.Error -> {
-                        println("LiveTVPlayerViewModel executeGetLiveTVCategories: Error ${result.error.message}")
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = result.error.message
-                            )
+                if (categoryResult !is Result.Success || channelResult !is Result.Success) {
+                    _state.update {
+                        if (it.categories.isEmpty()) {
+                            it.copy(isLoading = true, isEmpty = false, errorMessage = "")
+                        } else {
+                            it
                         }
                     }
+                    return@collect
+                }
+
+                userCredentials = user ?: User()
+                categories = categoryResult.data
+                channels = channelResult.data
+
+                val mappedCategories = mapToChannelCategories(categories, channels)
+                val firstCategory = mappedCategories.firstOrNull()
+                val selectedCategory = _state.value.selectedCategoryId
+                    ?.let { selectedId -> mappedCategories.firstOrNull { it.id == selectedId } }
+                    ?: firstCategory
+                val selectedChannel = _state.value.selectedChannelId
+                    ?.let { selectedId ->
+                        mappedCategories
+                            .flatMap(ChannelCategory::channels)
+                            .firstOrNull { it.id == selectedId }
+                    }
+                    ?: selectedCategory?.channels?.firstOrNull()
+                    ?: firstCategory?.channels?.firstOrNull()
+
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        isEmpty = mappedCategories.isEmpty(),
+                        errorMessage = "",
+                        categories = mappedCategories,
+                        selectedCategoryId = selectedCategory?.id,
+                        selectedChannelId = selectedChannel?.id,
+                    )
                 }
             }
         }
@@ -112,40 +103,29 @@ class LiveTVPlayerViewModel(
 
     fun getLiveTVChannels() {
         viewModelScope.launch {
-            liveTVXtreamUseCase.executeGetLiveTVChannels().collect { result ->
+            liveTVRoomUseCase.syncLiveTVContent().collect { result ->
                 when (result) {
                     is Result.Initial -> Unit
                     is Result.Loading -> {
-                        _state.update { it.copy(isLoading = true, errorMessage = "") }
-                    }
-
-                    is Result.Success -> {
-                        println("LiveTVPlayerViewModel executeGetLiveTVChannels: Success ${result.data}")
-                        channels = result.data
-
-                        val mappedCategories = mapToChannelCategories(categories, channels)
-                        val firstCategory = mappedCategories.firstOrNull()
-                        val firstChannel = firstCategory?.channels?.firstOrNull()
                         _state.update {
                             it.copy(
-                                isLoading = false,
-                                errorMessage = "",
-                                categories = mappedCategories,
-                                selectedCategoryId = it.selectedCategoryId ?: firstCategory?.id,
-                                selectedChannelId = it.selectedChannelId ?: firstChannel?.id
+                                isLoading = true,
+                                isEmpty = false,
+                                errorMessage = ""
                             )
                         }
                     }
 
                     is Result.Error -> {
-                        println("LiveTVPlayerViewModel executeGetMovieCategories: Error ${result.error.message}")
                         _state.update {
                             it.copy(
                                 isLoading = false,
-                                errorMessage = result.error.message
+                                errorMessage = result.error.message,
                             )
                         }
                     }
+
+                    is Result.Success -> Unit
                 }
             }
         }
@@ -157,7 +137,8 @@ class LiveTVPlayerViewModel(
     ): List<ChannelCategory> {
         val channelMap = channels.groupBy { it.category_id }
         return categories.mapNotNull { cat ->
-            val mappedChannels = channelMap[cat.category_id]?.map { channel ->
+            val mappedChannels = channelMap[cat.category_id]?.mapNotNull { channel ->
+                val streamId = channel.stream_id?.toString() ?: return@mapNotNull null
                 val streamUrl = if (!channel.direct_source.isNullOrEmpty()) {
                     channel.direct_source
                 } else {
@@ -165,11 +146,11 @@ class LiveTVPlayerViewModel(
                         serverName = userCredentials.server_name ?: "",
                         username = userCredentials.username ?: "",
                         password = userCredentials.password ?: "",
-                        streamId = channel.stream_id.toString()
+                        streamId = streamId
                     )
                 }
                 LiveChannel(
-                    id = channel.stream_id.toString(),
+                    id = streamId,
                     categoryId = channel.category_id ?: "",
                     title = channel.name ?: "",
                     currentProgram = "",

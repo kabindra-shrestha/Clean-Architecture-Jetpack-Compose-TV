@@ -7,11 +7,16 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,7 +34,9 @@ import com.kabindra.tv.iptv.presentation.ui.component.BaseLazy
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazyLayout
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazyOrientation
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazyPlatform
+import com.kabindra.tv.iptv.presentation.ui.component.ButtonComponent
 import com.kabindra.tv.iptv.presentation.ui.component.DashboardTileComponent
+import com.kabindra.tv.iptv.presentation.ui.component.LoadingIndicator
 import com.kabindra.tv.iptv.presentation.ui.component.TextComponent
 import com.kabindra.tv.iptv.presentation.ui.component.TextSize
 import com.kabindra.tv.iptv.presentation.ui.component.TextType
@@ -107,6 +114,55 @@ fun DashboardScreen(
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurface
         )
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(
+                    start = DashboardScreenTokens.contentHorizontalPadding.sdp,
+                    top = 60.sdp
+                ),
+            verticalArrangement = Arrangement.spacedBy(8.sdp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.sdp)
+            ) {
+                if (uiState.isLiveTVSyncing) {
+                    LoadingIndicator(
+                        modifier = Modifier.size(18.sdp),
+                        isCircular = true,
+                        useExpressive = true
+                    )
+                }
+
+                TextComponent(
+                    text = uiState.liveTVStatusMessage,
+                    type = TextType.Body,
+                    size = TextSize.Medium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                if (uiState.hasLiveTVData) {
+                    ButtonComponent(
+                        text = "Sync",
+                        icon = Icons.Default.Sync,
+                        enabled = !uiState.isLiveTVSyncing,
+                        onClick = viewModel::syncLiveTVContent
+                    )
+                }
+            }
+
+            if (uiState.liveTVSyncErrorMessage.isNotBlank()) {
+                TextComponent(
+                    text = uiState.liveTVSyncErrorMessage,
+                    type = TextType.Body,
+                    size = TextSize.Small,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
 
         BaseLazy(
             items = menuItems,

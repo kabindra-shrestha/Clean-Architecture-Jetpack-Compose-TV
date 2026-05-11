@@ -242,6 +242,26 @@ fun LiveTVPlayerScreen(
                     )
                 }
             }
+
+            state.isEmpty -> {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.sdp)
+                ) {
+                    LoadingIndicator(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        isCircular = true,
+                        useExpressive = true
+                    )
+                    TextComponent(
+                        text = "Preparing live TV data...",
+                        type = TextType.Body,
+                        size = TextSize.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
         }
 
         if (state.isChannelOverlayVisible && selectedCategory != null) {

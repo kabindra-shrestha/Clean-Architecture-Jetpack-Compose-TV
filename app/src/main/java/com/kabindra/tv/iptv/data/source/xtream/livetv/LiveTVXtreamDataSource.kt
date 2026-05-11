@@ -7,7 +7,10 @@ import com.kabindra.tv.iptv.data.source.xtream.XtreamService
 
 interface LiveTVXtreamDataSource {
     suspend fun getLiveTVCategories(): List<LiveTVCategoryDTO>
-    suspend fun getLiveTVChannels(): List<LiveTVDTO>
+    suspend fun getLiveTVChannels(
+        offset: Int = 0,
+        itemsPerPage: Int = 30,
+    ): List<LiveTVDTO>
 }
 
 class LiveTVXtreamDataSourceImpl(
@@ -26,14 +29,19 @@ class LiveTVXtreamDataSourceImpl(
         )
     }
 
-    override suspend fun getLiveTVChannels(): List<LiveTVDTO> {
+    override suspend fun getLiveTVChannels(
+        offset: Int,
+        itemsPerPage: Int,
+    ): List<LiveTVDTO> {
         val user = userCredentialsProvider.getCurrentUser()
             ?: throw IllegalStateException("User not logged in")
 
         return xtreamService.getLiveTVChannels(
             serverName = user.server_name ?: throw IllegalStateException("Server name not found"),
             username = user.username ?: throw IllegalStateException("Username not found"),
-            password = user.password ?: throw IllegalStateException("Password not found")
+            password = user.password ?: throw IllegalStateException("Password not found"),
+            offset = offset,
+            itemsPerPage = itemsPerPage,
         )
     }
 }

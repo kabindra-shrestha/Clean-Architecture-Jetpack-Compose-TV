@@ -3,6 +3,7 @@ package com.kabindra.tv.iptv.di
 import androidx.compose.material3.SnackbarHostState
 import com.kabindra.tv.iptv.data.repository.remote.livetv.LiveTVRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.remote.movie.MovieRepositoryImpl
+import com.kabindra.tv.iptv.data.repository.room.LiveTVRoomRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.room.LoginRoomRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.xtream.livetv.LiveTVXtreamRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.xtream.movie.MovieXtreamRepositoryImpl
@@ -22,12 +23,14 @@ import com.kabindra.tv.iptv.data.source.xtream.movie.MovieXtreamDataSource
 import com.kabindra.tv.iptv.data.source.xtream.movie.MovieXtreamDataSourceImpl
 import com.kabindra.tv.iptv.domain.repository.remote.livetv.LiveTVRepository
 import com.kabindra.tv.iptv.domain.repository.remote.movie.MovieRepository
+import com.kabindra.tv.iptv.domain.repository.room.LiveTVRoomRepository
 import com.kabindra.tv.iptv.domain.repository.room.LoginRoomRepository
 import com.kabindra.tv.iptv.domain.repository.xtream.livetv.LiveTVXtreamRepository
 import com.kabindra.tv.iptv.domain.repository.xtream.movie.MovieXtreamRepository
 import com.kabindra.tv.iptv.domain.usecase.remote.livetv.LiveTVUseCase
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieBrowseUseCase
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieDetailUseCase
+import com.kabindra.tv.iptv.domain.usecase.room.LiveTVRoomUseCase
 import com.kabindra.tv.iptv.domain.usecase.room.LoginRoomUseCase
 import com.kabindra.tv.iptv.domain.usecase.xtream.livetv.LiveTVXtreamUseCase
 import com.kabindra.tv.iptv.domain.usecase.xtream.movie.MovieBrowseXtreamUseCase
@@ -175,6 +178,7 @@ val provideRepositoryModule = module {
     singleOf(::LiveTVXtreamRepositoryImpl).bind<LiveTVXtreamRepository>()
     singleOf(::MovieXtreamRepositoryImpl).bind<MovieXtreamRepository>()
 
+    singleOf(::LiveTVRoomRepositoryImpl).bind<LiveTVRoomRepository>()
     singleOf(::LoginRoomRepositoryImpl).bind<LoginRoomRepository>()
 }
 
@@ -187,6 +191,7 @@ val provideUseCaseModule = module {
     singleOf(::MovieBrowseXtreamUseCase)
     singleOf(::MovieDetailXtreamUseCase)
 
+    singleOf(::LiveTVRoomUseCase)
     singleOf(::LoginRoomUseCase)
 }
 

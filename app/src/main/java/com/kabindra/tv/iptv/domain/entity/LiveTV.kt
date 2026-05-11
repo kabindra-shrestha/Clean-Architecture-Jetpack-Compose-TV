@@ -22,3 +22,8 @@ data class LiveTV(
     val category_ids: List<Int>?,
     val thumbnail: String?,
 )
+
+data class LiveTVSyncSummary(
+    val categoryCount: Int,
+    val channelCount: Int,
+)
