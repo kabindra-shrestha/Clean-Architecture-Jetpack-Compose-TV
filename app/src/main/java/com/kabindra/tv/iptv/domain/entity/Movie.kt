@@ -30,3 +30,8 @@ data class Movie(
     val custom_sid: String? = "",
     val direct_source: String?,
 )
+
+data class MovieSyncSummary(
+    val categoryCount: Int,
+    val movieCount: Int,
+)

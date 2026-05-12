@@ -59,7 +59,7 @@ private object DashboardScreenTokens {
 
 @Composable
 fun DashboardScreen(
-    viewModel: NotificationViewModel = koinViewModel(),
+    viewModel: DashboardViewModel = koinViewModel(),
     innerPadding: PaddingValues,
     payload: MainActivity.AlertPayload?,
     onPayloadConsumed: () -> Unit,
@@ -157,6 +157,45 @@ fun DashboardScreen(
             if (uiState.liveTVSyncErrorMessage.isNotBlank()) {
                 TextComponent(
                     text = uiState.liveTVSyncErrorMessage,
+                    type = TextType.Body,
+                    size = TextSize.Small,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.sdp)
+            ) {
+                if (uiState.isMovieSyncing) {
+                    LoadingIndicator(
+                        modifier = Modifier.size(18.sdp),
+                        isCircular = true,
+                        useExpressive = true
+                    )
+                }
+
+                TextComponent(
+                    text = uiState.movieStatusMessage,
+                    type = TextType.Body,
+                    size = TextSize.Medium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                if (uiState.hasMovieData) {
+                    ButtonComponent(
+                        text = "Sync",
+                        icon = Icons.Default.Sync,
+                        enabled = !uiState.isMovieSyncing,
+                        onClick = viewModel::syncMovieContent
+                    )
+                }
+            }
+
+            if (uiState.movieSyncErrorMessage.isNotBlank()) {
+                TextComponent(
+                    text = uiState.movieSyncErrorMessage,
                     type = TextType.Body,
                     size = TextSize.Small,
                     color = MaterialTheme.colorScheme.error

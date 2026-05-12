@@ -1,0 +1,308 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "e7ee720fbeb643f3d268dc9ffd29ba36",
+    "entities": [
+      {
+        "tableName": "users",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `server_name` TEXT, `username` TEXT, `password` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "server_name",
+            "columnName": "server_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "username",
+            "columnName": "username",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "password",
+            "columnName": "password",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "live_tv_categories",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`category_id` TEXT NOT NULL, `category_name` TEXT, `parent_id` INTEGER, PRIMARY KEY(`category_id`))",
+        "fields": [
+          {
+            "fieldPath": "category_id",
+            "columnName": "category_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "category_name",
+            "columnName": "category_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "parent_id",
+            "columnName": "parent_id",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "category_id"
+          ]
+        }
+      },
+      {
+        "tableName": "live_tv_channels",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`num` INTEGER, `name` TEXT, `stream_type` TEXT, `stream_id` INTEGER NOT NULL, `stream_icon` TEXT, `epg_channel_id` TEXT, `added` TEXT, `custom_sid` TEXT, `tv_archive` INTEGER, `direct_source` TEXT, `tv_archive_duration` INTEGER, `category_id` TEXT, `category_ids` TEXT, `thumbnail` TEXT, PRIMARY KEY(`stream_id`))",
+        "fields": [
+          {
+            "fieldPath": "num",
+            "columnName": "num",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "stream_type",
+            "columnName": "stream_type",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "stream_id",
+            "columnName": "stream_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stream_icon",
+            "columnName": "stream_icon",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "epg_channel_id",
+            "columnName": "epg_channel_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "added",
+            "columnName": "added",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "custom_sid",
+            "columnName": "custom_sid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "tv_archive",
+            "columnName": "tv_archive",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "direct_source",
+            "columnName": "direct_source",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "tv_archive_duration",
+            "columnName": "tv_archive_duration",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "category_id",
+            "columnName": "category_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "category_ids",
+            "columnName": "category_ids",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "thumbnail",
+            "columnName": "thumbnail",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "stream_id"
+          ]
+        }
+      },
+      {
+        "tableName": "movie_categories",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`category_id` TEXT NOT NULL, `category_name` TEXT, `parent_id` INTEGER, PRIMARY KEY(`category_id`))",
+        "fields": [
+          {
+            "fieldPath": "category_id",
+            "columnName": "category_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "category_name",
+            "columnName": "category_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "parent_id",
+            "columnName": "parent_id",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "category_id"
+          ]
+        }
+      },
+      {
+        "tableName": "movies",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`num` INTEGER, `name` TEXT, `title` TEXT, `year` TEXT, `stream_type` TEXT, `stream_id` INTEGER NOT NULL, `stream_icon` TEXT, `rating` REAL, `rating_5based` REAL, `added` TEXT, `plot` TEXT, `cast` TEXT, `director` TEXT, `genre` TEXT, `release_date` TEXT, `youtube_trailer` TEXT, `episode_run_time` INTEGER, `category_id` TEXT, `category_ids` TEXT, `container_extension` TEXT, `custom_sid` TEXT, `direct_source` TEXT, PRIMARY KEY(`stream_id`))",
+        "fields": [
+          {
+            "fieldPath": "num",
+            "columnName": "num",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "year",
+            "columnName": "year",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "stream_type",
+            "columnName": "stream_type",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "stream_id",
+            "columnName": "stream_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stream_icon",
+            "columnName": "stream_icon",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "rating",
+            "columnName": "rating",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "rating_5based",
+            "columnName": "rating_5based",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "added",
+            "columnName": "added",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "plot",
+            "columnName": "plot",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "cast",
+            "columnName": "cast",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "director",
+            "columnName": "director",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "genre",
+            "columnName": "genre",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "release_date",
+            "columnName": "release_date",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "youtube_trailer",
+            "columnName": "youtube_trailer",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "episode_run_time",
+            "columnName": "episode_run_time",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "category_id",
+            "columnName": "category_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "category_ids",
+            "columnName": "category_ids",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "container_extension",
+            "columnName": "container_extension",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "custom_sid",
+            "columnName": "custom_sid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "direct_source",
+            "columnName": "direct_source",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "stream_id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e7ee720fbeb643f3d268dc9ffd29ba36')"
+    ]
+  }
+}

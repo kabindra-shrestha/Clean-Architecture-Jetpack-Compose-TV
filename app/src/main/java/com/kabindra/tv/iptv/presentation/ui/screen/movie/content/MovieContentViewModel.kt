@@ -10,18 +10,17 @@ import com.kabindra.tv.iptv.domain.entity.MovieCategory
 import com.kabindra.tv.iptv.domain.entity.User
 import com.kabindra.tv.iptv.domain.entity.VODCategory
 import com.kabindra.tv.iptv.domain.entity.VODSummary
-import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieBrowseUseCase
-import com.kabindra.tv.iptv.domain.usecase.xtream.movie.MovieBrowseXtreamUseCase
+import com.kabindra.tv.iptv.domain.usecase.room.MovieRoomUseCase
 import com.kabindra.tv.iptv.utils.ktor.Result
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class MovieContentViewModel(
-    private val movieBrowseUseCase: MovieBrowseUseCase,
-    private val movieBrowseXtreamUseCase: MovieBrowseXtreamUseCase,
+    private val movieRoomUseCase: MovieRoomUseCase,
     private val userCredentialsProvider: UserCredentialsProvider,
 ) : ViewModel() {
     private val _state = MutableStateFlow(MovieContentState())
@@ -32,80 +31,61 @@ class MovieContentViewModel(
     private var movies = listOf<Movie>()
 
     init {
-        getUserCredentials()
+        observeMovieContent()
     }
 
-    fun getUserCredentials() {
+    fun observeMovieContent() {
         viewModelScope.launch {
-            userCredentials = userCredentialsProvider.getCurrentUser()
-                ?: throw IllegalStateException("User not logged in")
-        }
-    }
+            combine(
+                movieRoomUseCase.observeMovieCategories(),
+                movieRoomUseCase.observeMovies(),
+                userCredentialsProvider.observeCurrentUser(),
+            ) { categoryResult, movieResult, user ->
+                Triple(categoryResult, movieResult, user)
+            }.collect { (categoryResult, movieResult, user) ->
+                val categoryError = (categoryResult as? Result.Error)?.error?.message
+                val movieError = (movieResult as? Result.Error)?.error?.message
+                val errorMessage = categoryError ?: movieError
 
-    fun getMovieCategories() {
-        viewModelScope.launch {
-            movieBrowseXtreamUseCase.executeGetMovieCategories().collect { result ->
-                when (result) {
-                    is Result.Initial -> Unit
-                    is Result.Loading -> {
-                        _state.update { it.copy(isLoading = true, errorMessage = "") }
+                if (errorMessage != null) {
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            isEmpty = false,
+                            errorMessage = errorMessage,
+                        )
                     }
-
-                    is Result.Success -> {
-                        println("MovieContentViewModel executeGetMovieCategories: Success ${result.data}")
-                        categories = result.data
-
-                        getMovies()
-                    }
-
-                    is Result.Error -> {
-                        println("MovieContentViewModel executeGetMovieCategories: Error ${result.error.message}")
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = result.error.message
-                            )
-                        }
-                    }
+                    return@collect
                 }
-            }
-        }
-    }
 
-    fun getMovies() {
-        viewModelScope.launch {
-            movieBrowseXtreamUseCase.executeGetMovies().collect { result ->
-                when (result) {
-                    is Result.Initial -> Unit
-                    is Result.Loading -> {
-                        _state.update { it.copy(isLoading = true, errorMessage = "") }
-                    }
-
-                    is Result.Success -> {
-                        println("MovieContentViewModel executeGetMovies: Success ${result.data}")
-                        movies = result.data
-
-                        val mappedCategories = mapToMovieCategories(categories, movies)
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = "",
-                                categories = mappedCategories,
-                                selectedCategoryId = it.selectedCategoryId
-                                    ?: categories.firstOrNull()?.category_id
-                            )
+                if (categoryResult !is Result.Success || movieResult !is Result.Success) {
+                    _state.update {
+                        if (it.categories.isEmpty()) {
+                            it.copy(isLoading = true, isEmpty = false, errorMessage = "")
+                        } else {
+                            it
                         }
                     }
+                    return@collect
+                }
 
-                    is Result.Error -> {
-                        println("MovieContentViewModel executeGetMovies: Error ${result.error.message}")
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = result.error.message
-                            )
-                        }
-                    }
+                userCredentials = user ?: User()
+                categories = categoryResult.data
+                movies = movieResult.data
+
+                val mappedCategories = mapToMovieCategories(categories, movies)
+                val selectedCategory = _state.value.selectedCategoryId
+                    ?.let { selectedId -> mappedCategories.firstOrNull { it.id == selectedId } }
+                    ?: mappedCategories.firstOrNull()
+
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        isEmpty = mappedCategories.isEmpty(),
+                        errorMessage = "",
+                        categories = mappedCategories,
+                        selectedCategoryId = selectedCategory?.id,
+                    )
                 }
             }
         }
@@ -116,8 +96,10 @@ class MovieContentViewModel(
         movies: List<Movie>
     ): List<VODCategory> {
         val movieMap = movies.groupBy { it.category_id }
+
         return categories.mapNotNull { cat ->
-            val mappedMovies = movieMap[cat.category_id]?.map { movie ->
+            val mappedMovies = movieMap[cat.category_id]?.mapNotNull { movie ->
+                val streamId = movie.stream_id?.toString() ?: return@mapNotNull null
                 val streamUrl = if (!movie.direct_source.isNullOrEmpty()) {
                     movie.direct_source
                 } else {
@@ -125,11 +107,11 @@ class MovieContentViewModel(
                         serverName = userCredentials.server_name ?: "",
                         username = userCredentials.username ?: "",
                         password = userCredentials.password ?: "",
-                        streamId = movie.stream_id.toString()
+                        streamId = streamId
                     )
                 }
                 VODSummary(
-                    id = movie.stream_id.toString(),
+                    id = streamId,
                     categoryId = movie.category_id ?: "",
                     title = movie.name ?: "",
                     subtitle = movie.title ?: "",
@@ -137,7 +119,7 @@ class MovieContentViewModel(
                     backdropUrl = movie.stream_icon ?: "",
                     streamUrl = streamUrl,
                     streamType = MediaStreamType.Progressive,
-                    playbackType = MediaPlaybackType.Live
+                    playbackType = MediaPlaybackType.Movie
                 )
             } ?: emptyList()
 
@@ -158,19 +140,12 @@ class MovieContentViewModel(
         _state.update { it.copy(selectedCategoryId = categoryId) }
     }
 
-    fun reset() {
-        categories = listOf()
-        movies = listOf()
-
-        _state.value = MovieContentState()
-    }
-
     private fun buildStreamUrl(
         serverName: String,
         username: String,
         password: String,
         streamId: String,
     ): String {
-        return "http://$serverName/movie/$username/$password/$streamId.ts"
+        return "http://$serverName/movie/$username/$password/$streamId.ts}"
     }
 }

@@ -7,6 +7,7 @@ import com.kabindra.tv.iptv.MainActivity
 import com.kabindra.tv.iptv.domain.entity.ConnectionState
 import com.kabindra.tv.iptv.domain.entity.NotificationMessage
 import com.kabindra.tv.iptv.domain.usecase.room.LiveTVRoomUseCase
+import com.kabindra.tv.iptv.domain.usecase.room.MovieRoomUseCase
 import com.kabindra.tv.iptv.service.SocketForegroundService
 import com.kabindra.tv.iptv.socket.KtorSocketClient
 import com.kabindra.tv.iptv.utils.ktor.Result
@@ -19,14 +20,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-private const val TAG = "NotificationViewModel"
+private const val TAG = "DashboardViewModel"
 private const val POLL_INTERVAL_MS = 500L   // Poll for service availability
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UI State
 // ─────────────────────────────────────────────────────────────────────────────
 
-enum class LiveTVCacheStatus {
+enum class MediaCacheStatus {
     Checking,
     Preparing,
     Ready,
@@ -34,40 +35,51 @@ enum class LiveTVCacheStatus {
     Error,
 }
 
-data class NotificationUiState(
+data class DashboardUiState(
     val connectionState: ConnectionState = ConnectionState.Connecting,
     val notifications: List<NotificationMessage> = emptyList(),
     val activeAlert: NotificationMessage? = null,         // Foreground in-app alert
     val showAlertDialog: Boolean = false,
-    val liveTVCacheStatus: LiveTVCacheStatus = LiveTVCacheStatus.Checking,
+    val liveTVCacheStatus: MediaCacheStatus = MediaCacheStatus.Checking,
     val liveTVStatusMessage: String = "Checking live TV data...",
     val liveTVSyncErrorMessage: String = "",
     val liveTVCategoryCount: Int = 0,
     val liveTVChannelCount: Int = 0,
     val hasLiveTVData: Boolean = false,
     val isLiveTVSyncing: Boolean = false,
+    val movieCacheStatus: MediaCacheStatus = MediaCacheStatus.Checking,
+    val movieStatusMessage: String = "Checking movie data...",
+    val movieSyncErrorMessage: String = "",
+    val movieCategoryCount: Int = 0,
+    val movieCount: Int = 0,
+    val hasMovieData: Boolean = false,
+    val isMovieSyncing: Boolean = false,
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
-// NotificationViewModel
+// DashboardViewModel
 //
 // Collects flows from the Foreground Service's shared KtorSocketClient and
 // exposes a single UI state to Compose screens.
 // ─────────────────────────────────────────────────────────────────────────────
 
-class NotificationViewModel(
+class DashboardViewModel(
     private val liveTVRoomUseCase: LiveTVRoomUseCase,
+    private val movieRoomUseCase: MovieRoomUseCase,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(NotificationUiState())
-    val uiState: StateFlow<NotificationUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(DashboardUiState())
+    val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
     private val handledPayloadIds = linkedSetOf<String>()
     private var liveTVSyncJob: Job? = null
+    private var movieSyncJob: Job? = null
 
     init {
         observeService()
         observeLiveTVCache()
+        observeMovieCache()
         prepareLiveTVCacheIfNeeded()
+        prepareMovieCacheIfNeeded()
     }
 
     /**
@@ -129,7 +141,7 @@ class NotificationViewModel(
                 if (errorMessage != null) {
                     _uiState.update {
                         it.copy(
-                            liveTVCacheStatus = LiveTVCacheStatus.Error,
+                            liveTVCacheStatus = MediaCacheStatus.Error,
                             liveTVStatusMessage = "Unable to read saved live TV data.",
                             liveTVSyncErrorMessage = errorMessage,
                             isLiveTVSyncing = false,
@@ -145,7 +157,7 @@ class NotificationViewModel(
                 _uiState.update { current ->
                     val status = when {
                         current.isLiveTVSyncing -> current.liveTVCacheStatus
-                        hasData -> LiveTVCacheStatus.Ready
+                        hasData -> MediaCacheStatus.Ready
                         else -> current.liveTVCacheStatus
                     }
                     val message = when {
@@ -171,7 +183,7 @@ class NotificationViewModel(
         liveTVSyncJob = viewModelScope.launch {
             _uiState.update {
                 it.copy(
-                    liveTVCacheStatus = LiveTVCacheStatus.Checking,
+                    liveTVCacheStatus = MediaCacheStatus.Checking,
                     liveTVStatusMessage = "Checking live TV data...",
                     liveTVSyncErrorMessage = "",
                 )
@@ -180,7 +192,7 @@ class NotificationViewModel(
             if (liveTVRoomUseCase.hasLiveTVData()) {
                 _uiState.update {
                     it.copy(
-                        liveTVCacheStatus = LiveTVCacheStatus.Ready,
+                        liveTVCacheStatus = MediaCacheStatus.Ready,
                         liveTVStatusMessage = liveTVReadyMessage(
                             categoryCount = it.liveTVCategoryCount,
                             channelCount = it.liveTVChannelCount,
@@ -195,6 +207,87 @@ class NotificationViewModel(
         }
     }
 
+    private fun observeMovieCache() {
+        viewModelScope.launch {
+            combine(
+                movieRoomUseCase.observeMovieCategories(),
+                movieRoomUseCase.observeMovies(),
+            ) { categoryResult, movieResult ->
+                categoryResult to movieResult
+            }.collect { (categoryResult, movieResult) ->
+                val categoryError = (categoryResult as? Result.Error)?.error?.message
+                val movieError = (movieResult as? Result.Error)?.error?.message
+                val errorMessage = categoryError ?: movieError
+
+                if (errorMessage != null) {
+                    _uiState.update {
+                        it.copy(
+                            movieCacheStatus = MediaCacheStatus.Error,
+                            movieStatusMessage = "Unable to read saved movie data.",
+                            movieSyncErrorMessage = errorMessage,
+                            isMovieSyncing = false,
+                        )
+                    }
+                    return@collect
+                }
+
+                val categories = (categoryResult as? Result.Success)?.data ?: return@collect
+                val movies = (movieResult as? Result.Success)?.data ?: return@collect
+                val hasData = categories.isNotEmpty() && movies.isNotEmpty()
+
+                _uiState.update { current ->
+                    val status = when {
+                        current.isMovieSyncing -> current.movieCacheStatus
+                        hasData -> MediaCacheStatus.Ready
+                        else -> current.movieCacheStatus
+                    }
+                    val message = when {
+                        current.isMovieSyncing -> current.movieStatusMessage
+                        hasData -> movieReadyMessage(categories.size, movies.size)
+                        else -> current.movieStatusMessage
+                    }
+
+                    current.copy(
+                        movieCacheStatus = status,
+                        movieStatusMessage = message,
+                        movieCategoryCount = categories.size,
+                        movieCount = movies.size,
+                        hasMovieData = hasData,
+                        movieSyncErrorMessage = if (hasData) "" else current.movieSyncErrorMessage,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun prepareMovieCacheIfNeeded() {
+        movieSyncJob = viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    movieCacheStatus = MediaCacheStatus.Checking,
+                    movieStatusMessage = "Checking movie data...",
+                    movieSyncErrorMessage = "",
+                )
+            }
+
+            if (movieRoomUseCase.hasMovieData()) {
+                _uiState.update {
+                    it.copy(
+                        movieCacheStatus = MediaCacheStatus.Ready,
+                        movieStatusMessage = movieReadyMessage(
+                            categoryCount = it.movieCategoryCount,
+                            movieCount = it.movieCount,
+                        ),
+                        hasMovieData = true,
+                    )
+                }
+                return@launch
+            }
+
+            runMovieSync(isManual = false)
+        }
+    }
+
     // ── Actions ───────────────────────────────────────────────────────────────
 
     fun syncLiveTVContent() {
@@ -202,6 +295,14 @@ class NotificationViewModel(
 
         liveTVSyncJob = viewModelScope.launch {
             runLiveTVSync(isManual = true)
+        }
+    }
+
+    fun syncMovieContent() {
+        if (movieSyncJob?.isActive == true) return
+
+        movieSyncJob = viewModelScope.launch {
+            runMovieSync(isManual = true)
         }
     }
 
@@ -213,9 +314,9 @@ class NotificationViewModel(
                     _uiState.update {
                         it.copy(
                             liveTVCacheStatus = if (isManual) {
-                                LiveTVCacheStatus.Updating
+                                MediaCacheStatus.Updating
                             } else {
-                                LiveTVCacheStatus.Preparing
+                                MediaCacheStatus.Preparing
                             },
                             liveTVStatusMessage = if (isManual) {
                                 "Updating live TV..."
@@ -231,7 +332,7 @@ class NotificationViewModel(
                 is Result.Success -> {
                     _uiState.update {
                         it.copy(
-                            liveTVCacheStatus = LiveTVCacheStatus.Ready,
+                            liveTVCacheStatus = MediaCacheStatus.Ready,
                             liveTVStatusMessage = liveTVReadyMessage(
                                 categoryCount = result.data.categoryCount,
                                 channelCount = result.data.channelCount,
@@ -249,14 +350,73 @@ class NotificationViewModel(
                     val hasCachedData = _uiState.value.hasLiveTVData
                     _uiState.update {
                         it.copy(
-                            liveTVCacheStatus = LiveTVCacheStatus.Error,
+                            liveTVCacheStatus = MediaCacheStatus.Error,
                             liveTVStatusMessage = if (hasCachedData) {
-                                "Update failed. Using saved live TV data."
+                                "Live TV Update failed. Using saved live TV data."
                             } else {
                                 "Live TV sync failed."
                             },
                             liveTVSyncErrorMessage = result.error.message,
                             isLiveTVSyncing = false,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun runMovieSync(isManual: Boolean) {
+        movieRoomUseCase.syncMovieContent().collect { result ->
+            when (result) {
+                is Result.Initial -> Unit
+                is Result.Loading -> {
+                    _uiState.update {
+                        it.copy(
+                            movieCacheStatus = if (isManual) {
+                                MediaCacheStatus.Updating
+                            } else {
+                                MediaCacheStatus.Preparing
+                            },
+                            movieStatusMessage = if (isManual) {
+                                "Updating movies..."
+                            } else {
+                                "Preparing movies..."
+                            },
+                            movieSyncErrorMessage = "",
+                            isMovieSyncing = true,
+                        )
+                    }
+                }
+
+                is Result.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            movieCacheStatus = MediaCacheStatus.Ready,
+                            movieStatusMessage = movieReadyMessage(
+                                categoryCount = result.data.categoryCount,
+                                movieCount = result.data.movieCount,
+                            ),
+                            movieCategoryCount = result.data.categoryCount,
+                            movieCount = result.data.movieCount,
+                            hasMovieData = result.data.categoryCount > 0 && result.data.movieCount > 0,
+                            movieSyncErrorMessage = "",
+                            isMovieSyncing = false,
+                        )
+                    }
+                }
+
+                is Result.Error -> {
+                    val hasCachedData = _uiState.value.hasMovieData
+                    _uiState.update {
+                        it.copy(
+                            movieCacheStatus = MediaCacheStatus.Error,
+                            movieStatusMessage = if (hasCachedData) {
+                                "Movie update failed. Using saved movie data."
+                            } else {
+                                "Movie sync failed."
+                            },
+                            movieSyncErrorMessage = result.error.message,
+                            isMovieSyncing = false,
                         )
                     }
                 }
@@ -321,6 +481,14 @@ class NotificationViewModel(
             "Live TV ready: $categoryCount categories, $channelCount channels"
         } else {
             "Live TV data is ready"
+        }
+    }
+
+    private fun movieReadyMessage(categoryCount: Int, movieCount: Int): String {
+        return if (categoryCount > 0 && movieCount > 0) {
+            "Movies ready: $categoryCount categories, $movieCount movies"
+        } else {
+            "Movie data is ready"
         }
     }
 }

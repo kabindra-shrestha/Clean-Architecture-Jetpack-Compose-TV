@@ -5,6 +5,7 @@ import com.kabindra.tv.iptv.data.repository.remote.livetv.LiveTVRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.remote.movie.MovieRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.room.LiveTVRoomRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.room.LoginRoomRepositoryImpl
+import com.kabindra.tv.iptv.data.repository.room.MovieRoomRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.xtream.livetv.LiveTVXtreamRepositoryImpl
 import com.kabindra.tv.iptv.data.repository.xtream.movie.MovieXtreamRepositoryImpl
 import com.kabindra.tv.iptv.data.source.UserCredentialsProvider
@@ -25,6 +26,7 @@ import com.kabindra.tv.iptv.domain.repository.remote.livetv.LiveTVRepository
 import com.kabindra.tv.iptv.domain.repository.remote.movie.MovieRepository
 import com.kabindra.tv.iptv.domain.repository.room.LiveTVRoomRepository
 import com.kabindra.tv.iptv.domain.repository.room.LoginRoomRepository
+import com.kabindra.tv.iptv.domain.repository.room.MovieRoomRepository
 import com.kabindra.tv.iptv.domain.repository.xtream.livetv.LiveTVXtreamRepository
 import com.kabindra.tv.iptv.domain.repository.xtream.movie.MovieXtreamRepository
 import com.kabindra.tv.iptv.domain.usecase.remote.livetv.LiveTVUseCase
@@ -32,10 +34,11 @@ import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieBrowseUseCase
 import com.kabindra.tv.iptv.domain.usecase.remote.movie.MovieDetailUseCase
 import com.kabindra.tv.iptv.domain.usecase.room.LiveTVRoomUseCase
 import com.kabindra.tv.iptv.domain.usecase.room.LoginRoomUseCase
+import com.kabindra.tv.iptv.domain.usecase.room.MovieRoomUseCase
 import com.kabindra.tv.iptv.domain.usecase.xtream.livetv.LiveTVXtreamUseCase
 import com.kabindra.tv.iptv.domain.usecase.xtream.movie.MovieBrowseXtreamUseCase
 import com.kabindra.tv.iptv.domain.usecase.xtream.movie.MovieDetailXtreamUseCase
-import com.kabindra.tv.iptv.presentation.ui.screen.dashboard.NotificationViewModel
+import com.kabindra.tv.iptv.presentation.ui.screen.dashboard.DashboardViewModel
 import com.kabindra.tv.iptv.presentation.ui.screen.livetv.player.LiveTVPlayerViewModel
 import com.kabindra.tv.iptv.presentation.ui.screen.login.LoginViewModel
 import com.kabindra.tv.iptv.presentation.ui.screen.movie.content.MovieContentViewModel
@@ -180,6 +183,7 @@ val provideRepositoryModule = module {
 
     singleOf(::LiveTVRoomRepositoryImpl).bind<LiveTVRoomRepository>()
     singleOf(::LoginRoomRepositoryImpl).bind<LoginRoomRepository>()
+    singleOf(::MovieRoomRepositoryImpl).bind<MovieRoomRepository>()
 }
 
 val provideUseCaseModule = module {
@@ -193,12 +197,13 @@ val provideUseCaseModule = module {
 
     singleOf(::LiveTVRoomUseCase)
     singleOf(::LoginRoomUseCase)
+    singleOf(::MovieRoomUseCase)
 }
 
 val provideViewModelModule = module {
     viewModelOf(::SplashViewModel)
     viewModelOf(::LoginViewModel)
-    viewModelOf(::NotificationViewModel)
+    viewModelOf(::DashboardViewModel)
     viewModelOf(::LiveTVPlayerViewModel)
     viewModelOf(::MovieContentViewModel)
     viewModelOf(::MovieDetailViewModel)

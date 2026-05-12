@@ -25,7 +25,10 @@ class XtreamService(private val xtream: Xtream) {
         action: String,
         additionalParams: String = ""
     ): String {
-        return "http://$serverName/player_api.php?username=$username&password=$password&action=$action$additionalParams"
+        val url =
+            "http://$serverName/player_api.php?username=$username&password=$password&action=$action$additionalParams"
+        println("buildApiUrl: $url")
+        return url
     }
 
     suspend fun getLiveTVCategories(
@@ -65,10 +68,14 @@ class XtreamService(private val xtream: Xtream) {
         serverName: String,
         username: String,
         password: String,
-        offset: Int = 10,
-        itemsPerPage: Int = 30
+        offset: Int? = null,
+        itemsPerPage: Int? = null
     ): List<MovieDTO> {
-        val params = "&params[offset]=$offset&params[items_per_page]=$itemsPerPage"
+        val params = if (offset != null && itemsPerPage != null) {
+            "&params[offset]=$offset&params[items_per_page]=$itemsPerPage"
+        } else {
+            ""
+        }
         return xtream.custom.get {
             url(buildApiUrl(serverName, username, password, "get_vod_streams", params))
         }

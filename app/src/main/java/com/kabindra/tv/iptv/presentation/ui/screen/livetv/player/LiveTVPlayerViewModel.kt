@@ -34,7 +34,7 @@ class LiveTVPlayerViewModel(
         observeLiveTVContent()
     }
 
-    private fun observeLiveTVContent() {
+    fun observeLiveTVContent() {
         viewModelScope.launch {
             combine(
                 liveTVRoomUseCase.observeLiveTVCategories(),
@@ -101,41 +101,12 @@ class LiveTVPlayerViewModel(
         }
     }
 
-    fun getLiveTVChannels() {
-        viewModelScope.launch {
-            liveTVRoomUseCase.syncLiveTVContent().collect { result ->
-                when (result) {
-                    is Result.Initial -> Unit
-                    is Result.Loading -> {
-                        _state.update {
-                            it.copy(
-                                isLoading = true,
-                                isEmpty = false,
-                                errorMessage = ""
-                            )
-                        }
-                    }
-
-                    is Result.Error -> {
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = result.error.message,
-                            )
-                        }
-                    }
-
-                    is Result.Success -> Unit
-                }
-            }
-        }
-    }
-
     private fun mapToChannelCategories(
         categories: List<LiveTVCategory>,
         channels: List<LiveTV>
     ): List<ChannelCategory> {
         val channelMap = channels.groupBy { it.category_id }
+
         return categories.mapNotNull { cat ->
             val mappedChannels = channelMap[cat.category_id]?.mapNotNull { channel ->
                 val streamId = channel.stream_id?.toString() ?: return@mapNotNull null

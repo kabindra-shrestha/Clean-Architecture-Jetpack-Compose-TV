@@ -7,7 +7,11 @@ import com.kabindra.tv.iptv.data.source.UserCredentialsProvider
 import com.kabindra.tv.iptv.data.source.xtream.XtreamService
 
 interface MovieXtreamDataSource {
-    suspend fun getMovies(): List<MovieDTO>
+    suspend fun getMovies(
+        offset: Int? = null,
+        itemsPerPage: Int? = null,
+    ): List<MovieDTO>
+
     suspend fun getMovieCategories(): List<MovieCategoryDTO>
     suspend fun getMovieDetail(streamId: Long): MovieDetailDTO
 }
@@ -17,14 +21,19 @@ class MovieXtreamDataSourceImpl(
     private val userCredentialsProvider: UserCredentialsProvider
 ) : MovieXtreamDataSource {
 
-    override suspend fun getMovies(): List<MovieDTO> {
+    override suspend fun getMovies(
+        offset: Int?,
+        itemsPerPage: Int?,
+    ): List<MovieDTO> {
         val user = userCredentialsProvider.getCurrentUser()
             ?: throw IllegalStateException("User not logged in")
 
         return xtreamService.getMovies(
             serverName = user.server_name ?: throw IllegalStateException("Server name not found"),
             username = user.username ?: throw IllegalStateException("Username not found"),
-            password = user.password ?: throw IllegalStateException("Password not found")
+            password = user.password ?: throw IllegalStateException("Password not found"),
+            offset = offset,
+            itemsPerPage = itemsPerPage,
         )
     }
 

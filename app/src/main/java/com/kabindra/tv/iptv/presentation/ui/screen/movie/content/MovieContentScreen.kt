@@ -7,15 +7,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.tv.material3.MaterialTheme
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazy
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazyLayout
@@ -51,37 +47,12 @@ fun MovieContentScreen(
     innerPadding: PaddingValues,
     onNavigateMovieDetail: (String) -> Unit,
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
     val state by viewModel.state.collectAsState()
     val selectedCategoryIndex = state.categories.indexOfFirst { it.id == state.selectedCategoryId }
         .takeIf { it >= 0 }
         ?: 0
     val selectedCategory = state.categories.getOrNull(selectedCategoryIndex)
     val gridState = key(state.selectedCategoryId) { rememberBaseLazyState() }
-
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_START -> {
-                    viewModel.getMovieCategories()
-                }
-
-                Lifecycle.Event.ON_PAUSE,
-                Lifecycle.Event.ON_STOP -> {
-                }
-
-                Lifecycle.Event.ON_DESTROY -> {
-                    viewModel.reset()
-                }
-
-                else -> Unit
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
 
     Box(
         modifier = Modifier
@@ -144,7 +115,31 @@ fun MovieContentScreen(
                             )
                             ButtonComponent(
                                 text = "Retry",
-                                onClick = viewModel::getMovieCategories
+                                onClick = viewModel::observeMovieContent
+                            )
+                        }
+                    }
+                }
+
+                state.isEmpty -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(10.sdp)
+                        ) {
+                            LoadingIndicator(
+                                modifier = Modifier.align(Alignment.CenterHorizontally),
+                                isCircular = true,
+                                useExpressive = true
+                            )
+                            TextComponent(
+                                text = "Preparing movie data...",
+                                type = TextType.Body,
+                                size = TextSize.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
