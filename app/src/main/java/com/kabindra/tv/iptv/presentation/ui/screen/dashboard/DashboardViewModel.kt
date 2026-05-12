@@ -56,6 +56,20 @@ data class DashboardUiState(
     val isMovieSyncing: Boolean = false,
 )
 
+sealed class DashboardEvent {
+
+    data object observeService : DashboardEvent()
+
+    data object observeLiveTVCache : DashboardEvent()
+
+    data object observeMovieCache : DashboardEvent()
+
+    data object prepareLiveTVCacheIfNeeded : DashboardEvent()
+
+    data object prepareMovieCacheIfNeeded : DashboardEvent()
+
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // DashboardViewModel
 //
@@ -74,12 +88,28 @@ class DashboardViewModel(
     private var liveTVSyncJob: Job? = null
     private var movieSyncJob: Job? = null
 
-    init {
-        observeService()
-        observeLiveTVCache()
-        observeMovieCache()
-        prepareLiveTVCacheIfNeeded()
-        prepareMovieCacheIfNeeded()
+    fun onEvent(event: DashboardEvent) {
+        when (event) {
+            is DashboardEvent.observeService -> {
+                observeService()
+            }
+
+            is DashboardEvent.observeLiveTVCache -> {
+                observeLiveTVCache()
+            }
+
+            is DashboardEvent.observeMovieCache -> {
+                observeMovieCache()
+            }
+
+            is DashboardEvent.prepareLiveTVCacheIfNeeded -> {
+                prepareLiveTVCacheIfNeeded()
+            }
+
+            is DashboardEvent.prepareMovieCacheIfNeeded -> {
+                prepareMovieCacheIfNeeded()
+            }
+        }
     }
 
     /**

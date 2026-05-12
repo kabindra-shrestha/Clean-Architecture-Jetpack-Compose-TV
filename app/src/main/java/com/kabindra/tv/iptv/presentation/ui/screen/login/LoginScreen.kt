@@ -11,12 +11,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,10 +29,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.tv.material3.MaterialTheme
 import com.kabindra.tv.iptv.BuildConfig
 import com.kabindra.tv.iptv.data.request.LoginUserDataRequest
 import com.kabindra.tv.iptv.presentation.ui.component.ButtonComponent
@@ -94,6 +100,10 @@ fun LoginScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        loginViewModel.onEvent(LoginEvent.GetUser)
+    }
+
     println("isConnected: $isConnected")
     if (!isConnected) {
         GlobalErrorDialog(
@@ -133,7 +143,7 @@ fun LoginScreen(
                     text = "Profile",
                     type = TextType.Headline,
                     size = TextSize.Medium,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(8.sdp))
@@ -171,7 +181,7 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(12.sdp))
 
                 ButtonComponent(
-                    text = "Login",
+                    text = "Save",
                     type = ButtonType.Filled,
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !loginState.isLoading,
@@ -214,7 +224,7 @@ fun LoginScreen(
                         text = "Current Profile",
                         type = TextType.Headline,
                         size = TextSize.Medium,
-                        color = Color.White.copy(alpha = 0.8f)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(8.sdp))
@@ -234,20 +244,103 @@ fun LoginScreen(
                                 text = "Server: ${loginState.user?.server_name ?: "N/A"}",
                                 type = TextType.Body,
                                 size = TextSize.Large,
-                                color = Color.White.copy(alpha = 0.8f)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             TextComponent(
                                 text = "Username: ${loginState.user?.username ?: "N/A"}",
                                 type = TextType.Body,
                                 size = TextSize.Large,
-                                color = Color.White.copy(alpha = 0.8f)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             TextComponent(
                                 text = "Password: ${"*".repeat((loginState.user?.password?.length ?: 0))}",
                                 type = TextType.Body,
                                 size = TextSize.Large,
-                                color = Color.White.copy(alpha = 0.6f)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
+
+                            Column(
+                                modifier = Modifier,
+                                verticalArrangement = Arrangement.spacedBy(8.sdp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.sdp)
+                                ) {
+                                    if (loginState.isLiveTVSyncing) {
+                                        LoadingIndicator(
+                                            modifier = Modifier.size(18.sdp),
+                                            isCircular = true,
+                                            useExpressive = true
+                                        )
+                                    }
+
+                                    TextComponent(
+                                        text = loginState.liveTVStatusMessage,
+                                        type = TextType.Body,
+                                        size = TextSize.Medium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+
+                                    if (loginState.hasLiveTVData) {
+                                        ButtonComponent(
+                                            text = "Sync",
+                                            icon = Icons.Default.Sync,
+                                            enabled = !loginState.isLiveTVSyncing,
+                                            onClick = loginViewModel::syncLiveTVContent
+                                        )
+                                    }
+                                }
+
+                                if (loginState.liveTVSyncErrorMessage.isNotBlank()) {
+                                    TextComponent(
+                                        text = loginState.liveTVSyncErrorMessage,
+                                        type = TextType.Body,
+                                        size = TextSize.Small,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.sdp)
+                                ) {
+                                    if (loginState.isMovieSyncing) {
+                                        LoadingIndicator(
+                                            modifier = Modifier.size(18.sdp),
+                                            isCircular = true,
+                                            useExpressive = true
+                                        )
+                                    }
+
+                                    TextComponent(
+                                        text = loginState.movieStatusMessage,
+                                        type = TextType.Body,
+                                        size = TextSize.Medium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+
+                                    if (loginState.hasMovieData) {
+                                        ButtonComponent(
+                                            text = "Sync",
+                                            icon = Icons.Default.Sync,
+                                            enabled = !loginState.isMovieSyncing,
+                                            onClick = loginViewModel::syncMovieContent
+                                        )
+                                    }
+                                }
+
+                                if (loginState.movieSyncErrorMessage.isNotBlank()) {
+                                    TextComponent(
+                                        text = loginState.movieSyncErrorMessage,
+                                        type = TextType.Body,
+                                        size = TextSize.Small,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -276,7 +369,6 @@ fun LoginScreen(
             title = loginState.errorTitle,
             message = loginState.errorMessage,
             onDismiss = {
-                loginViewModel.onEvent(LoginEvent.GetIsLogged)
             },
             onNavigateLogin = { })
     }

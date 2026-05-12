@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Sync
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,7 +32,6 @@ import com.kabindra.tv.iptv.presentation.ui.component.BaseLazy
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazyLayout
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazyOrientation
 import com.kabindra.tv.iptv.presentation.ui.component.BaseLazyPlatform
-import com.kabindra.tv.iptv.presentation.ui.component.ButtonComponent
 import com.kabindra.tv.iptv.presentation.ui.component.DashboardTileComponent
 import com.kabindra.tv.iptv.presentation.ui.component.LoadingIndicator
 import com.kabindra.tv.iptv.presentation.ui.component.TextComponent
@@ -82,6 +79,14 @@ fun DashboardScreen(
         onPayloadConsumed()
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.onEvent(DashboardEvent.observeService)
+        viewModel.onEvent(DashboardEvent.observeLiveTVCache)
+        viewModel.onEvent(DashboardEvent.observeMovieCache)
+        viewModel.onEvent(DashboardEvent.prepareLiveTVCacheIfNeeded)
+        viewModel.onEvent(DashboardEvent.prepareMovieCacheIfNeeded)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -115,7 +120,7 @@ fun DashboardScreen(
             color = MaterialTheme.colorScheme.onSurface
         )
 
-        Column(
+        /*Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(
@@ -201,6 +206,76 @@ fun DashboardScreen(
                     color = MaterialTheme.colorScheme.error
                 )
             }
+        }*/
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(
+                    start = DashboardScreenTokens.contentHorizontalPadding.sdp,
+                    top = 60.sdp
+                ),
+            verticalArrangement = Arrangement.spacedBy(8.sdp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.sdp)
+            ) {
+                if (uiState.isLiveTVSyncing) {
+                    LoadingIndicator(
+                        modifier = Modifier.size(18.sdp),
+                        isCircular = true,
+                        useExpressive = true
+                    )
+
+                    TextComponent(
+                        text = uiState.liveTVStatusMessage,
+                        type = TextType.Body,
+                        size = TextSize.Medium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+
+            if (uiState.liveTVSyncErrorMessage.isNotBlank()) {
+                TextComponent(
+                    text = uiState.liveTVSyncErrorMessage,
+                    type = TextType.Body,
+                    size = TextSize.Small,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.sdp)
+            ) {
+                if (uiState.isMovieSyncing) {
+                    LoadingIndicator(
+                        modifier = Modifier.size(18.sdp),
+                        isCircular = true,
+                        useExpressive = true
+                    )
+
+                    TextComponent(
+                        text = uiState.movieStatusMessage,
+                        type = TextType.Body,
+                        size = TextSize.Medium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+
+            if (uiState.movieSyncErrorMessage.isNotBlank()) {
+                TextComponent(
+                    text = uiState.movieSyncErrorMessage,
+                    type = TextType.Body,
+                    size = TextSize.Small,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         }
 
         BaseLazy(
@@ -238,8 +313,24 @@ fun DashboardScreen(
                 onClick = {
                     selectedMenu = item
                     when (item) {
-                        DashboardMenuType.LiveTV -> onNavigateLiveTV()
-                        DashboardMenuType.Movie -> onNavigateMovie()
+                        DashboardMenuType.LiveTV -> {
+                            if (!uiState.hasLiveTVData) {
+                                onNavigateLogin()
+                            }
+                            if (!uiState.isLiveTVSyncing && uiState.hasLiveTVData) {
+                                onNavigateLiveTV()
+                            }
+                        }
+
+                        DashboardMenuType.Movie -> {
+                            if (!uiState.hasMovieData) {
+                                onNavigateLogin()
+                            }
+                            if (!uiState.isMovieSyncing && uiState.hasMovieData) {
+                                onNavigateMovie()
+                            }
+                        }
+
                         DashboardMenuType.Profile -> onNavigateLogin()
                     }
                 }

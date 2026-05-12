@@ -85,10 +85,10 @@ fun JetpackComposeTVCleanArchitectureTheme(
     isInDarkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
+    val colorScheme = darkScheme /*when {
         isInDarkTheme -> darkScheme
         else -> lightScheme
-    }
+    }*/
 
     MaterialTheme(
         colorScheme = colorScheme,
