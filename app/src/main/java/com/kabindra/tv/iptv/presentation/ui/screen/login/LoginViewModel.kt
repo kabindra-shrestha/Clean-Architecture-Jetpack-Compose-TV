@@ -429,7 +429,7 @@ class LoginViewModel(
 
     private fun liveTVReadyMessage(categoryCount: Int, channelCount: Int): String {
         return if (categoryCount > 0 && channelCount > 0) {
-            "Live TV ready: $categoryCount categories, $channelCount channels"
+            "Live TV ready:\n$categoryCount categories, $channelCount channels"
         } else {
             "Live TV data is ready"
         }
@@ -437,7 +437,7 @@ class LoginViewModel(
 
     private fun movieReadyMessage(categoryCount: Int, movieCount: Int): String {
         return if (categoryCount > 0 && movieCount > 0) {
-            "Movies ready: $categoryCount categories, $movieCount movies"
+            "Movies ready:\n$categoryCount categories, $movieCount movies"
         } else {
             "Movie data is ready"
         }

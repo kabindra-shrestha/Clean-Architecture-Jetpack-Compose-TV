@@ -35,7 +35,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.MaterialTheme
-import com.kabindra.tv.iptv.BuildConfig
 import com.kabindra.tv.iptv.data.request.LoginUserDataRequest
 import com.kabindra.tv.iptv.presentation.ui.component.ButtonComponent
 import com.kabindra.tv.iptv.presentation.ui.component.ButtonType
@@ -45,6 +44,7 @@ import com.kabindra.tv.iptv.presentation.ui.component.TextComponent
 import com.kabindra.tv.iptv.presentation.ui.component.TextSize
 import com.kabindra.tv.iptv.presentation.ui.component.TextType
 import com.kabindra.tv.iptv.utils.Connectivity
+import com.kabindra.tv.iptv.utils.constants.ConfigValue.Companion.isDebug
 import com.kabindra.tv.iptv.utils.error.GlobalErrorDialog
 import com.kabindra.tv.iptv.utils.extensions.mainBackground
 import com.kabindra.tv.iptv.utils.success.GlobalSuccessDialog
@@ -64,7 +64,7 @@ fun LoginScreen(
 
     var serverName by remember {
         mutableStateOf(
-            if (BuildConfig.DEBUG) {
+            if (isDebug) {
                 "tv.quierover.xyz"
             } else {
                 ""
@@ -73,7 +73,7 @@ fun LoginScreen(
     }
     var userName by remember {
         mutableStateOf(
-            if (BuildConfig.DEBUG) {
+            if (isDebug) {
                 "SAMIR18"
             } else {
                 ""
@@ -82,7 +82,7 @@ fun LoginScreen(
     }
     var password by remember {
         mutableStateOf(
-            if (BuildConfig.DEBUG) {
+            if (isDebug) {
                 "Banana18"
             } else {
                 ""
@@ -183,7 +183,7 @@ fun LoginScreen(
                 ButtonComponent(
                     text = "Save",
                     type = ButtonType.Filled,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(0.5f),
                     enabled = !loginState.isLoading,
                     onClick = {
                         if (serverName.isNotBlank() && userName.isNotBlank() && password.isNotBlank()) {
@@ -203,6 +203,7 @@ fun LoginScreen(
                 if (loginState.isLoading) {
                     Spacer(modifier = Modifier.height(16.sdp))
                     LoadingIndicator(
+                        modifier = Modifier.size(18.sdp),
                         isCircular = true,
                         useExpressive = true
                     )
@@ -259,6 +260,8 @@ fun LoginScreen(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
 
+                            Spacer(modifier = Modifier.height(8.sdp))
+
                             Column(
                                 modifier = Modifier,
                                 verticalArrangement = Arrangement.spacedBy(8.sdp)
@@ -280,6 +283,7 @@ fun LoginScreen(
                                         type = TextType.Body,
                                         size = TextSize.Medium,
                                         fontWeight = FontWeight.Medium,
+                                        maxLines = 2,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
 
@@ -319,6 +323,7 @@ fun LoginScreen(
                                         type = TextType.Body,
                                         size = TextSize.Medium,
                                         fontWeight = FontWeight.Medium,
+                                        maxLines = 2,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
 
