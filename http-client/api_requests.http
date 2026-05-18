@@ -1,0 +1,169 @@
+### Android IPTV & Xtream API Requests
+#
+# This HTTP request file is configured for use with the JetBrains HTTP Client plugin in Android Studio.
+#
+# ========================================== HOW TO USE ==========================================
+# 1. Open this file in Android Studio.
+# 2. In the top-right corner of the editor, click the "Run with" dropdown and choose an environment
+#    (e.g., "development" or "quierover_production") defined in `http-client.env.json`.
+# 3. Click the green Play button in the gutter next to any request to execute it.
+# 4. Sensitive secrets (username, password) are isolated in `http-client.private.env.json` and are
+#    automatically ignored by Git for security.
+# ================================================================================================
+
+### -------------------------------------------------------------------------
+### 1. App Service API - Refresh Content
+# @name RefreshContent
+GET {{baseUrl}}/api/refresh
+Content-Type: application/json
+User-Agent: IPTV-TV-Client/1.0
+User-Device: {{devicePlatform}}hrm
+User-Device-Platform: {{devicePlatform}}
+User-Device-Version: {{deviceVersion}}
+User-Device-Build: {{deviceBuild}}
+User-Device-Brand: {{deviceBrand}}
+User-Device-Model: {{deviceModel}}
+User-Device-App-Version: {{appVersion}}
+User-Device-App-Version-Code: {{appVersionCode}}
+
+> {%
+    client.test("Status code is 200", function() {
+        client.assert(response.status === 200, "Response status is not 200. Got: " + response.status);
+    });
+
+    client.test("Content-Type is JSON", function() {
+        client.assert(response.contentType.mimeType === "application/json", "Expected application/json but got: " + response.contentType.mimeType);
+    });
+%}
+
+
+### -------------------------------------------------------------------------
+### 2. Xtream API - Get Live TV Categories
+# @name GetLiveTVCategories
+GET http://{{host}}/player_api.php?username={{username}}&password={{password}}&action=get_live_categories
+Content-Type: application/json
+User-Agent: IPTV-TV-Client/1.0
+
+> {%
+    client.test("Status code is 200 OK", function() {
+        client.assert(response.status === 200, "Expected status 200, but received " + response.status);
+    });
+
+    client.test("Response body is a valid list", function() {
+        client.assert(Array.isArray(response.body), "Expected response body to be an Array");
+    });
+
+    client.test("Capture first Category ID for subsequent requests", function() {
+        if (response.body && response.body.length > 0) {
+            var firstCategory = response.body[0];
+            var categoryId = firstCategory.category_id;
+            client.global.set("live_category_id", categoryId);
+            client.log("Successfully captured Live Category ID: " + categoryId + " (" + firstCategory.category_name + ")");
+        }
+    });
+%}
+
+
+### -------------------------------------------------------------------------
+### 3. Xtream API - Get Live TV Channels
+# @name GetLiveTVChannels
+# Optional parameters: offset (default 0), items_per_page (default 30)
+# You can also pass a category_id filter: &category_id={{live_category_id}}
+GET http://{{host}}/player_api.php?username={{username}}&password={{password}}&action=get_live_streams&params[offset]=0&params[items_per_page]=30
+Content-Type: application/json
+User-Agent: IPTV-TV-Client/1.0
+
+> {%
+    client.test("Status code is 200 OK", function() {
+        client.assert(response.status === 200, "Expected status 200, but received " + response.status);
+    });
+
+    client.test("Response body is a valid list of streams", function() {
+        client.assert(Array.isArray(response.body), "Expected response body to be an Array of streams");
+    });
+
+    client.test("Verify stream properties", function() {
+        if (response.body && response.body.length > 0) {
+            var firstStream = response.body[0];
+            client.assert(firstStream.hasOwnProperty("stream_id"), "Stream should contain a 'stream_id' field");
+            client.assert(firstStream.hasOwnProperty("name"), "Stream should contain a 'name' field");
+            
+            // Set global stream_id for testing playback or info
+            client.global.set("first_stream_id", firstStream.stream_id);
+            client.log("Successfully captured Live Stream ID: " + firstStream.stream_id + " (" + firstStream.name + ")");
+        }
+    });
+%}
+
+
+### -------------------------------------------------------------------------
+### 4. Xtream API - Get Movie Categories (VOD)
+# @name GetMovieCategories
+GET http://{{host}}/player_api.php?username={{username}}&password={{password}}&action=get_vod_categories
+Content-Type: application/json
+User-Agent: IPTV-TV-Client/1.0
+
+> {%
+    client.test("Status code is 200 OK", function() {
+        client.assert(response.status === 200, "Expected status 200, but received " + response.status);
+    });
+
+    client.test("Response is array of categories", function() {
+        client.assert(Array.isArray(response.body), "Expected response body to be an Array");
+    });
+
+    client.test("Capture VOD Category ID", function() {
+        if (response.body && response.body.length > 0) {
+            var firstCategory = response.body[0];
+            client.global.set("vod_category_id", firstCategory.category_id);
+            client.log("Successfully captured VOD Category ID: " + firstCategory.category_id + " (" + firstCategory.category_name + ")");
+        }
+    });
+%}
+
+
+### -------------------------------------------------------------------------
+### 5. Xtream API - Get Movies (VOD Streams)
+# @name GetMovies
+# Optional parameters: offset (default 0), items_per_page (default 30)
+# You can also pass a category_id filter: &category_id={{vod_category_id}}
+GET http://{{host}}/player_api.php?username={{username}}&password={{password}}&action=get_vod_streams&params[offset]=0&params[items_per_page]=30
+Content-Type: application/json
+User-Agent: IPTV-TV-Client/1.0
+
+> {%
+    client.test("Status code is 200 OK", function() {
+        client.assert(response.status === 200, "Expected status 200, but received " + response.status);
+    });
+
+    client.test("Response body is a valid list of movies", function() {
+        client.assert(Array.isArray(response.body), "Expected response body to be an Array of movies");
+    });
+
+    client.test("Capture Movie VOD ID", function() {
+        if (response.body && response.body.length > 0) {
+            var firstMovie = response.body[0];
+            client.global.set("selected_vod_id", firstMovie.stream_id);
+            client.log("Successfully captured Movie VOD ID: " + firstMovie.stream_id + " (" + firstMovie.name + ")");
+        }
+    });
+%}
+
+
+### -------------------------------------------------------------------------
+### 6. Xtream API - Get Movie Detail (VOD Info)
+# @name GetMovieDetail
+# Uses the captured variable {{selected_vod_id}} or a fallback stream ID
+GET http://{{host}}/player_api.php?username={{username}}&password={{password}}&action=get_vod_info&vod_id={{selected_vod_id}}
+Content-Type: application/json
+User-Agent: IPTV-TV-Client/1.0
+
+> {%
+    client.test("Status code is 200 OK", function() {
+        client.assert(response.status === 200, "Expected status 200, but received " + response.status);
+    });
+
+    client.test("Verify Movie Metadata structure", function() {
+        client.assert(response.body.hasOwnProperty("info") || response.body.hasOwnProperty("movie_data"), "Movie detail should contain 'info' or 'movie_data' metadata keys");
+    });
+%}
