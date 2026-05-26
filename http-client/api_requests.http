@@ -27,6 +27,11 @@ User-Device-App-Version: {{appVersion}}
 User-Device-App-Version-Code: {{appVersionCode}}
 
 > {%
+
+
+
+
+
     client.test("Status code is 200", function() {
         client.assert(response.status === 200, "Response status is not 200. Got: " + response.status);
     });
@@ -34,17 +39,28 @@ User-Device-App-Version-Code: {{appVersionCode}}
     client.test("Content-Type is JSON", function() {
         client.assert(response.contentType.mimeType === "application/json", "Expected application/json but got: " + response.contentType.mimeType);
     });
+
+
+
+
+
 %}
 
 
 ### -------------------------------------------------------------------------
 ### 2. Xtream API - Get Live TV Categories
 # @name GetLiveTVCategories
-GET http://{{host}}/player_api.php?username={{username}}&password={{password}}&action=get_live_categories
+GET http://{{host}}/player_api.php?username={{username}}&password={{password}}&
+    action=get_live_categories
 Content-Type: application/json
 User-Agent: IPTV-TV-Client/1.0
 
 > {%
+
+
+
+
+
     client.test("Status code is 200 OK", function() {
         client.assert(response.status === 200, "Expected status 200, but received " + response.status);
     });
@@ -61,6 +77,11 @@ User-Agent: IPTV-TV-Client/1.0
             client.log("Successfully captured Live Category ID: " + categoryId + " (" + firstCategory.category_name + ")");
         }
     });
+
+
+
+
+
 %}
 
 
@@ -69,11 +90,17 @@ User-Agent: IPTV-TV-Client/1.0
 # @name GetLiveTVChannels
 # Optional parameters: offset (default 0), items_per_page (default 30)
 # You can also pass a category_id filter: &category_id={{live_category_id}}
-GET http://{{host}}/player_api.php?username={{username}}&password={{password}}&action=get_live_streams&params[offset]=0&params[items_per_page]=30
+GET http://{{host}}/player_api.php?username={{username}}&password={{password}}&
+    action=get_live_streams&params[offset]=0&params[items_per_page]=30
 Content-Type: application/json
 User-Agent: IPTV-TV-Client/1.0
 
 > {%
+
+
+
+
+
     client.test("Status code is 200 OK", function() {
         client.assert(response.status === 200, "Expected status 200, but received " + response.status);
     });
@@ -93,17 +120,28 @@ User-Agent: IPTV-TV-Client/1.0
             client.log("Successfully captured Live Stream ID: " + firstStream.stream_id + " (" + firstStream.name + ")");
         }
     });
+
+
+
+
+
 %}
 
 
 ### -------------------------------------------------------------------------
 ### 4. Xtream API - Get Movie Categories (VOD)
 # @name GetMovieCategories
-GET http://{{host}}/player_api.php?username={{username}}&password={{password}}&action=get_vod_categories
+GET http://{{host}}/player_api.php?username={{username}}&password={{password}}&
+    action=get_vod_categories
 Content-Type: application/json
 User-Agent: IPTV-TV-Client/1.0
 
 > {%
+
+
+
+
+
     client.test("Status code is 200 OK", function() {
         client.assert(response.status === 200, "Expected status 200, but received " + response.status);
     });
@@ -119,6 +157,11 @@ User-Agent: IPTV-TV-Client/1.0
             client.log("Successfully captured VOD Category ID: " + firstCategory.category_id + " (" + firstCategory.category_name + ")");
         }
     });
+
+
+
+
+
 %}
 
 
@@ -127,11 +170,17 @@ User-Agent: IPTV-TV-Client/1.0
 # @name GetMovies
 # Optional parameters: offset (default 0), items_per_page (default 30)
 # You can also pass a category_id filter: &category_id={{vod_category_id}}
-GET http://{{host}}/player_api.php?username={{username}}&password={{password}}&action=get_vod_streams&params[offset]=0&params[items_per_page]=30
+GET http://{{host}}/player_api.php?username={{username}}&password={{password}}&
+    action=get_vod_streams&params[offset]=0&params[items_per_page]=30
 Content-Type: application/json
 User-Agent: IPTV-TV-Client/1.0
 
 > {%
+
+
+
+
+
     client.test("Status code is 200 OK", function() {
         client.assert(response.status === 200, "Expected status 200, but received " + response.status);
     });
@@ -147,6 +196,11 @@ User-Agent: IPTV-TV-Client/1.0
             client.log("Successfully captured Movie VOD ID: " + firstMovie.stream_id + " (" + firstMovie.name + ")");
         }
     });
+
+
+
+
+
 %}
 
 
@@ -154,11 +208,17 @@ User-Agent: IPTV-TV-Client/1.0
 ### 6. Xtream API - Get Movie Detail (VOD Info)
 # @name GetMovieDetail
 # Uses the captured variable {{selected_vod_id}} or a fallback stream ID
-GET http://{{host}}/player_api.php?username={{username}}&password={{password}}&action=get_vod_info&vod_id={{selected_vod_id}}
+GET http://{{host}}/player_api.php?username={{username}}&password={{password}}&action=get_vod_info&
+    vod_id={{selected_vod_id}}
 Content-Type: application/json
 User-Agent: IPTV-TV-Client/1.0
 
 > {%
+
+
+
+
+
     client.test("Status code is 200 OK", function() {
         client.assert(response.status === 200, "Expected status 200, but received " + response.status);
     });
@@ -166,4 +226,9 @@ User-Agent: IPTV-TV-Client/1.0
     client.test("Verify Movie Metadata structure", function() {
         client.assert(response.body.hasOwnProperty("info") || response.body.hasOwnProperty("movie_data"), "Movie detail should contain 'info' or 'movie_data' metadata keys");
     });
+
+
+
+
+
 %}

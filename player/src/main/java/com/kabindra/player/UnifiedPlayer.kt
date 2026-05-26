@@ -2328,7 +2328,7 @@ private fun PlayerPanel.title(): String {
 private fun PlayerPlaybackErrorPhase.title(): String {
     return when (this) {
         PlayerPlaybackErrorPhase.Initial -> "Playback Error"
-        PlayerPlaybackErrorPhase.Switching -> "Channel Switch Failed"
+        PlayerPlaybackErrorPhase.Switching -> "Playback Failed"
         PlayerPlaybackErrorPhase.Replay -> "Replay Failed"
     }
 }

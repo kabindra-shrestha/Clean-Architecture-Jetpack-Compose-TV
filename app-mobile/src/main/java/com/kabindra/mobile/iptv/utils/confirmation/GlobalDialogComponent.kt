@@ -1,0 +1,26 @@
+package com.kabindra.mobile.iptv.utils.confirmation
+
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.window.Dialog
+
+@Composable
+fun GlobalDialogComponent(
+    isVisible: Boolean,
+    onDismissRequest: () -> Unit = {},
+    content: @Composable () -> Unit,
+) {
+    if (isVisible) {
+        Dialog(onDismissRequest = onDismissRequest) {
+            content()
+            /*Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(1.sdp),
+                shape = RoundedCornerShape(10.sdp),
+            ) {
+                content()
+            }*/
+        }
+    }
+}
+

@@ -1,0 +1,39 @@
+package com.kabindra.mobile.iptv.presentation.ui.screen.navigation
+
+import androidx.navigation3.runtime.NavKey
+import kotlinx.serialization.Serializable
+
+enum class Screens(val title: String) {
+    Splash(title = "Splash"),
+    Login(title = "Login"),
+    Dashboard(title = "Dashboard"),
+    LiveTVPlayer(title = "Live TV Player"),
+    Movie(title = "Movie"),
+    Profile(title = "Profile"),
+    MovieDetail(title = "Movie Detail"),
+    MoviePlayer(title = "Movie Player"),
+}
+
+@Serializable
+data object SplashRoute : NavKey
+
+@Serializable
+data object LoginRoute : NavKey
+
+@Serializable
+data object DashboardRoute : NavKey
+
+@Serializable
+data object LiveTVPlayerRoute : NavKey
+
+@Serializable
+data object MovieRoute : NavKey
+
+@Serializable
+data object ProfileRoute : NavKey
+
+@Serializable
+data class MovieDetailRoute(val movieId: String) : NavKey
+
+@Serializable
+data class MoviePlayerRoute(val movieId: String) : NavKey

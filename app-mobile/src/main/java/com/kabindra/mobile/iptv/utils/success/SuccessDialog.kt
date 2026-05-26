@@ -1,0 +1,112 @@
+package com.kabindra.mobile.iptv.utils.success
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.window.Dialog
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.rememberLottieComposition
+import com.kabindra.mobile.iptv.R
+import com.kabindra.mobile.iptv.presentation.ui.component.ButtonComponent
+import com.kabindra.mobile.iptv.presentation.ui.component.ImageHandlerLottie
+import com.kabindra.mobile.iptv.presentation.ui.component.TextComponent
+import kotlinx.coroutines.delay
+import network.chaintech.sdpcomposemultiplatform.sdp
+
+@Composable
+fun GlobalSuccessDialog(
+    isVisible: Boolean = false,
+    isAction: Boolean = false,
+    message: String,
+    onDismiss: () -> Unit = {}
+) {
+    val openDialog = remember { mutableStateOf(isVisible) }
+
+    // Automatically dismiss the dialog after 5 seconds
+    LaunchedEffect(openDialog.value) {
+        if (openDialog.value) {
+            delay(5000) // 5 seconds delay
+
+            openDialog.value = false
+
+            onDismiss()
+        }
+    }
+
+    if (openDialog.value) {
+        val composition by rememberLottieComposition(
+            LottieCompositionSpec.RawRes(
+                R.raw.success
+            )
+        )
+
+        Dialog(onDismissRequest = {}) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(1.sdp),
+                shape = RoundedCornerShape(10.sdp),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(1.sdp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    ImageHandlerLottie(
+                        modifier = Modifier
+                            .width(60.sdp)
+                            .height(60.sdp),
+                        image = composition,
+                        contentDescription = ""
+                    )
+                    Spacer(modifier = Modifier.height(5.sdp))
+                    TextComponent(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = message,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2
+                    )
+                    Spacer(modifier = Modifier.height(10.sdp))
+                    if (isAction) {
+                        Row(
+                            modifier = Modifier
+                                .padding(1.sdp)
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            ButtonComponent(
+                                modifier = Modifier
+                                    .align(Alignment.CenterVertically)
+                                    .width(60.sdp),
+                                text = "Ok",
+                                onClick = {
+                                    openDialog.value = false
+
+                                    onDismiss()
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

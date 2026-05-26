@@ -23,6 +23,11 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "JetpackComposeTVCleanArchitecture"
-include(":app")
+include(":core:common")
+include(":domain")
+include(":data")
+include(":feature:presentation")
+include(":app-tv")
+include(":app-mobile")
 include(":player")
  
