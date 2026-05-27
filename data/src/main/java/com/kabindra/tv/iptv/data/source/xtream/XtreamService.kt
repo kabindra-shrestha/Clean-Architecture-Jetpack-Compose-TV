@@ -27,6 +27,7 @@ class XtreamService(private val xtream: Xtream) {
     ): String {
         val url =
             "http://$serverName/player_api.php?username=$username&password=$password&action=$action$additionalParams"
+        println("XtreamService: $url")
         return url
     }
 

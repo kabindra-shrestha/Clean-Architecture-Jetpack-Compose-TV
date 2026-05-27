@@ -124,12 +124,12 @@ fun LoginScreen(
             .fillMaxSize()
             .mainBackground()
     ) {
-        Row(
+        Column (
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.sdp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.sdp)
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.sdp)
         ) {
             // Left side - Form
             Column(
