@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -50,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.kabindra.mobile.iptv.presentation.ui.adaptive.LockLandscapeOrientation
 import com.kabindra.mobile.iptv.presentation.ui.adaptive.MobileAdaptiveContent
 import com.kabindra.mobile.iptv.presentation.ui.adaptive.MobileWindowSizeClass
 import com.kabindra.mobile.iptv.presentation.ui.adaptive.plus
@@ -128,6 +128,8 @@ fun LiveTVPlayerScreen(
     }
     var isFullscreen by remember { mutableStateOf(false) }
     var isMinimized by remember { mutableStateOf(false) }
+
+    LockLandscapeOrientation(enabled = isFullscreen)
 
     LaunchedEffect(isFullscreen) {
         onImmersiveChanged(isFullscreen)
@@ -216,10 +218,7 @@ fun LiveTVPlayerScreen(
                                     features = playerFeatures,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .then(
-                                            if (isMinimized) Modifier.height(112.dp)
-                                            else Modifier.aspectRatio(16f / 9f)
-                                        ),
+                                        .aspectRatio(16f / 9f),
                                     onBack = onBack,
                                     onFullscreenToggle = {
                                         isMinimized = false
@@ -257,74 +256,74 @@ fun LiveTVPlayerScreen(
                             )
                         }
                     } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = contentPadding,
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(contentPadding),
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                         ) {
-                            item(key = "header") {
-                                MobileScreenHeader(
-                                    title = "Live TV",
-                                    subtitle = selectedChannel?.title
-                                        ?: "Choose a channel to start watching.",
-                                )
-                            }
-                            item(key = "player") {
-                                LivePlayerSurface(
-                                    playlist = playerPlaylist,
-                                    selectedChannel = selectedChannel,
-                                    playerHostState = playerHostState,
-                                    features = playerFeatures,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .then(
-                                            if (isMinimized) Modifier.height(104.dp)
-                                            else Modifier.aspectRatio(16f / 9f)
-                                        ),
+                            MobileScreenHeader(
+                                title = "Live TV",
+                                subtitle = selectedChannel?.title
+                                    ?: "Choose a channel to start watching.",
+                            )
+
+                            LivePlayerSurface(
+                                playlist = playerPlaylist,
+                                selectedChannel = selectedChannel,
+                                playerHostState = playerHostState,
+                                features = playerFeatures,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(16f / 9f),
+                                onBack = onBack,
+                                onFullscreenToggle = {
+                                    isMinimized = false
+                                    isFullscreen = true
+                                },
+                                onMinimizeToggle = { isMinimized = !isMinimized },
+                                isFullscreen = false,
+                                isMinimized = isMinimized,
+                                callbacks = PlayerCallbacks(
                                     onBack = onBack,
-                                    onFullscreenToggle = {
-                                        isMinimized = false
-                                        isFullscreen = true
+                                    onItemChanged = { _, playerIndex ->
+                                        allChannels.getOrNull(playerIndex)?.let { channel ->
+                                            viewModel.selectChannel(
+                                                channel.id,
+                                                closeOverlay = false
+                                            )
+                                        }
                                     },
-                                    onMinimizeToggle = { isMinimized = !isMinimized },
-                                    isFullscreen = false,
-                                    isMinimized = isMinimized,
-                                    callbacks = PlayerCallbacks(
-                                        onBack = onBack,
-                                        onItemChanged = { _, playerIndex ->
-                                            allChannels.getOrNull(playerIndex)?.let { channel ->
-                                                viewModel.selectChannel(
-                                                    channel.id,
-                                                    closeOverlay = false
-                                                )
-                                            }
-                                        },
-                                    ),
+                                ),
+                            )
+
+                            if (state.categories.isNotEmpty()) {
+                                MobileCategoryChips(
+                                    items = state.categories,
+                                    selectedItem = selectedCategory,
+                                    label = { category -> category.title },
+                                    key = { category -> category.id },
+                                    onSelected = { category -> viewModel.selectCategory(category.id) },
                                 )
                             }
-                            item(key = "categories") {
-                                if (state.categories.isNotEmpty()) {
-                                    MobileCategoryChips(
-                                        items = state.categories,
-                                        selectedItem = selectedCategory,
-                                        label = { category -> category.title },
-                                        key = { category -> category.id },
-                                        onSelected = { category -> viewModel.selectCategory(category.id) },
+
+                            LazyColumn(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                items(
+                                    items = selectedCategory?.channels.orEmpty(),
+                                    key = { channel -> channel.id },
+                                ) { channel ->
+                                    LiveChannelRow(
+                                        channel = channel,
+                                        selected = channel.id == selectedChannel?.id,
+                                        onClick = {
+                                            isMinimized = false
+                                            viewModel.selectChannel(channel.id, closeOverlay = true)
+                                        },
                                     )
                                 }
-                            }
-                            items(
-                                items = selectedCategory?.channels.orEmpty(),
-                                key = { channel -> channel.id },
-                            ) { channel ->
-                                LiveChannelRow(
-                                    channel = channel,
-                                    selected = channel.id == selectedChannel?.id,
-                                    onClick = {
-                                        isMinimized = false
-                                        viewModel.selectChannel(channel.id, closeOverlay = true)
-                                    },
-                                )
                             }
                         }
                     }

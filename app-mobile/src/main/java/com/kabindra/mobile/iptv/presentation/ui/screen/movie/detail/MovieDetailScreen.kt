@@ -7,11 +7,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,11 +32,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -120,9 +120,7 @@ fun MovieDetailScreen(
                                 )
                             }
                             item(key = "also_watch_rail") {
-                                LazyRow(
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                ) {
+                                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     items(
                                         items = recommendations,
                                         key = VODSummary::id,
@@ -157,98 +155,80 @@ private fun MovieHero(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
-        Column {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+        ) {
+            AsyncImage(
+                model = movie.backdropUrl.ifBlank { movie.posterUrl },
+                contentDescription = null,
+                modifier = Modifier
+                    .matchParentSize()
+                    .blur(28.dp),
+                contentScale = ContentScale.Crop,
+            )
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(if (compact) 16f / 10f else 21f / 9f)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-            ) {
-                AsyncImage(
-                    model = movie.backdropUrl.ifBlank { movie.posterUrl },
-                    contentDescription = movie.title,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Black.copy(alpha = 0.12f),
-                                    Color.Black.copy(alpha = 0.72f),
-                                )
+                    .matchParentSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.12f),
+                                Color.Black.copy(alpha = 0.68f),
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.96f),
                             )
                         )
+                    )
+            )
+
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(8.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.White,
                 )
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(8.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.White,
-                    )
-                }
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Text(
-                        text = movie.title,
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    movie.subtitle.takeIf(String::isNotBlank)?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.82f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
             }
 
             if (compact) {
                 Column(
-                    modifier = Modifier.padding(18.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 18.dp, top = 58.dp, end = 18.dp, bottom = 22.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
-                    MovieDescription(movie = movie)
+                    PosterThumbnail(
+                        movie = movie,
+                        modifier = Modifier.width(168.dp),
+                    )
+                    MovieTitleBlock(movie = movie, centered = true)
                     PlayButton(onClick = onPlay)
+                    MovieDescription(movie = movie, centered = true)
                 }
             } else {
                 Row(
-                    modifier = Modifier.padding(18.dp),
-                    horizontalArrangement = Arrangement.spacedBy(18.dp),
-                    verticalAlignment = Alignment.Top,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 26.dp, top = 72.dp, end = 26.dp, bottom = 26.dp),
+                    horizontalArrangement = Arrangement.spacedBy(24.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    AsyncImage(
-                        model = movie.posterUrl,
-                        contentDescription = movie.title,
-                        modifier = Modifier
-                            .width(150.dp)
-                            .aspectRatio(2f / 3f)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                        contentScale = ContentScale.Crop,
+                    PosterThumbnail(
+                        movie = movie,
+                        modifier = Modifier.width(210.dp),
                     )
                     Column(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
-                        MovieDescription(movie = movie)
+                        MovieTitleBlock(movie = movie, centered = false)
+                        MovieDescription(movie = movie, centered = false)
                         PlayButton(onClick = onPlay)
                     }
                 }
@@ -258,17 +238,65 @@ private fun MovieHero(
 }
 
 @Composable
-private fun MovieDescription(movie: VODDetail) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+private fun PosterThumbnail(
+    movie: VODDetail,
+    modifier: Modifier = Modifier,
+) {
+    AsyncImage(
+        model = movie.posterUrl.ifBlank { movie.backdropUrl },
+        contentDescription = movie.title,
+        modifier = modifier
+            .aspectRatio(2f / 3f)
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        contentScale = ContentScale.Crop,
+    )
+}
+
+@Composable
+private fun MovieTitleBlock(
+    movie: VODDetail,
+    centered: Boolean,
+) {
+    Column(
+        horizontalAlignment = if (centered) Alignment.CenterHorizontally else Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
         Text(
-            text = movie.description.ifBlank { "No description available." },
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 8,
+            text = movie.title,
+            style = MaterialTheme.typography.headlineMedium,
+            color = Color.White,
+            fontWeight = FontWeight.ExtraBold,
+            maxLines = 3,
             overflow = TextOverflow.Ellipsis,
+            textAlign = if (centered) TextAlign.Center else TextAlign.Start,
         )
-        Spacer(modifier = Modifier.height(2.dp))
+        movie.subtitle.takeIf(String::isNotBlank)?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White.copy(alpha = 0.78f),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = if (centered) TextAlign.Center else TextAlign.Start,
+            )
+        }
     }
+}
+
+@Composable
+private fun MovieDescription(
+    movie: VODDetail,
+    centered: Boolean,
+) {
+    Text(
+        text = movie.description.ifBlank { "No description available." },
+        style = MaterialTheme.typography.bodyLarge,
+        color = Color.White.copy(alpha = 0.86f),
+        maxLines = 8,
+        overflow = TextOverflow.Ellipsis,
+        textAlign = if (centered) TextAlign.Center else TextAlign.Start,
+    )
 }
 
 @Composable
