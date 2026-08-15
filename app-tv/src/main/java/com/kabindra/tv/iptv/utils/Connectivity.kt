@@ -74,15 +74,10 @@ private fun getNetworkConnection(
 private fun getNetworkConnection(capabilities: NetworkCapabilities?): NetworkConnection =
     when {
         capabilities == null -> NetworkConnection.NONE
-
-        !(capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) -> NetworkConnection.NONE
-
+        !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) -> NetworkConnection.NONE
         capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> NetworkConnection.ETHERNET
         capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> NetworkConnection.WIFI
-
         capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> NetworkConnection.CELLULAR
-
         else -> NetworkConnection.NONE
     }
 

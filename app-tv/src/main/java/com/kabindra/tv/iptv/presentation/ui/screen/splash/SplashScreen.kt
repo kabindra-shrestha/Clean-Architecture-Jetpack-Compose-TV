@@ -9,9 +9,12 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -25,6 +28,7 @@ import com.kabindra.tv.iptv.utils.error.GlobalErrorDialog
 import com.kabindra.tv.iptv.utils.extensions.mainBackground
 import com.kabindra.tv.iptv.utils.getPlatform
 import com.kabindra.tv.iptv.utils.success.GlobalSuccessDialog
+import kotlinx.coroutines.delay
 import network.chaintech.sdpcomposemultiplatform.sdp
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -38,16 +42,26 @@ fun SplashScreen(
     val connectivity = remember { Connectivity() }
     val isConnected by connectivity.isConnectedState.collectAsState()
     val splashState by splashViewModel.splashState.collectAsStateWithLifecycle()
+    var showNoInternetDialog by remember { mutableStateOf(false) }
 
-    // Use DisposableEffect to reset states when the composable is disposed
     DisposableEffect(Unit) {
         onDispose {
-            // Reset the relevant states
             splashViewModel.resetStates()
         }
     }
 
-    if (!isConnected) {
+    LaunchedEffect(isConnected) {
+        if (!isConnected) {
+            delay(3000)
+            if (!isConnected) {
+                showNoInternetDialog = true
+            }
+        } else {
+            showNoInternetDialog = false
+        }
+    }
+
+    if (showNoInternetDialog) {
         GlobalErrorDialog(
             isVisible = true,
             statusCode = -1,
